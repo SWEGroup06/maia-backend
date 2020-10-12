@@ -1,1 +1,1 @@
-# maia-backend
+# MAIA
