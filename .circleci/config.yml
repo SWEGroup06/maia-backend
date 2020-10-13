@@ -5,15 +5,13 @@ orbs:
 
 jobs:
   build-and-test:
+    working_directory: ~/
     executor: python/default
     steps:
       - checkout
       - python/load-cache
       - python/install-deps
       - python/save-cache
-      - run:
-          command: ./manage.py test
-          name: Test
 
 workflows:
   main:
