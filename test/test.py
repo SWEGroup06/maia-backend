@@ -1,4 +1,4 @@
-import hello_world
+import ../hello_world
 import unittest
 
 class Tester(unittest.TestCase):
