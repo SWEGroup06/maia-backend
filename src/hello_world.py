@@ -2,6 +2,6 @@
 
 class hello():
 
-    def hi():
+    def hi(self):
         return "hello_world"
 
