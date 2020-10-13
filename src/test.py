@@ -1,5 +1,9 @@
-from src import hello_world
+import sys
 import unittest
+
+sys.path.append('../')
+
+from src import hello_world
 
 
 class Tester(unittest.TestCase):

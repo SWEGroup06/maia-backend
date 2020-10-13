@@ -7,7 +7,7 @@ jobs:
     steps:
       - checkout
       - run: pip install -r requirements.txt
-      - run: python3 test/test.py
+      - run: python3 src/test.py # Move to test directory
 
 workflows:
   main:
