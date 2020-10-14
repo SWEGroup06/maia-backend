@@ -1,4 +1,8 @@
-from datetime import datetime, timedelta, time
+"""
+Module defining Scheduler class
+"""
+
+from datetime import datetime, timedelta
 
 
 class Scheduler:
@@ -14,7 +18,8 @@ class Scheduler:
 
     # free_times is a list of (start_free_time, duration_of_free_time)
     # pre-conditions:
-    #  - everyones_free_times contains all times between possible start datetime and end datetime of meeting
+    #  everyones_free_times contains all times between possible start datetime and end datetime
+    #  of meeting
     def schedule(self, everyones_free_datetimes: [(datetime, datetime)],
                  # everyones_maybe_datetimes:  [(datetime, int)],
                  duration_of_event: timedelta,
@@ -27,9 +32,9 @@ class Scheduler:
             i = 0
             j = 0
             while i < len(ans) and j < len(person_frees):
-                x = self.intersects(ans[i], person_frees[j], duration_of_event)
-                if x != None:
-                    temp.append(x)
+                intersect = self.intersects(ans[i], person_frees[j], duration_of_event)
+                if intersect is not None:
+                    temp.append(intersect)
                 # increment pointer for free list item that ends first, keeps the other the same
                 if ans[i][1] < person_frees[j][1]:
                     i += 1

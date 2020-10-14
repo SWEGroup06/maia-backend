@@ -1,10 +1,11 @@
 
 
-class hello():
+class Hello:
 
     def __init__(self):
         pass
 
-    def hi(self):
+    @staticmethod
+    def hi():
         return "hello_world"
 
