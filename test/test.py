@@ -1,9 +1,8 @@
 import unittest
-import hello_world
+from src import hello_world
 
-class Tester(unittest.TestCase):
-
-    def test(self):
+class MyTestCase(unittest.TestCase):
+    def test_something(self):
         result = "hello_world"
         self.assertEqual(hello_world.hello().hi(), result)
 
