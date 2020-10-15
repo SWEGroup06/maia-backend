@@ -1,5 +1,3 @@
-
-
 class hello():
 
     def __init__(self):
@@ -7,4 +5,3 @@ class hello():
 
     def hi(self):
         return "hello_world"
-
