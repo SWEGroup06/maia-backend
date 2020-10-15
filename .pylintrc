@@ -61,6 +61,8 @@ confidence=
 # no Warning level messages displayed, use "--disable=all --enable=classes
 # --disable=W".
 disable=print-statement,
+        unnecessary-pass, # Ali: Added on 15/10/2020
+        missing-module-docstring, # Ali: Added on 15/10/2020
         parameter-unpacking,
         unpacking-in-except,
         old-raise-syntax,
@@ -577,7 +579,8 @@ max-returns=6
 max-statements=50
 
 # Minimum number of public methods for a class (see R0903).
-min-public-methods=2
+# Ali: Set this to zero on 15/10/2020
+min-public-methods=0
 
 
 [EXCEPTIONS]
