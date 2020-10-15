@@ -69,13 +69,14 @@ class Scheduler:
             begin = start_datetime
             curr_free_times = []
             for busy_time in schedule:
-                if busy_time[1] > end_datetime:
+                if busy_time['end'] > end_datetime:
                     break
-                if begin < busy_time[0]:
-                    curr_free_times.append((begin, busy_time[0]))
-                    begin = busy_time[1]
+                if begin < busy_time['start']:
+                    curr_free_times.append((begin, busy_time['start']))
+                    begin = busy_time['end']
             if begin < end_datetime:
                 curr_free_times.append((begin, end_datetime))
             ans.append(curr_free_times)
 
         return ans
+
