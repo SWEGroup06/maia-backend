@@ -2,14 +2,19 @@
 Module defining Scheduler class
 """
 
-from datetime import datetime, timedelta, time
+from datetime import datetime, timedelta
 
 
 class Scheduler:
+    """
+    TODO: Add comment for Scheduler class
+    """
     @staticmethod
     def intersects(range1, range2, duration):
-        # if they intersect for required duration: return range of times intersection can start
-        # else return None
+        """
+        if they intersect for required duration: return range of times intersection can start
+        else return None
+        """
         new_range = (
             max(range1[0], range2[0]),
             min(range1[1], range2[1])
@@ -36,7 +41,8 @@ class Scheduler:
             i = 0
             j = 0
             while i < len(ans) and j < len(person_frees):
-                intersect = self.intersects(ans[i], person_frees[j], duration_of_event)
+                intersect = self.intersects(
+                    ans[i], person_frees[j], duration_of_event)
                 if intersect is not None:
                     temp.append(intersect)
                 # increment pointer for free list item that ends first, keeps the other the same
