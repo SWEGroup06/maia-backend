@@ -17,7 +17,6 @@ DAY1 = date(2020, 10, 14)
 FREE_DATETIME1 = [get_dt(DAY1, time(9 + 3 * x), timedelta(hours=1)) for x in range(5)]
 FREE_DATETIME2 = [get_dt(DAY1, time(9 + 4 * x), timedelta(hours=1)) for x in range(4)]
 
-ALL_FREE_DATETIMES = [FREE_DATETIME1, FREE_DATETIME2]
 
 FREE_DATETIME3 = [get_dt(DAY1, time(9), timedelta(minutes=30)),
                   get_dt(DAY1, time(15), timedelta(hours=6, minutes=30)),
@@ -29,20 +28,22 @@ FREE_DATETIME4 = [(datetime(2020, 10, 14, 9), datetime(2020, 10, 14, 12)),
 
 DURATION = timedelta(minutes=30)
 
+
 class TestScheduler(TestCase):
-    def test_intersects(self):
-        # self.fail()
+    def test_scheduler_only_returns_free_times(self):
         scheduler = sch.Scheduler()
-        free_times = scheduler.schedule(ALL_FREE_DATETIMES, DURATION)
-        excepted_times = [(get_dt())]
+        output_times = scheduler.schedule([FREE_DATETIME1, FREE_DATETIME2], DURATION)
+        expected_times = [get_dt(DAY1, time(9), DURATION), get_dt(DAY1, time(21), DURATION)]
+        self.assertTrue(set(output_times).issubset(expected_times))
+
+    def test_scheduler_finds_intersection_of_two_schedules(self):
+        scheduler = sch.Scheduler()
+        output_times = scheduler.schedule([FREE_DATETIME1, FREE_DATETIME2], DURATION)
+        expected_times = [get_dt(DAY1, time(9), DURATION), get_dt(DAY1, time(21), DURATION)]
+        self.assertCountEqual(output_times, expected_times)
+
+    def test_finds_intersection_in_three_schedules(self):
         pass
 
-    def finds_intersection_in_two_schedules(self):
-        # self.fail()
-        pass
-
-    def finds_intersection_in_three_schedules(self):
-        pass
-
-    def intersection_is_within_constraints(self):
+    def test_intersection_is_within_constraints(self):
         pass
