@@ -7,12 +7,13 @@ class MyTestCase(unittest.TestCase):
     Test cases for Maia backend.
     TODO: Improve this docstring
     """
+
     def test_something(self):
         """
 
         :return:
         """
-        result = "hello_world"
+        result = "Hello, world!"
         self.assertEqual(hello_world.say_hello_world(), result)
 
 
