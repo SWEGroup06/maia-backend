@@ -68,9 +68,9 @@ class TestScheduler(TestCase):
 
     def test_transforms_busy_schedule_to_free(self):
         """
-        ???
-        :return:
+        busy_to_free() converts a list of busy schedules to free schedules
+        :return: list of free schedules
         """
-        start_datetime, end_datetime = get_dt(DAY1, time(9), timedelta(13))
-        free_times = SCHEDULER.busy_to_free(BUSY_DATETIME1, start_datetime, end_datetime)[0]
+        start_datetime, end_datetime = get_dt(DAY1, time(9), timedelta(hours=13))
+        free_times = SCHEDULER.busy_to_free([BUSY_DATETIME1], start_datetime, end_datetime)[0]
         self.assertCountEqual(free_times, FREE_DATETIME1)
