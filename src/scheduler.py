@@ -2,7 +2,7 @@
 Module defining Scheduler class
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 
 
 class Scheduler:
@@ -16,17 +16,15 @@ class Scheduler:
         )
         return new_range if new_range[0] + duration <= new_range[1] else None
 
-    # everyones_free_datetimes is a list of (start_free_datetime, end_free_datetime)
-    # pre-conditions:
-    #  everyones_free_datetimes contains all times between possible start datetime and end datetime
-    #  of meeting
     def schedule(self, everyones_free_datetimes: [[(datetime, datetime)]],
                  # everyones_maybe_datetimes:  [(datetime, int)],
-                 duration_of_event: timedelta,
-                 # work_time_start: time,
-                 # work_time_end: time
+                 duration_of_event: timedelta
                  ) -> [(datetime, datetime)]:
         """
+        everyones_free_datetimes is a list of (start_free_datetime, end_free_datetime)
+        pre-conditions:
+        everyones_free_datetimes contains all times between possible start datetime and end datetime
+        of meeting
         :param everyones_free_datetimes:
         :param duration_of_event:
         :return: ranges for all possible start date times of the event (gives range of every
@@ -53,5 +51,31 @@ class Scheduler:
         #     since can start anytime between 9am and 10am for a 1hr meeting
         ans = [(start_datetime, end_datetime - duration_of_event)
                for (start_datetime, end_datetime) in ans]
+
+        return ans
+
+    @staticmethod
+    def busy_to_free(schedules: [[tuple]], start_datetime: datetime, end_datetime: datetime) \
+            -> [[(datetime, datetime)]]:
+        """
+        This function converts schedules of busy times into a schedule of free times.
+        :param schedules: schedules of the people in the team. The events are sorted by time.
+        :param start_datetime: The first time the event can be scheduled in
+        :param end_datetime: The time by which the event must be completed
+        :return: a list of lists of free periods for the givens schedules
+        """
+        ans = []
+        for schedule in schedules:
+            begin = start_datetime
+            curr_free_times = []
+            for busy_time in schedule:
+                if busy_time[1] > end_datetime:
+                    break
+                if begin < busy_time[0]:
+                    curr_free_times.append((begin, busy_time[0]))
+                    begin = busy_time[1]
+            if begin < end_datetime:
+                curr_free_times.append((begin, end_datetime))
+            ans.append(curr_free_times)
 
         return ans

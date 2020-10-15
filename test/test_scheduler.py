@@ -13,17 +13,22 @@ def get_dt(date1: date, time1: time, duration: timedelta) -> (datetime, datetime
 
 
 DAY1 = date(2020, 10, 14)
+DAY2 = date(2020, 10, 15)
 
 FREE_DATETIME1 = [get_dt(DAY1, time(9 + 3 * x), timedelta(hours=1)) for x in range(5)]
 FREE_DATETIME2 = [get_dt(DAY1, time(9 + 4 * x), timedelta(hours=1)) for x in range(4)]
-
-
 FREE_DATETIME3 = [get_dt(DAY1, time(9), timedelta(minutes=30)),
                   get_dt(DAY1, time(15), timedelta(hours=6, minutes=30))]
 
-FREE_DATETIME4 = [(datetime(2020, 10, 14, 9), datetime(2020, 10, 14, 12)),
-                  (datetime(2020, 10, 14, 12, 30), datetime(2020, 10, 14, 13)),
-                  (datetime(2020, 10, 14, 20), datetime(2020, 10, 14, 21))]
+FREE_DATETIME4 = FREE_DATETIME1 + \
+                 [get_dt(DAY2, time(9 + 3 * x), timedelta(hours=1)) for x in range(5)]
+FREE_DATETIME5 = [get_dt(DAY2, time(9 + 4 * x), timedelta(hours=1)) for x in range(4)]
+FREE_DATETIME6 = FREE_DATETIME3 + \
+                 [get_dt(DAY2, time(10), timedelta(minutes=30)),
+                  get_dt(DAY2, time(15), timedelta(hours=6, minutes=30))]
+
+BUSY_DATETIME1 = [get_dt(DAY1, time(10 + 3 * x), timedelta(hours=2)) for x in range(5)]
+
 
 DURATION = timedelta(minutes=30)
 
@@ -46,7 +51,8 @@ class TestScheduler(TestCase):
         Finds the intersection of free times in three people's schedules
         :return:
         """
-        output_times = SCHEDULER.schedule([FREE_DATETIME1, FREE_DATETIME2, FREE_DATETIME3], DURATION)
+        output_times = SCHEDULER.schedule([FREE_DATETIME1, FREE_DATETIME2, FREE_DATETIME3],
+                                          DURATION)
         expected_times = [get_dt(DAY1, time(9), timedelta(0)), get_dt(DAY1, time(21), timedelta(0))]
         self.assertCountEqual(output_times, expected_times)
 
@@ -55,13 +61,16 @@ class TestScheduler(TestCase):
         Finds the intersection of free times in three people's schedules
         :return:
         """
-        output_times = SCHEDULER.schedule([FREE_DATETIME1, FREE_DATETIME2], DURATION)
-        expected_times = [get_dt(DAY1, time(9), DURATION), get_dt(DAY1, time(22), DURATION)]
+        output_times = SCHEDULER.schedule([FREE_DATETIME4, FREE_DATETIME5, FREE_DATETIME6],
+                                          DURATION)
+        expected_times = [get_dt(DAY2, time(21), timedelta(0))]
         self.assertCountEqual(output_times, expected_times)
 
-    def test_intersection_is_within_constraints(self):
+    def test_transforms_busy_schedule_to_free(self):
         """
-        Finds free times within constraints i.e free slots only during the work day.
+        ???
         :return:
         """
-        pass
+        start_datetime, end_datetime = get_dt(DAY1, time(9), timedelta(13))
+        free_times = SCHEDULER.busy_to_free(BUSY_DATETIME1, start_datetime, end_datetime)[0]
+        self.assertCountEqual(free_times, FREE_DATETIME1)
