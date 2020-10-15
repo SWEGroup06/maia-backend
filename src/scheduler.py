@@ -2,14 +2,26 @@
 Module defining Scheduler class
 """
 
-from datetime import datetime, timedelta, time
+from datetime import datetime, timedelta
 
 
 class Scheduler:
+    """
+    class for scheduling algorithm
+    """
+
     @staticmethod
     def intersects(range1, range2, duration):
-        # if they intersect for required duration: return range of times intersection can start
-        # else return None
+        """
+        returns intersection between two date time ranges
+        :param range1: free date time period
+        :param range2: another free date time period
+        :param duration: size of intersection sufficient to contain meeting
+        :return: if they intersect for required duration: return range of times intersection
+                 can start
+                 else return None
+        """
+
         new_range = (
             max(range1[0], range2[0]),
             min(range1[1], range2[1])
@@ -79,4 +91,3 @@ class Scheduler:
             ans.append(curr_free_times)
 
         return ans
-
