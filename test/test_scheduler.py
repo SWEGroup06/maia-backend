@@ -31,19 +31,35 @@ DURATION = timedelta(minutes=30)
 
 class TestScheduler(TestCase):
     def test_scheduler_only_returns_free_times(self):
+        """
+        Testing similar  to finds_intersection_in_two_schedules
+        :return:
+        """
         scheduler = sch.Scheduler()
         output_times = scheduler.schedule([FREE_DATETIME1, FREE_DATETIME2], DURATION)
         expected_times = [get_dt(DAY1, time(9), DURATION), get_dt(DAY1, time(21), DURATION)]
         self.assertTrue(set(output_times).issubset(expected_times))
 
-    def test_scheduler_finds_intersection_of_two_schedules(self):
+    def test_finds_intersection_in_two_schedules(self):
+        """
+        Finds the intersection of free times in two people's schedules
+        :return:
+        """
         scheduler = sch.Scheduler()
         output_times = scheduler.schedule([FREE_DATETIME1, FREE_DATETIME2], DURATION)
         expected_times = [get_dt(DAY1, time(9), DURATION), get_dt(DAY1, time(21), DURATION)]
         self.assertCountEqual(output_times, expected_times)
 
     def test_finds_intersection_in_three_schedules(self):
+        """
+        Finds the intersection of free times in three people's schedules
+        :return:
+        """
         pass
 
     def test_intersection_is_within_constraints(self):
+        """
+        Finds free times within constraints i.e free slots only during the work day.
+        :return:
+        """
         pass
