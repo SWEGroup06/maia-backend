@@ -19,34 +19,25 @@ FREE_DATETIME2 = [get_dt(DAY1, time(9 + 4 * x), timedelta(hours=1)) for x in ran
 
 
 FREE_DATETIME3 = [get_dt(DAY1, time(9), timedelta(minutes=30)),
-                  get_dt(DAY1, time(15), timedelta(hours=6, minutes=30)),
-                  (datetime(2020, 10, 14, 15), datetime(2020, 10, 14, 20)),
-                  (datetime(2020, 10, 14, 21), datetime(2020, 10, 14, 22, 30))]
+                  get_dt(DAY1, time(15), timedelta(hours=6, minutes=30))]
+
 FREE_DATETIME4 = [(datetime(2020, 10, 14, 9), datetime(2020, 10, 14, 12)),
                   (datetime(2020, 10, 14, 12, 30), datetime(2020, 10, 14, 13)),
                   (datetime(2020, 10, 14, 20), datetime(2020, 10, 14, 21))]
 
 DURATION = timedelta(minutes=30)
 
+SCHEDULER = sch.Scheduler()
+
 
 class TestScheduler(TestCase):
-    def test_scheduler_only_returns_free_times(self):
-        """
-        Testing similar  to finds_intersection_in_two_schedules
-        :return:
-        """
-        scheduler = sch.Scheduler()
-        output_times = scheduler.schedule([FREE_DATETIME1, FREE_DATETIME2], DURATION)
-        expected_times = [get_dt(DAY1, time(9), DURATION), get_dt(DAY1, time(21), DURATION)]
-        self.assertTrue(set(output_times).issubset(expected_times))
 
     def test_finds_intersection_in_two_schedules(self):
         """
         Finds the intersection of free times in two people's schedules
         :return:
         """
-        scheduler = sch.Scheduler()
-        output_times = scheduler.schedule([FREE_DATETIME1, FREE_DATETIME2], DURATION)
+        output_times = SCHEDULER.schedule([FREE_DATETIME1, FREE_DATETIME2], DURATION)
         expected_times = [get_dt(DAY1, time(9), DURATION), get_dt(DAY1, time(21), DURATION)]
         self.assertCountEqual(output_times, expected_times)
 
@@ -55,7 +46,18 @@ class TestScheduler(TestCase):
         Finds the intersection of free times in three people's schedules
         :return:
         """
-        pass
+        output_times = SCHEDULER.schedule([FREE_DATETIME1, FREE_DATETIME2, FREE_DATETIME3], DURATION)
+        expected_times = [get_dt(DAY1, time(9), timedelta(0)), get_dt(DAY1, time(21), timedelta(0))]
+        self.assertCountEqual(output_times, expected_times)
+
+    def test_finds_intersection_over_multiple_days(self):
+        """
+        Finds the intersection of free times in three people's schedules
+        :return:
+        """
+        output_times = SCHEDULER.schedule([FREE_DATETIME1, FREE_DATETIME2], DURATION)
+        expected_times = [get_dt(DAY1, time(9), DURATION), get_dt(DAY1, time(22), DURATION)]
+        self.assertCountEqual(output_times, expected_times)
 
     def test_intersection_is_within_constraints(self):
         """
