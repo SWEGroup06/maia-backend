@@ -29,8 +29,13 @@ FREE_DATETIME4 = [(datetime(2020, 10, 14, 9), datetime(2020, 10, 14, 12)),
 
 DURATION = timedelta(minutes=30)
 
+
 class TestScheduler(TestCase):
     def test_intersects(self):
+        """
+        Testing similar  to finds_intersection_in_two_schedules
+        :return:
+        """
         # self.fail()
         scheduler = sch.Scheduler()
         free_times = scheduler.schedule(ALL_FREE_DATETIMES, DURATION)
@@ -38,11 +43,23 @@ class TestScheduler(TestCase):
         pass
 
     def finds_intersection_in_two_schedules(self):
+        """
+        Finds the intersection of free times in two people's schedules
+        :return:
+        """
         # self.fail()
         pass
 
     def finds_intersection_in_three_schedules(self):
+        """
+        Finds the intersection of free times in three people's schedules
+        :return:
+        """
         pass
 
     def intersection_is_within_constraints(self):
+        """
+        Finds free times within constraints i.e free slots only during the work day.
+        :return:
+        """
         pass
