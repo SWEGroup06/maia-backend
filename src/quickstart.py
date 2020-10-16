@@ -77,6 +77,10 @@ def getFreeBusy(service, timeMin, timeMax):
     busy_data = response['calendars']
     return busy_data
 
+def createEvent(service, event):
+    event = service.events().insert(calendarId='primary', body=event).execute()
+    print('Event created: %s' % (event.get('htmlLink')))
+
 
 if __name__ == '__main__':
     main()
