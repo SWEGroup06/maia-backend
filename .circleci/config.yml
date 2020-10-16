@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  heroku: circleci/heroku@0.0.10.
+  heroku: circleci/heroku@0.0.10
 
 jobs:
   build-and-test:
@@ -14,11 +14,17 @@ jobs:
       - run: pylint src test
       - run: python3 -m test.test
       - run: python3 -m test.test_scheduler
+  heroku-deploy:
+    executor:
+      name: heroku/default
+    steps:
+      - checkout
+      - heroku/deploy-via-git
 
 workflows:
   main:
     jobs:
       - build-and-test
-      - heroku/deploy-via-git:
-          requires: build-and-test
+      - heroku-deploy
+    
        
