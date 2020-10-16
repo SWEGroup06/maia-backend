@@ -2,6 +2,7 @@ from __future__ import print_function
 import datetime
 import pickle
 import os.path
+import scheduler
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
@@ -61,7 +62,7 @@ def getEvents(service):
     events = events_result.get('items', [])
     return events
 
-def getFreeBusy(service, timeMin, timeMax):
+def getFreeBusyForSingleCalendar(service, timeMin, timeMax):
     #body might have to be created by bot
     body = {
         "timeMin": timeMin,
@@ -74,8 +75,13 @@ def getFreeBusy(service, timeMin, timeMax):
                       ]
     }
     response = service.freebusy().query(body=body).execute()
-    busy_data = response['calendars']
+    busy_data = response['calendars']['primary']['busy']
     return busy_data
+
+def getFreeBusyForAllCalendars(service, timeMin, timeMax, calendars):
+    return [getFreeBusyForSingleCalendar(x, timeMin, timeMax) for x in calendars]
+
+
 
 def createEvent(service, event):
     event = service.events().insert(calendarId='primary', body=event).execute()

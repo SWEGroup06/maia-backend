@@ -3,7 +3,7 @@ Module defining Scheduler class
 """
 
 from datetime import datetime, timedelta
-
+import json
 
 class Scheduler:
     """
@@ -91,3 +91,12 @@ class Scheduler:
             ans.append(curr_free_times)
 
         return ans
+
+def jsonify(schedules):
+    j = []
+    for schedule in schedules:
+        x = []
+        for (start, end) in schedule:
+            x.append({"end": end, "start":start})
+        j.append(x)
+    return j
