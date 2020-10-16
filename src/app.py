@@ -21,6 +21,7 @@ def login():
 
     return jsonify({"login": request.args.get('id')})
 
+
 @MAIA.route('/api/free-slots')
 def free_slots():
     """
@@ -29,12 +30,12 @@ def free_slots():
     """
 
     return jsonify([{
-          "start": "2019-03-02T15:00:00Z",
-          "end": "2019-03-02T20:30:00Z"
-        },{
-          "start": "2019-03-03T02:00:00Z",
-          "end": "2019-03-03T03:15:00Z"
-        }])
+        "start": "2019-03-02T15:00:00Z",
+        "end": "2019-03-02T20:30:00Z"
+    }, {
+        "start": "2019-03-03T02:00:00Z",
+        "end": "2019-03-03T03:15:00Z"
+    }])
 
 
 if __name__ == '__main__':
