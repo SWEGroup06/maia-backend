@@ -16,7 +16,8 @@ def get_dt(date1: date, time1: time, duration: timedelta) -> (datetime, datetime
     :param duration: duration of event
     :return: (start datetime, end datetime) for given event
     """
-    datetime1 = datetime(date1.year, date1.month, date1.day, time1.hour, time1.minute)
+    datetime1 = datetime(date1.year, date1.month,
+                         date1.day, time1.hour, time1.minute)
     return datetime1, datetime1 + duration
 
 
@@ -28,7 +29,8 @@ def get_dt_google_format(date1: date, time1: time, duration: timedelta) -> (date
     :param duration: duration of event
     :return: {'start': start date time, 'end': end date time} for a given event
     """
-    datetime1 = datetime(date1.year, date1.month, date1.day, time1.hour, time1.minute)
+    datetime1 = datetime(date1.year, date1.month,
+                         date1.day, time1.hour, time1.minute)
     return {'start': datetime1, 'end': datetime1 + duration}
 
 
@@ -36,8 +38,10 @@ DAY1 = date(2020, 10, 14)
 DAY2 = date(2020, 10, 15)
 
 
-FREE_DATETIME1 = [get_dt(DAY1, time(9 + 3 * x), timedelta(hours=1)) for x in range(5)]
-FREE_DATETIME2 = [get_dt(DAY1, time(9 + 4 * x), timedelta(hours=1)) for x in range(4)]
+FREE_DATETIME1 = [get_dt(DAY1, time(9 + 3 * x), timedelta(hours=1))
+                  for x in range(5)]
+FREE_DATETIME2 = [get_dt(DAY1, time(9 + 4 * x), timedelta(hours=1))
+                  for x in range(4)]
 FREE_DATETIME3 = [get_dt(DAY1, time(9), timedelta(minutes=30)),
                   get_dt(DAY1, time(15), timedelta(hours=6, minutes=30))]
 
