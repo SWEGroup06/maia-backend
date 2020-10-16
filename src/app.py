@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, request, jsonify
 
 MAIA = Flask(__name__)
 
@@ -12,18 +12,19 @@ def home():
     return 'This is the REST API for Maia'
 
 
-@MAIA.route('/api/login')
+@MAIA.route('/api/login', methods=['GET'])
 def login():
     """
-    TODO Comment
-    :return:
+    Login using a calendar id
+    :return: TODO
     """
-    return jsonify({"login": "Test"})
 
-@MAIA.route('/api/busy-slots')
-def busy_slots():
+    return jsonify({"login": request.args.get('id')})
+
+@MAIA.route('/api/free-slots')
+def free_slots():
     """
-    Retrieves the busy slots for the user
+    Retrieves the free slots for the user
     :return: Returns a JSON object containing the ranges of times which are busy
     """
 
