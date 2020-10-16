@@ -1,1 +1,1 @@
-web: gunicorn app:MAIA
+web: gunicorn app:MAIA -b 0.0.0.0:$PORT -w 3
