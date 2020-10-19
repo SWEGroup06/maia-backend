@@ -16,16 +16,28 @@ def home():
 
 
 @MAIA.route('/oauth2callback', methods=['GET'])
-def login():
+def auth():
     """
     Google Authenication Callback
     """
 
     try:
-        state = json.loads(unquote(request.args.get('state')))
         code = request.args.get('code')
-        
         return render_template('index.html', code=code)
+    except:
+        return jsonify({"error:": "Invalid Parameters"})
+
+@MAIA.route('/login', methods=['GET'])
+def login():
+    """
+    Account Login
+    """
+
+    try:
+        user = json.loads(unquote(request.args.get('state')))
+        tokens = json.loads(unquote(request.args.get('tokens')))
+        
+        return jsonify({"user": user, "tokens": tokens})
     except:
         return jsonify({"error:": "Invalid Parameters"})
 
