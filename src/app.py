@@ -12,14 +12,14 @@ def home():
     return 'This is the REST API for Maia'
 
 
-@MAIA.route('/api/login', methods=['GET'])
+@MAIA.route('/oauth2callback', methods=['GET'])
 def login():
     """
-    Login using a calendar id
+    Google Authenication Callback
     :return: TODO
     """
 
-    return jsonify({"login": request.args.get('id')})
+    return jsonify({"state": request.args.get('state'), "code": request.args.get('code')})
 
 
 @MAIA.route('/api/free-slots')
