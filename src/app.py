@@ -34,9 +34,9 @@ def login():
     """
 
     try:
-        user = json.loads(unquote(request.args.get('state')))
+        user = json.loads(unquote(request.args.get('user')))
         tokens = json.loads(unquote(request.args.get('tokens')))
-        
+
         return jsonify({"user": user, "tokens": tokens})
     except:
         return jsonify({"error:": "Invalid Parameters"})
