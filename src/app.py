@@ -1,6 +1,9 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
+from urllib.parse import unquote
 
-MAIA = Flask(__name__)
+import json
+
+MAIA = Flask(__name__, template_folder='html', static_folder='static')
 
 
 @MAIA.route('/')
@@ -16,10 +19,15 @@ def home():
 def login():
     """
     Google Authenication Callback
-    :return: TODO
     """
 
-    return jsonify({"state": request.args.get('state'), "code": request.args.get('code')})
+    try:
+        state = json.loads(unquote(request.args.get('state')))
+        code = request.args.get('code')
+        
+        return render_template('index.html', code=code)
+    except:
+        return jsonify({"error:": "Invalid Parameters"})
 
 
 @MAIA.route('/api/free-slots')
