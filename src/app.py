@@ -3,7 +3,7 @@ from urllib.parse import unquote
 
 import json
 
-MAIA = Flask(__name__, template_folder='html', static_folder='static')
+MAIA = Flask(__name__, template_folder='html')
 
 
 @MAIA.route('/')
