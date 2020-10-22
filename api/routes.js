@@ -50,12 +50,11 @@ router.get('/freeslots', function(req, res) {
     res.json({error: 'No time period'});
     return;
   }
-  const tokens = JSON.parse(decodeURIComponent(req.query.tokens));
   const startDate = JSON.parse(decodeURIComponent(req.query.startDate));
   const endDate = JSON.parse(decodeURIComponent(req.query.endDate));
 
-
   if (req.query.tokens) {
+    const tokens = JSON.parse(decodeURIComponent(req.query.tokens));
     AUTH.getBusySchedule(tokens,
         startDate,
         endDate).then(function(data) {
