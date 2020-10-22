@@ -1,0 +1,28 @@
+{
+  "name": "maia-backend",
+  "version": "1.0.0",
+  "description": "### Instructions for Python linting",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SWEGroup06/maia-backend.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SWEGroup06/maia-backend/issues"
+  },
+  "homepage": "https://github.com/SWEGroup06/maia-backend#readme"
+}
