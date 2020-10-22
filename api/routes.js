@@ -19,6 +19,7 @@ router.get('/login', function(req, res) {
     return;
   }
 
+  // eslint-disable-next-line no-unused-vars
   const userId = JSON.parse(decodeURIComponent(req.query.userId));
 
   // Google auth callback
