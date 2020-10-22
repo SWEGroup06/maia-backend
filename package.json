@@ -1,7 +1,7 @@
 {
   "name": "maia-backend",
   "version": "1.0.0",
-  "description": "### Instructions for Python linting",
+  "description": "REST API for Maia AI calendar assistant",
   "main": "index.js",
   "directories": {
     "test": "test"
