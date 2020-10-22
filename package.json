@@ -1,0 +1,19 @@
+{
+  "name": "maia-backend",
+  "version": "1.0.0",
+  "dependencies": {
+    "babel-polyfill": "^6.26.0",
+    "luxon": "latest"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "babel-register": "^6.26.0",
+    "jest": "^26.6.0"
+  },
+  "jest": {
+    "verbose": true
+  },
+  "type": "module"
+}
