@@ -1,12 +1,12 @@
 # Environments
 .env.json
 
-#vscode
+# VSCode
 .vscode
 
 # PyCharm
 .idea
 
-# node
+# Node
 node_modules
 .DS_Store

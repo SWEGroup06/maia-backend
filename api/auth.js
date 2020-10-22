@@ -30,4 +30,10 @@ module.exports = {
       });
     });
   },
+  createMeeting(tokens) {
+    oauth2Client.setCredentials(tokens);
+    return new Promise(function(resolve, reject) {
+      resolve();
+    });
+  },
 };

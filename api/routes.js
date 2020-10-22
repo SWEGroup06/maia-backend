@@ -13,6 +13,9 @@ router.get('/', function(_, res) {
 // login callback
 router.get('/login', function(req, res) {
   if (!req.query.userId) {
+
+    //TODO: Check if userId is in database
+
     res.json({error: 'No userID provided'});
     return;
   }
@@ -27,16 +30,22 @@ router.get('/login', function(req, res) {
     }
 
     AUTH.getTokens(req.query.code).then(function(tokens) {
-      // TODO: Ihowa
-      CALENDAR.getCalendarData(tokens);
+      // TODO: Store UserId + tokens in DB
 
-      // Temporary response
-      res.json({userId, tokens});
+      // TODO: Temporary response (Change to html template?)
+      res.json({success: true});
     });
   });
 
 
   res.json({url: AUTH.generateAuthUrl()});
+});
+
+router.get('/freeslots', function(req, res) {
+  if (req.query.userId) {
+    res.json({error: 'No userId provided'});
+    return;
+  }
 });
 
 module.exports = router;
