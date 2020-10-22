@@ -18,29 +18,35 @@ router.get('/login', function(req, res) {
   }
 
   // TODO: Check if entry exists in DB
-  // const userId = JSON.parse(decodeURIComponent(req.query.userId));
 
-  // Google auth callback
-  router.get('/oauth2callback', function(req, res) {
-    if (!req.query.code) {
-      res.json({error: 'No code provided'});
-      return;
-    }
+  const userId = JSON.parse(decodeURIComponent(req.query.userId));
+  res.json({url: AUTH.generateAuthUrl(userId)});
+});
 
-    AUTH.getTokens(req.query.code).then(function(tokens) {
-      // TODO: Store UserId + tokens in DB
 
-      // Redirect to success page
-      // res.redirect('success');
-      res.json({userId, tokens});
-    }).catch(function(error) {
-      console.log(error);
-      res.json({error});
-    });
+// Google auth callback
+router.get('/oauth2callback', function(req, res) {
+  if (!req.query.code) {
+    res.json({error: 'No code provided'});
+    return;
+  }
+  if (!req.query.userId) {
+    res.json({error: 'No userID provided'});
+    return;
+  }
+
+  const userId = JSON.parse(decodeURIComponent(req.query.userId));
+
+  AUTH.getTokens(req.query.code).then(function(tokens) {
+    // TODO: Store UserId + tokens in DB
+
+    // Redirect to success page
+    // res.redirect('success');
+    res.json({userId, tokens});
+  }).catch(function(error) {
+    console.log(error);
+    res.json({error});
   });
-
-
-  res.json({url: AUTH.generateAuthUrl()});
 });
 
 router.get('/freeslots', function(req, res) {
