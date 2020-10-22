@@ -1,18 +1,19 @@
 version: 2.1
 
 orbs:
+  node: circleci/node@1.1.6
   heroku: circleci/heroku@0.0.10
 
 jobs:
   build-and-test:
-    docker:
-      - image: circleci/python:3.8.2
+    executor:
+      name: node/default
     steps:
       - checkout
-      - run: pip install -r requirements.txt
-      - run: pylint src test
-      - run: python3 -m test.test
-      - run: python3 -m test.test_scheduler
+      - node/with-cache:
+          steps:
+            - run: npm install
+#            - run: npm test
   deploy:
     executor:
       name: heroku/default
