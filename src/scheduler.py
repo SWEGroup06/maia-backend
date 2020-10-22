@@ -3,8 +3,6 @@ Module defining Scheduler class
 """
 
 from datetime import datetime, timedelta, time, date
-import json
-
 
 class Scheduler:
     """
@@ -77,7 +75,7 @@ class Scheduler:
     def schedule(self, schedules: [[(datetime, datetime)]],
                  # everyones_maybe_datetimes:  [(datetime, int)],
                  duration: timedelta,
-                 constraints: [[(datetime, datetime)]]=[],
+                 constraints: [[(datetime, datetime)]],
                  ) -> [(datetime, datetime)]:
         """
         schedules is a list of (start_free_datetime, end_free_datetime)
@@ -92,7 +90,7 @@ class Scheduler:
 
         schedules += constraints
         ans = schedules[0]
-        for schedule in schedules:
+        for schedule in schedules[1:]:
             temp = []
             i = 0
             j = 0
@@ -122,11 +120,11 @@ class Scheduler:
 # mutually free times: [(8, 8:30),(9:12, 9:42)]
 # shown free times: [(8,8:30)]
 
-def jsonify(schedules):
-    j = []
-    for schedule in schedules:
-        x = []
-        for (start, end) in schedule:
-            x.append({"end": end, "start": start})
-        j.append(x)
-    return j
+# def jsonify(schedules):
+#     j = []
+#     for schedule in schedules:
+#         x = []
+#         for (start, end) in schedule:
+#             x.append({"end": end, "start": start})
+#         j.append(x)
+#     return j
