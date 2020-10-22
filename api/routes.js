@@ -31,8 +31,8 @@ router.get('/login', function(req, res) {
       // TODO: Store UserId + tokens in DB
 
       // Redirect to success page
-      res.redirect('success');
-      // res.json({userId, tokens});
+      // res.redirect('success');
+      res.json({userId, tokens});
     });
   });
 
@@ -59,9 +59,6 @@ router.get('/freeslots', function(req, res) {
 
   if (req.query.tokens) {
     const tokens = JSON.parse(decodeURIComponent(req.query.tokens));
-
-    console.log(tokens);
-
     AUTH.getBusySchedule(tokens, startDate, endDate).then(function(data) {
       res.json(data);
     }).catch(function(error) {
