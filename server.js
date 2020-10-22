@@ -9,8 +9,9 @@ app.use(express.json());
 require('dotenv').config();
 const port = process.env.PORT || 3000;
 
-const mongo_uri = process.env.MONGO_URI;
-mongoose.connect(mongo_uri, {useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true});
+const mongoURI = process.env.MONGO_URI;
+mongoose.connect(mongoURI,
+    {useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true});
 
 app.use('/', routesRouter);
 app.use('/addUser', usersRouter);
