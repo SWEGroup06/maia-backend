@@ -18,7 +18,7 @@ router.get('/login', function(req, res) {
   }
 
   // TODO: Check if entry exists in DB
-  const userId = JSON.parse(decodeURIComponent(req.query.userId));
+  // const userId = JSON.parse(decodeURIComponent(req.query.userId));
 
   // Google auth callback
   router.get('/oauth2callback', function(req, res) {
@@ -31,8 +31,8 @@ router.get('/login', function(req, res) {
       // TODO: Store UserId + tokens in DB
 
       // Redirect to success page
-      // res.redirect('success');
-      res.json({userId, tokens});
+      res.redirect('success');
+      // res.json({userId, tokens});
     });
   });
 
@@ -41,15 +41,29 @@ router.get('/login', function(req, res) {
 });
 
 router.get('/freeslots', function(req, res) {
-  if (!req.query.userId && !req.query.tokens ) {
-    res.json({error: 'No userId or tokens provided'});
+  if (!req.query.userId && !req.query.tokens) {
+    res.json({error: 'No userId or tokens'});
     return;
   }
 
+  if (!req.query.startDate || !req.query.endDate) {
+    res.json({error: 'No time period'});
+    return;
+  }
+  const tokens = JSON.parse(decodeURIComponent(req.query.tokens));
+  const startDate = JSON.parse(decodeURIComponent(req.query.startDate));
+  const endDate = JSON.parse(decodeURIComponent(req.query.endDate));
+
+
+  if (req.query.tokens) {
+    AUTH.getBusySchedule(tokens,
+        startDate,
+        endDate).then(function(data) {
+      res.json(data);
+    });
+  }
+
   // TODO: Check if entry exists in DB
-
-
-  res.json({TODO: 'Free Slots'});
 });
 
 module.exports = router;

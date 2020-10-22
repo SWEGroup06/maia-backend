@@ -1,4 +1,5 @@
 const {google} = require('googleapis');
+const calendar = google.calendar('v3');
 
 const CONFIG = require('../config.js');
 
@@ -64,7 +65,7 @@ module.exports = {
           reject(err);
           return;
         }
-        resolve(res.calendars);
+        resolve(res.data.calendars.primary.busy);
       });
     });
   },
