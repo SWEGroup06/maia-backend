@@ -35,14 +35,14 @@ router.get('/oauth2callback', function(req, res) {
     return;
   }
 
-  const state = JSON.parse(decodeURIComponent(req.query.state));
+  // const state = JSON.parse(decodeURIComponent(req.query.state));
 
   AUTH.getTokens(req.query.code).then(function(tokens) {
     // TODO: Store UserId + tokens in DB
 
     // Redirect to success page
-    // res.redirect('success');
-    res.json({userId: state.userId, tokens});
+    res.redirect('success');
+    // res.json({userId: state.userId, tokens});
   }).catch(function(error) {
     console.log(error);
     res.json({error});
@@ -62,9 +62,6 @@ router.get('/freeslots', function(req, res) {
 
   const startDate = decodeURIComponent(req.query.startDate);
   const endDate = decodeURIComponent(req.query.endDate);
-
-  console.log(startDate);
-  console.log(endDate);
 
   if (req.query.tokens) {
     const tokens = JSON.parse(decodeURIComponent(req.query.tokens));

@@ -24,7 +24,7 @@ module.exports = {
   getTokens(code) {
     return new Promise(function(resolve, reject) {
       oauth2Client.getToken(code, function(err, tokens) {
-        if (err && Object.keys(err).length === 0) {
+        if (err) {
           reject(err);
           return;
         }
