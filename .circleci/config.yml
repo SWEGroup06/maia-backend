@@ -20,10 +20,10 @@ jobs:
     steps:
       - checkout
       - heroku/deploy-via-git
+    requires:
+      - build-and-test
 workflows:
   main:
     jobs:
       - build-and-test
       - deploy
-          requires:
-            - build-and-test
