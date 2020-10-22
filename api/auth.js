@@ -30,10 +30,43 @@ module.exports = {
       });
     });
   },
-  createMeeting(tokens) {
+  createMeeting(tokens, title, startDateTime, endDateTime) {
     oauth2Client.setCredentials(tokens);
     return new Promise(function(resolve, reject) {
-      resolve();
+      calendar.events.insert({
+        auth: oauth2Client,
+        calendarId: 'primary',
+        resource: {
+          summary: title,
+          start: {dateTime: startDateTime},
+          end: {dateTime: endDateTime},
+        },
+      }, function(calendarError, calendarResponse) {
+        if (calendarError) {
+          reject(calendarError); return;
+        }
+        resolve(calendarResponse);
+      });
     });
   },
+  getBusySchedule(tokens, startDateTime, endDateTime) {
+    oauth2Client.setCredentials(tokens);
+    return new Promise(function(resolve, reject) {
+      calendar.freebusy.query({
+        auth: oauth2Client,
+        resource: {
+          items: [{id: 'primary'}],
+          timeMin: startDateTime,
+          timeMax: endDateTime,
+        },
+      }, function(err, res) {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(res.calendars);
+      });
+    });
+  },
+
 };

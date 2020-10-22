@@ -31,7 +31,8 @@ router.get('/login', function(req, res) {
       // TODO: Store UserId + tokens in DB
 
       // Redirect to success page
-      res.redirect('success');
+      //res.redirect('success');
+      res.json({tokens});
     });
   });
 
@@ -40,8 +41,8 @@ router.get('/login', function(req, res) {
 });
 
 router.get('/freeslots', function(req, res) {
-  if (!req.query.userId) {
-    res.json({error: 'No userId provided'});
+  if (!req.query.userId && !req.query.tokens ) {
+    res.json({error: 'No userId or tokens provided'});
     return;
   }
 
