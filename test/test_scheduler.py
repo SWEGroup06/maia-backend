@@ -73,7 +73,7 @@ class TestScheduler(TestCase):
         :return:
         """
         output_times = SCHEDULER.schedule(
-            [FREE_DATETIME1, FREE_DATETIME2], DURATION)
+            [FREE_DATETIME1, FREE_DATETIME2], DURATION, [])
         expected_times = [get_dt(DAY1, time(9), DURATION),
                           get_dt(DAY1, time(21), DURATION)]
         self.assertCountEqual(output_times, expected_times)
@@ -84,7 +84,7 @@ class TestScheduler(TestCase):
         :return:
         """
         output_times = SCHEDULER.schedule([FREE_DATETIME1, FREE_DATETIME2, FREE_DATETIME3],
-                                          DURATION)
+                                          DURATION, [])
         expected_times = [get_dt(DAY1, time(9), timedelta(
             0)), get_dt(DAY1, time(21), timedelta(0))]
         self.assertCountEqual(output_times, expected_times)
@@ -95,7 +95,7 @@ class TestScheduler(TestCase):
         :return:
         """
         output_times = SCHEDULER.schedule([FREE_DATETIME4, FREE_DATETIME5, FREE_DATETIME6],
-                                          DURATION)
+                                          DURATION, [])
         expected_times = [get_dt(DAY2, time(21), timedelta(0))]
         self.assertCountEqual(output_times, expected_times)
 
