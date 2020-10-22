@@ -6,6 +6,18 @@
   "directories": {
     "test": "test"
   },
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint .",
+    "lint-fix": "eslint . --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SWEGroup06/maia-backend.git"
+  },
+  "author": "SWEGroup06",
+  "license": "Proprietary",
   "dependencies": {
     "dotenv": "^8.2.0",
     "googleapis": "^61.0.0",
@@ -18,21 +30,5 @@
     "eslint-config-google": "^0.14.0",
     "mocha": "^8.2.0",
     "nyc": "^15.1.0"
-  },
-  "scripts": {
-    "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint ./",
-    "lint-fix": "eslint ./ --fix"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/SWEGroup06/maia-backend.git"
-  },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/SWEGroup06/maia-backend/issues"
-  },
-  "homepage": "https://github.com/SWEGroup06/maia-backend#readme"
+  }
 }
