@@ -3,8 +3,8 @@ const {google} = require('googleapis');
 const CONFIG = require('../config.js');
 
 const oauth2Client = new google.auth.OAuth2(
-    CONFIG.CLIENT_ID,
-    CONFIG.CLIENT_SECRET,
+    process.env.CLIENT_ID,
+    process.env.CLIENT_SECRET,
     CONFIG.serverURL + '/oauth2callback',
 );
 
