@@ -8,5 +8,5 @@ const port = process.env.PORT || 3000;
 app.use('/', routes);
 
 app.listen(port, () => {
-  console.log(`API Server hosted on: http://localhost:${port}`);
+  console.log(`REST API Server hosted on: http://localhost:${port}`);
 });
