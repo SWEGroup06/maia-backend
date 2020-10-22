@@ -13,8 +13,7 @@ router.get('/', function(_, res) {
 // login callback
 router.get('/login', function(req, res) {
   if (!req.query.userId) {
-
-    //TODO: Check if userId is in database
+    // TODO: Check if userId is in database
 
     res.json({error: 'No userID provided'});
     return;
