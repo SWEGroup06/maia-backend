@@ -45,6 +45,8 @@ router.get('/freeslots', function(req, res) {
     res.json({error: 'No userId provided'});
     return;
   }
+
+  res.json({TODO: 'Free Slots'});
 });
 
 module.exports = router;
