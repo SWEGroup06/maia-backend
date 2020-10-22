@@ -13,17 +13,17 @@ jobs:
       - node/with-cache:
           steps:
             - run: npm install
-#            - run: npm test
+  #            - run: npm test
   deploy:
     executor:
       name: heroku/default
     steps:
       - checkout
       - heroku/deploy-via-git
-    requires:
-      - build-and-test
 workflows:
   main:
     jobs:
       - build-and-test
-      - deploy
+      - deploy:
+          requires:
+            - build
