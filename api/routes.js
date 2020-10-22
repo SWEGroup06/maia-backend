@@ -30,8 +30,8 @@ router.get('/login', function(req, res) {
     AUTH.getTokens(req.query.code).then(function(tokens) {
       // TODO: Store UserId + tokens in DB
 
-      // TODO: Temporary response (Change to html template?)
-      res.json({success: true});
+      // Redirect to success page
+      res.redirect('success');
     });
   });
 
