@@ -3,7 +3,7 @@ const router = express.Router();
 
 const AUTH = require('./auth.js');
 
-const CALENDAR = require('../lib/calendar.js');
+// const CALENDAR = require('../lib/calendar.js');
 
 // ROOT PATH
 router.get('/', function(_, res) {
@@ -13,13 +13,13 @@ router.get('/', function(_, res) {
 // login callback
 router.get('/login', function(req, res) {
   if (!req.query.userId) {
-    // TODO: Check if userId is in database
-
     res.json({error: 'No userID provided'});
     return;
   }
 
-  const userId = JSON.parse(decodeURIComponent(req.query.userId));
+  // TODO: Check if entry exists in DB
+
+  // const userId = JSON.parse(decodeURIComponent(req.query.userId));
 
   // Google auth callback
   router.get('/oauth2callback', function(req, res) {
@@ -45,6 +45,9 @@ router.get('/freeslots', function(req, res) {
     res.json({error: 'No userId provided'});
     return;
   }
+
+  // TODO: Check if entry exists in DB
+
 
   res.json({TODO: 'Free Slots'});
 });
