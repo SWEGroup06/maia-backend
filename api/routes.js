@@ -62,7 +62,7 @@ router.get('/freeslots', function(req, res) {
       res.json(data);
     });
   } else {
-    res.json({TODO: "NotImplementedYet"});
+    res.json({TODO: 'NotImplementedYet'});
   }
 
   // TODO: Check if entry exists in DB
