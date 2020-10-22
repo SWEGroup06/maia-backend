@@ -23,7 +23,7 @@ module.exports = {
   getTokens(code) {
     return new Promise(function(resolve, reject) {
       oauth2Client.getToken(code, function(err, tokens) {
-        if (err) {
+        if (err && Object.keys(err).length === 0) {
           reject(err);
           return;
         }
