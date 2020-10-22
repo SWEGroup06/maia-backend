@@ -41,7 +41,7 @@ router.get('/login', function(req, res) {
 });
 
 router.get('/freeslots', function(req, res) {
-  if (req.query.userId) {
+  if (!req.query.userId) {
     res.json({error: 'No userId provided'});
     return;
   }
