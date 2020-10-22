@@ -3,13 +3,15 @@ const router = express.Router();
 
 const AUTH = require('./auth.js');
 
+const CALENDAR = require('../lib/calendar.js');
+
 // ROOT PATH
 router.get('/', function(_, res) {
   res.send('This is the REST API for Maia AI calendar assistant');
 });
 
-// API LOGIN CALLBACK
-router.get('/api/login', function(req, res) {
+// login callback
+router.get('/login', function(req, res) {
   if (!req.query.userId) {
     res.json({error: 'No userID provided'});
     return;
@@ -17,9 +19,20 @@ router.get('/api/login', function(req, res) {
 
   const userId = JSON.parse(decodeURIComponent(req.query.userId));
 
-  // GOOGLE AUTH CALLBACK
+  // Google auth callback
   router.get('/oauth2callback', function(req, res) {
-    res.json({userId, code: req.query.code});
+    if (!req.query.code) {
+      res.json({error: 'No code provided'});
+      return;
+    }
+
+    AUTH.getTokens(req.query.code).then(function(tokens) {
+      // TODO: Ihowa
+      CALENDAR.getCalendarData(tokens);
+
+      // Temporary response
+      res.json({userId, tokens});
+    });
   });
 
 
