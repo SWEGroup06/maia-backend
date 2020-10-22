@@ -6,7 +6,7 @@ var OAuth2 = google.auth.OAuth2;
 module.exports = {
 
     createMeeting( tokens, title, startDateTime, endDateTime ) {
-        oauth2Client.setCredentials( tokens );
+        oauth2Client.setCredentials( tokens ); //oauth2Client not defined here yet
         return new Promise( function( resolve, reject ) {
             calendar.events.insert({
                 auth: oauth2Client,
@@ -23,22 +23,25 @@ module.exports = {
         });
     },
 
-    /*getMeetings( tokens, startDateTime, endDateTime ) {
+    getBusySchedule( tokens, startDateTime, endDateTime ) {
         oauth2Client.setCredentials( tokens );
         return new Promise( function( resolve, reject ) {
-            response = service.freebusy().query(body=body).execute()
-            calendar.events.list({
+            calendar.freebusy.query({
                 auth: oauth2Client,
-                calendarId: 'primary',
-                orderBy: 'startTime',
-                timeMin: ( new Date() ).toISOString(),
-                timeMax: new Date( sevenBusinessDaysAhead ).toISOString(),
-                singleEvents: true
-
-            }, function( calendarError, calendarResponse ) {
+                resource: {items: [{"id" : 'primary'}],
+                           timeMin: startDateTime,
+                           timeMax: endDateTime
+                          }
+            }), function( calendarError, calendarResponse ) {
                 if( calendarError ) { reject( calendarError ); return }
-                resolve( calendarResponse );
+                var events = calendarResponse['calendars'];
+                if (events.length == 0) {
+                    console.log('No upcoming events found.');
+                } else {
+                    console.log('Found events');
+                }
+                resolve( calendarResponse['calendars'] );
             });
         });
-    }*/
+    }
 }
