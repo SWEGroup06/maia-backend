@@ -3,15 +3,22 @@ const router = express.Router();
 let User = require('../models/user.model');
 
 
-router.post("/", function(req, res) {
+router.post("/", async function(req, res) {
     const user = new User ({
         userID: req.body.userID,
         email: req.body.email,
-        token: req.body.token
+        token: req.body.token,
+        versionKey: false
     });
-    res.json(user);
-    console.log("worked");
-  
+
+    try {
+        const savedPost = await user.save();
+        res.json(savedPost);
+    } catch(err) {
+        res.json({message: err})
+    }
+
+    console.log("POST Request Successful");
 });
 
 module.exports = router;
