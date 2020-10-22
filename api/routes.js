@@ -36,7 +36,7 @@ router.get('/login', function(req, res) {
     }).catch(function(error) {
       console.log(error);
       res.json({error});
-    })
+    });
   });
 
 
