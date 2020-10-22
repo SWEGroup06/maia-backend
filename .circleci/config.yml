@@ -26,4 +26,4 @@ workflows:
       - build-and-test
       - deploy:
           requires:
-            - build
+            - build-and-test
