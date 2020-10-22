@@ -55,10 +55,11 @@ router.get('/freeslots', function(req, res) {
 
   if (req.query.tokens) {
     const tokens = JSON.parse(decodeURIComponent(req.query.tokens));
-    AUTH.getBusySchedule(tokens,
-        startDate,
-        endDate).then(function(data) {
+    AUTH.getBusySchedule(tokens, startDate, endDate).then(function(data) {
       res.json(data);
+    }).catch(function(error) {
+      console.log(error);
+      res.json({error});
     });
   } else {
     res.json({TODO: 'NotImplementedYet'});
