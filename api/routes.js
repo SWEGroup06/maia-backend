@@ -30,19 +30,19 @@ router.get('/oauth2callback', function(req, res) {
     res.json({error: 'No code provided'});
     return;
   }
-  if (!req.query.userId) {
-    res.json({error: 'No userID provided'});
+  if (!req.query.state) {
+    res.json({error: 'No state provided'});
     return;
   }
 
-  const userId = JSON.parse(decodeURIComponent(req.query.userId));
+  const state = JSON.parse(decodeURIComponent(req.query.state));
 
   AUTH.getTokens(req.query.code).then(function(tokens) {
     // TODO: Store UserId + tokens in DB
 
     // Redirect to success page
     // res.redirect('success');
-    res.json({userId, tokens});
+    res.json({userId: state.userId, tokens});
   }).catch(function(error) {
     console.log(error);
     res.json({error});
