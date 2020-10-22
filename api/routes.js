@@ -33,7 +33,10 @@ router.get('/login', function(req, res) {
       // Redirect to success page
       // res.redirect('success');
       res.json({userId, tokens});
-    });
+    }).catch(function(error) {
+      console.log(error);
+      res.json({error});
+    })
   });
 
 
