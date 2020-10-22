@@ -18,7 +18,7 @@ router.get('/login', function(req, res) {
   }
 
   // TODO: Check if entry exists in DB
-  // const userId = JSON.parse(decodeURIComponent(req.query.userId));
+  const userId = JSON.parse(decodeURIComponent(req.query.userId));
 
   // Google auth callback
   router.get('/oauth2callback', function(req, res) {
@@ -32,7 +32,7 @@ router.get('/login', function(req, res) {
 
       // Redirect to success page
       // res.redirect('success');
-      res.json({tokens});
+      res.json({userId, tokens});
     });
   });
 
