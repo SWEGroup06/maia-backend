@@ -18,7 +18,7 @@ const s = {
   generate_constraints: (work_day, start, end) => {
     let i = start.weekday; // sunday -> 0, monday -> 1 ...etc.
     let res = [];
-    while (start !== end) {
+    while (start < end) {
       if (work_day[i].length >= 2) {
         res.push([s.combine(start, work_day[i][0]),
                   s.combine(start, work_day[i][1])]);
@@ -37,12 +37,12 @@ const s = {
     let curr_free_times = [];
     for (let i = 0; i < schedule.length; i++){
       const busy_time = schedule[i];
-      if (busy_time.end > end) {
+      if (busy_time[1] > end) {
         break;
       }
-      if (begin < busy_time.start) {
-        curr_free_times.push([begin, busy_time.start]);
-        begin = busy_time.end;
+      if (begin < busy_time[0]) {
+        curr_free_times.push([begin, busy_time[0]]);
+        begin = busy_time[1];
       }
     }
     if (begin < end) {
@@ -62,7 +62,7 @@ const s = {
     possible time event could start at)
     */
     if (constraints != null) {
-      schedules.concat(constraints);
+      schedules = schedules.concat(constraints);
     }
     let ans = schedules[0];
     schedules.forEach(schedule => {
@@ -70,7 +70,7 @@ const s = {
       let i = 0;
       let j = 0;
       while (i < ans.length && j < schedule.length) {
-        let intersection = intersection(ans[i], schedule[j], duration);
+        let intersection = s.intersection(ans[i], schedule[j], duration);
         if (intersection != null) {
           temp.push(intersection);
         }
