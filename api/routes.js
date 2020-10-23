@@ -3,8 +3,6 @@ const router = express.Router();
 
 const AUTH = require('./auth.js');
 
-// const CALENDAR = require('../lib/calendar.js');
-
 // ROOT PATH
 router.get('/', function(_, res) {
   res.send('This is the REST API for Maia AI calendar assistant');
@@ -41,8 +39,8 @@ router.get('/oauth2callback', function(req, res) {
     // TODO: Store UserId + tokens in DB
 
     // Redirect to success page
-    res.redirect('success');
-    // res.json({userId: state.userId, tokens});
+    // res.redirect('success');
+    res.json({userId: state.userId, tokens});
   }).catch(function(error) {
     console.log(error);
     res.json({error});
