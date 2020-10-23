@@ -23,8 +23,26 @@ module.exports = {
     });
 
     user.save().then(() =>
-      console.log('Successfully created new user with userID ' + user.id.userID +
-                  ' and teamID ' + user.id.teamID));
+      console.log('Successfully created new user with: ' +
+      'userID ' + user.id.userID + ' and teamID ' + user.id.teamID));
+  },
+
+  /**
+   * TODO: Comment
+   * @param {String} userID
+   * @param {String} teamID
+   * @return {String} token
+   */
+  getToken: async function(userID, teamID) {
+    return User.findOne({id: {userID: userID, teamID: teamID}}).then((user) => {
+      if (user == null) {
+        return null;
+      } else {
+        return user.token;
+      }
+    }).catch((err) => {
+      console.log(err);
+    });
   },
 
   /**
