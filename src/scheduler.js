@@ -1,10 +1,10 @@
 const { DateTime, Duration } = require('luxon');
 
 const s = {
-  intersection: (range1, range2, duration) => {
-    let new_range = [DateTime.max(range1[0], range2[0]),
-                     DateTime.min(range1[1], range2[1])];
-    return new_range[0].plus(duration) <= new_range[1] ? new_range : null;
+  intersection: (slot1, slot2, duration) => {
+    let new_slot = [DateTime.max(slot1[0], slot2[0]),
+                    DateTime.min(slot1[1], slot2[1])];
+    return new_slot[0].plus(duration) <= new_slot[1] ? new_slot : null;
   },
   combine: (date, time) => {
     return DateTime.fromObject({
@@ -16,20 +16,19 @@ const s = {
     });
   },
   generate_constraints: (work_day, start, end) => {
-    let i = start.weekday; // sunday -> 0, monday -> 1 ...etc.
+    // minus 1 as [monday -> 1 .. sunday -> 7]
+    let i = start.weekday - 1;
     let res = [];
-    while (start < end) {
-      if (work_day[i].length >= 2) {
+
+    while (start <= end) {
+      if (work_day[i].length == 2) {
         res.push([s.combine(start, work_day[i][0]),
                   s.combine(start, work_day[i][1])]);
       }
       start = start.plus({days: 1});
       i = (i + 1) % 7;
     }
-    if (work_day[i].length >= 2) {
-      res.push([s.combine(start, work_day[i][0]),
-                s.combine(start, work_day[i][1])]);
-    }
+
     return res;
   },
   busy_to_free: (schedule, start, end) => {
@@ -66,13 +65,13 @@ const s = {
     }
     let ans = schedules[0];
     schedules.forEach(schedule => {
-      const temp = [];
+      const curr = [];
       let i = 0;
       let j = 0;
       while (i < ans.length && j < schedule.length) {
         let intersection = s.intersection(ans[i], schedule[j], duration);
         if (intersection != null) {
-          temp.push(intersection);
+          curr.push(intersection);
         }
         // increment pointer for free list item that ends first, keeps the other the same
         if (ans[i][1] < schedule[j][1]) {
@@ -81,17 +80,16 @@ const s = {
           j++;
         }
       }
-      ans = temp
+      ans = curr
     });
-    /* convert list of free time slots to list of ranges of start date times
-    * e.g for duration = 1hr, ans = [((2020, 10, 14, 9), (2020, 10, 14, 11))] ->
-    * [((2020, 10, 14, 9), (2020, 10, 14, 10))]
-    * since can start anytime between 9am and 10am for a 1hr meeting */
-    ans = ans.map(xs => {
-      xs[1] = xs[1].minus(duration);
-      return xs;
-    });
-    return ans
+
+    // return list of possible starting time slot intervals
+    return ans.map(xs => [xs[0], xs[1].minus(duration)])
+  },
+  choose: (free_times) => {
+    choices = free_times.map(xs => [xs[0], xs[1].diff(xs[0])]);
+    choices.sort((a, b) => a[1] - b[1]);
+    return choices[0][0];
   }
 };
 

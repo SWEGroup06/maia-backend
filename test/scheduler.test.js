@@ -1,5 +1,5 @@
 const { DateTime, Duration } = require('luxon');
-const { schedule, busy_to_free, generate_constraints } = require('../src/scheduler');
+const { schedule, busy_to_free, generate_constraints, choose } = require('../src/scheduler');
 
 const DAY1 = DateTime.local(2020, 10, 14);
 const DAY2 = DateTime.local(2020, 10, 15);
@@ -35,7 +35,7 @@ const FREE_DATETIME6 = FREE_DATETIME3.concat([get_dt(DAY2,10,0,0,30), get_dt(DAY
 const BUSY_DATETIME1 = [0,1,2,3,4].map(x => get_dt(DAY1, 10 + 3 * x, 0, 2,0));
 
 const WORKING_HOURS =
-  [0,1,2,3,4].map(_ => [DateTime.fromObject({hour: 8, minute: 30}), DateTime.fromObject({hour: 19})])
+  [0,1,2,3,4].map(x => [DateTime.fromObject({hour: 8, minute: 30}), DateTime.fromObject({hour: 19})])
              .concat([[],[]]);
 
 const WORKING_HOURS_FORMATTED = [get_dt(DAY1, 8, 30, 10, 30),
@@ -74,7 +74,7 @@ test('transforms schedule of busy events to free times', () => {
 test('transforms constraints to time slots', () => {
   expected_constraints = WORKING_HOURS_FORMATTED;
   output_constraints = generate_constraints(WORKING_HOURS, DAY1, DAY2);
-  expect(expected_constraints).toEqual(output_constraints);
+  expect(output_constraints).toEqual(expected_constraints);
 });
 
 test('scheduler uses constraints', () => {
@@ -83,3 +83,10 @@ test('scheduler uses constraints', () => {
     = schedule([FREE_DATETIME1, FREE_DATETIME2], HALFHOUR, [WORKING_HOURS_FORMATTED]);
   expect(output_schedules).toEqual(expected_schedules);
 });
+
+test('chooses the shortest duration', () => {
+  choices = [get_dt(DAY1, 9, 0, 2), get_dt(DAY1, 13, 0, 1)];
+  expected_choice = combine(DAY1, 13);
+  output_choice = choose(choices);
+  expect(output_choice).toEqual(expected_choice);
+})
