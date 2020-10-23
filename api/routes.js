@@ -35,7 +35,7 @@ router.get('/oauth2callback', function(req, res) {
     return;
   }
 
-  // const state = JSON.parse(decodeURIComponent(req.query.state));
+  const state = JSON.parse(decodeURIComponent(req.query.state));
 
   AUTH.getTokens(req.query.code).then(function(tokens) {
     // TODO: Store UserId + tokens in DB
