@@ -3,8 +3,8 @@ const { DateTime, Duration } = require('luxon');
 const s = {
   intersection: (range1, range2, duration) => {
     let new_range = [DateTime.max(range1[0], range2[0]),
-      DateTime.min(range1[1], range2[1])];
-    return new_range[0].plus(duration) <= new_range[1] ? new_range : null
+                     DateTime.min(range1[1], range2[1])];
+    return new_range[0].plus(duration) <= new_range[1] ? new_range : null;
   },
   combine: (date, time) => {
     return DateTime.fromObject({
@@ -13,7 +13,7 @@ const s = {
       day: date.day,
       hour: time.hour,
       minute: time.minute
-    })
+    });
   },
   generate_constraints: (work_day, start, end) => {
     let i = start.weekday; // sunday -> 0, monday -> 1 ...etc.
@@ -21,16 +21,16 @@ const s = {
     while (start !== end) {
       if (work_day[i].length >= 2) {
         res.push([s.combine(start, work_day[i][0]),
-          s.combine(start, work_day[i][1])])
+                  s.combine(start, work_day[i][1])]);
       }
       start = start.plus({days: 1});
       i = (i + 1) % 7;
     }
     if (work_day[i].length >= 2) {
       res.push([s.combine(start, work_day[i][0]),
-        s.combine(start, work_day[i][1])])
+                s.combine(start, work_day[i][1])]);
     }
-    return res
+    return res;
   },
   busy_to_free: (schedule, start, end) => {
     let begin = start;
@@ -42,13 +42,13 @@ const s = {
       }
       if (begin < busy_time.start) {
         curr_free_times.push([begin, busy_time.start]);
-        begin = busy_time.end
+        begin = busy_time.end;
       }
     }
     if (begin < end) {
-      curr_free_times.push([begin, end])
+      curr_free_times.push([begin, end]);
     }
-    return curr_free_times
+    return curr_free_times;
   },
   schedule: (schedules, duration, constraints = null) => {
     /*
@@ -62,7 +62,7 @@ const s = {
     possible time event could start at)
     */
     if (constraints != null) {
-      schedules.concat(constraints)
+      schedules.concat(constraints);
     }
     let ans = schedules[0];
     schedules.forEach(schedule => {
@@ -70,12 +70,16 @@ const s = {
       let i = 0;
       let j = 0;
       while (i < ans.length && j < schedule.length) {
-        let intersection = s.intersection(ans[i], schedule[j], duration);
+        let intersection = intersection(ans[i], schedule[j], duration);
         if (intersection != null) {
           temp.push(intersection);
         }
         // increment pointer for free list item that ends first, keeps the other the same
-        (ans[i][1] < schedule[j][1]) ? i++ : j++;
+        if (ans[i][1] < schedule[j][1]) {
+          i++;
+        } else {
+          j++;
+        }
       }
       ans = temp
     });
@@ -85,7 +89,7 @@ const s = {
     * since can start anytime between 9am and 10am for a 1hr meeting */
     ans = ans.map(xs => {
       xs[1] = xs[1].minus(duration);
-      return xs
+      return xs;
     });
     return ans
   }

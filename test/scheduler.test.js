@@ -17,9 +17,7 @@ function get_dt_google_format(date, hour, minutes, duration_hrs, duration_mins) 
 
 const FREE_DATETIME1 = [0,1,2,3,4].map(x => get_dt(DAY1, 9 + 3 * x, 0, 1));
 const FREE_DATETIME2 = [0,1,2,3].map(x => get_dt(DAY1, 9 + 4 * x, 0, 1));
-
-const FREE_DATETIME3 = [get_dt(DAY1, 9, 0, 30),
-  get_dt(DAY1, 15, 6, 30)];
+const FREE_DATETIME3 = [get_dt(DAY1, 9, 0, 30), get_dt(DAY1, 15, 0, 6, 30)];
 
 const FREE_DATETIME4 = FREE_DATETIME1 + FREE_DATETIME1.forEach(se => {
   const s = se[0].plus({days: 1});
@@ -32,9 +30,7 @@ const FREE_DATETIME5 = FREE_DATETIME2.forEach(se => {
   const e = se[1].plus({days: 1});
   return [s,e]
 });
-const FREE_DATETIME6 = FREE_DATETIME3 +
-                 [get_dt(DAY2, 10, 0, 0, 30),
-                   get_dt(DAY2, 15, 0,6,30)];
+const FREE_DATETIME6 = FREE_DATETIME3 + [get_dt(DAY2,10,0,0,30), get_dt(DAY2,15,0,6,30)];
 
 const BUSY_DATETIME1 = [0,1,2,3,4].forEach(x => get_dt_google_format(DAY1, 10 + 3 * x, 0, 2,0));
 
@@ -42,18 +38,26 @@ const WORKING_HOURS = [[DateTime.fromObject({hour: 8, minute: 30}), DateTime.fro
 const WORKING_HOURS_FORMATTED = [[combine(DAY1, DateTime.fromObject({hour: 8, minute: 30})), combine(DAY1, DateTime.fromObject({hour: 19}))],
   [combine(DAY2, DateTime.fromObject({hour: 8, minute: 30})), combine(DAY2, DateTime.fromObject({hour: 19}))]];
 
-const DURATION = Duration.fromObject({minutes: 30});
+const HOUR1 = Duration.fromObject({hours: 1});
+const HALFHOUR = Duration.fromObject({minutes: 30});
 
 
-const output_times = schedule([FREE_DATETIME1, FREE_DATETIME2], DURATION);
+const output_times = schedule([FREE_DATETIME1, FREE_DATETIME2], HOUR1);
 const expected_times = [get_dt(DAY1,9,0, 1), get_dt(DAY1, 21,0,1)];
 // console.log(output_times, expected_times);
 // console.log(output_times.map(xx => [xx[0].hour, xx[0].minute, xx[1].hour, xx[1].minute, xx[0].day]));
 // console.log("done");
 
 test('finds non-empty intersection in two schedules', () => {
-  const output_times = schedule([FREE_DATETIME1, FREE_DATETIME2], DURATION)
-  const expected_times = [get_dt(DAY1,9,0, 1), get_dt(DAY1, 21,0,1)];
+  const output_times = schedule([FREE_DATETIME1, FREE_DATETIME2], HOUR1);
+  const expected_times = [get_dt(DAY1,9,0, 0), get_dt(DAY1, 21,0,0)];
   expect(output_times).toEqual(expected_times);
 });
+
+test('finds non-empty intersection in three schedules', () => {
+  const output_times
+      = schedule([FREE_DATETIME1, FREE_DATETIME2, FREE_DATETIME3], HALFHOUR);
+  const expected_times = [get_dt(DAY1,9,0,0), get_dt(DAY1,21,0,0)];
+  expect(output_times).toEqual(expected_times);
+})
 
