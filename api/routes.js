@@ -10,8 +10,8 @@ router.get('/', function(_, res) {
 
 // login callback
 router.get('/login', function(req, res) {
-  if (!req.query.userId) {
-    res.json({error: 'No userID provided'});
+  if (!req.query.userID && !req.query.teamID) {
+    res.json({error: 'No userID and teamID'});
     return;
   }
 
