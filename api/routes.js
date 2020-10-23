@@ -17,8 +17,10 @@ router.get('/login', function(req, res) {
 
   // TODO: Check if entry exists in DB
 
-  const userId = JSON.parse(decodeURIComponent(req.query.userId));
-  res.json({url: AUTH.generateAuthUrl(userId)});
+  const userID = JSON.parse(decodeURIComponent(req.query.userID));
+  const teamID = JSON.parse(decodeURIComponent(req.query.teamID));
+
+  res.json({url: AUTH.generateAuthUrl(userID, teamID)});
 });
 
 
@@ -40,7 +42,7 @@ router.get('/oauth2callback', function(req, res) {
 
     // Redirect to success page
     // res.redirect('success');
-    res.json({userId: state.userId, tokens});
+    res.json({userID: state.userID, teamID: state.teamID, tokens});
   }).catch(function(error) {
     console.log(error);
     res.json({error});
@@ -48,8 +50,8 @@ router.get('/oauth2callback', function(req, res) {
 });
 
 router.get('/freeslots', function(req, res) {
-  if (!req.query.userId && !req.query.tokens) {
-    res.json({error: 'No userId or tokens'});
+  if (!req.query.userID && !req.query.teamID) {
+    res.json({error: 'No userID and teamID'});
     return;
   }
 
@@ -74,6 +76,15 @@ router.get('/freeslots', function(req, res) {
   }
 
   // TODO: Check if entry exists in DB
+});
+
+router.get('/meeting', function(req, res) {
+  if (!req.query.userIDs && !req.query.teamID) {
+    res.json({error: 'No userIDs and teamID'});
+    return;
+  }
+
+  res.json({TODO: 'NotImplementedYet'});
 });
 
 module.exports = router;
