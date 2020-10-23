@@ -36,4 +36,12 @@ module.exports = {
   userExists: async function(userID, teamID) {
     return await User.exists({id: {userID: userID, teamID: teamID}});
   },
+
+  /**
+   * TODO: Comment
+   * @param {String} token
+   */
+  tokenExists: async function(token) {
+    return await User.exists({token: token});
+  },
 };
