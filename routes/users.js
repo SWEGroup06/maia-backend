@@ -49,6 +49,17 @@ module.exports = {
    * TODO: Comment
    * @param {String} userID
    * @param {String} teamID
+   * @param {String} newToken
+   */
+  updateToken: async function(userID, teamID, newToken) {
+    return User.findOneAndUpdate({id: {userID: userID, teamID: teamID}},
+        {id: {userID: userID, teamID: teamID}, token: newToken});
+  },
+
+  /**
+   * TODO: Comment
+   * @param {String} userID
+   * @param {String} teamID
    * @return {boolean}
    */
   userExists: async function(userID, teamID) {
