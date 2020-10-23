@@ -12,17 +12,26 @@ mongoose.connect(process.env.MONGO_URI,
 module.exports = {
   /**
    * Hello
-   * @param {number} userID
-   * @param {string} email
+   * @param {string} userID
+   * @param {string} teamID
    * @param {string} token
    */
-  createNewUser: function(userID, email, token) {
+  createNewUser: function(userID, teamID, token) {
     const user = new User({
-      userID: userID,
-      email: email,
+      id: {userID, teamID},
       token: token,
     });
 
+    user.save().then(() =>
+      console.log('Successfully created new user with userID ' + user.id.userID +
+                  ' and teamID ' + user.id.teamID));
+  },
+
+  /**
+   * Hello
+   * @param {number} userId
+   */
+  userExists: function(userId) {
     user.save().then(() => console.log('Successfully created new user with email ' + email));
   },
 };
