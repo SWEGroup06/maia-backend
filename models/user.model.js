@@ -4,16 +4,11 @@ const Schema = mongoose.Schema;
 
 const UserSchema = new Schema({
   id: {
-    userID: {
-      type: String,
-      required: true,
-    },
-    teamID: {
-      type: String,
-      required: true,
-    },
+    type: Object,
     required: true,
     unique: true,
+    userID: String,
+    teamID: String,
   },
   token: {
     type: String,
