@@ -11,7 +11,7 @@ mongoose.connect(process.env.MONGO_URI,
 
 module.exports = {
   /**
-   * Hello
+   * TODO: Comment
    * @param {string} userID
    * @param {string} teamID
    * @param {string} token
@@ -28,10 +28,12 @@ module.exports = {
   },
 
   /**
-   * Hello
-   * @param {number} userId
+   * TODO: Comment
+   * @param {String} userID
+   * @param {String} teamID
+   * @return {boolean}
    */
-  userExists: function(userId) {
-    user.save().then(() => console.log('Successfully created new user with email ' + email));
+  userExists: async function(userID, teamID) {
+    return await User.exists({id: {userID: userID, teamID: teamID}});
   },
 };
