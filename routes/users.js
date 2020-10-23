@@ -1,5 +1,4 @@
-const express = require('express');
-const router = express.Router();
+// Load User model
 const User = require('../models/user.model');
 
 // Load environment variables
@@ -27,5 +26,3 @@ module.exports = {
     user.save().then(() => console.log('Successfully created new user with email ' + email));
   },
 };
-
-module.exports = router;
