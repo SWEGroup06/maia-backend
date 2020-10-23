@@ -3,16 +3,16 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const UserSchema = new Schema({
-  userID: {
-    type: String,
+  id: {
+    type: Object,
     required: true,
-  },
-  email: {
-    type: String,
-    required: true,
+    unique: true,
+    userID: String,
+    teamID: String,
   },
   token: {
     type: String,
+    required: true,
   },
 });
 

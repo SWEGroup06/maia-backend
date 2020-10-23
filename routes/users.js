@@ -1,23 +1,76 @@
-const express = require('express');
-const router = express.Router();
+// Load User model
 const User = require('../models/user.model');
 
-router.post('/', async function(req, res) {
-  const user = new User({
-    userID: req.body.userID,
-    email: req.body.email,
-    token: req.body.token,
-    versionKey: false,
-  });
+// Load environment variables
+require('dotenv').config();
 
-  try {
-    const savedPost = await user.save();
-    res.json(savedPost);
-  } catch (err) {
-    res.json({message: err});
-  }
+const mongoose = require('mongoose');
 
-  console.log('POST Request Successful');
-});
+mongoose.connect(process.env.MONGO_URI,
+    {useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true});
 
-module.exports = router;
+module.exports = {
+  /**
+   * TODO: Comment
+   * @param {string} userID
+   * @param {string} teamID
+   * @param {string} token
+   */
+  createNewUser: function(userID, teamID, token) {
+    const user = new User({
+      id: {userID, teamID},
+      token: token,
+    });
+
+    user.save().then(() =>
+      console.log('Successfully created new user with: ' +
+      'userID ' + user.id.userID + ' and teamID ' + user.id.teamID));
+  },
+
+  /**
+   * TODO: Comment
+   * @param {String} userID
+   * @param {String} teamID
+   * @return {String} token
+   */
+  getToken: async function(userID, teamID) {
+    return User.findOne({id: {userID: userID, teamID: teamID}}).then((user) => {
+      if (user == null) {
+        return null;
+      } else {
+        return user.token;
+      }
+    }).catch((err) => {
+      console.log(err);
+    });
+  },
+
+  /**
+   * TODO: Comment
+   * @param {String} userID
+   * @param {String} teamID
+   * @param {String} newToken
+   */
+  updateToken: async function(userID, teamID, newToken) {
+    return User.findOneAndUpdate({id: {userID: userID, teamID: teamID}},
+        {id: {userID: userID, teamID: teamID}, token: newToken});
+  },
+
+  /**
+   * TODO: Comment
+   * @param {String} userID
+   * @param {String} teamID
+   * @return {boolean}
+   */
+  userExists: async function(userID, teamID) {
+    return await User.exists({id: {userID: userID, teamID: teamID}});
+  },
+
+  /**
+   * TODO: Comment
+   * @param {String} token
+   */
+  tokenExists: async function(token) {
+    return await User.exists({token: token});
+  },
+};
