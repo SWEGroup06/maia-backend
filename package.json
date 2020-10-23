@@ -3,14 +3,14 @@
   "version": "1.0.0",
   "dependencies": {
     "babel-polyfill": "^6.26.0",
-    "luxon": "latest"
+    "luxon": "^1.25.0"
   },
   "scripts": {
     "test": "jest"
   },
   "devDependencies": {
     "babel-register": "^6.26.0",
-    "jest": "^26.6.0"
+    "jest": "^26.6.1"
   },
   "jest": {
     "verbose": true

@@ -1,6 +1,4 @@
-import luxon from 'luxon';
-
-const { DateTime, Duration } = luxon;
+const { DateTime, Duration } = require('luxon');
 
 const s = {
   intersection: (range1, range2, duration) => {
@@ -63,7 +61,6 @@ const s = {
     :return: ranges for all possible start date times of the event (gives range of every
     possible time event could start at)
     */
-    console.log("helo")
     if (constraints != null) {
       schedules.concat(constraints)
     }

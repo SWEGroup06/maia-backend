@@ -1,13 +1,11 @@
-import luxon from 'luxon';
-const { DateTime, Duration } = luxon;
-const s = require('../src/scheduler');
+const { DateTime, Duration } = require('luxon');
+const { combine, schedule } = require('../src/scheduler');
 
 const DAY1 = DateTime.local(2020, 10, 14);
 const DAY2 = DateTime.local(2020, 10, 15);
 
-console.log("helo");
 function get_dt(date, hour, minutes, duration_hrs, duration_mins = 0) {
-  const start = s.combine(date, DateTime.fromObject({hour: hour, minute: minutes}));
+  const start = combine(date, DateTime.fromObject({hour: hour, minute: minutes}));
   const end = start.plus({hours: duration_hrs, minutes: duration_mins});
   return [start, end]
 }
@@ -41,22 +39,21 @@ const FREE_DATETIME6 = FREE_DATETIME3 +
 const BUSY_DATETIME1 = [0,1,2,3,4].forEach(x => get_dt_google_format(DAY1, 10 + 3 * x, 0, 2,0));
 
 const WORKING_HOURS = [[DateTime.fromObject({hour: 8, minute: 30}), DateTime.fromObject({hour: 19})]] * 5 + [[]] * 2;
-const WORKING_HOURS_FORMATTED = [[s.combine(DAY1, DateTime.fromObject({hour: 8, minute: 30})), s.combine(DAY1, DateTime.fromObject({hour: 19}))],
-  [s.combine(DAY2, DateTime.fromObject({hour: 8, minute: 30})), s.combine(DAY2, DateTime.fromObject({hour: 19}))]];
+const WORKING_HOURS_FORMATTED = [[combine(DAY1, DateTime.fromObject({hour: 8, minute: 30})), combine(DAY1, DateTime.fromObject({hour: 19}))],
+  [combine(DAY2, DateTime.fromObject({hour: 8, minute: 30})), combine(DAY2, DateTime.fromObject({hour: 19}))]];
 
 const DURATION = Duration.fromObject({minutes: 30});
 
 
-const output_times = s.schedule([FREE_DATETIME1, FREE_DATETIME2], DURATION);
+const output_times = schedule([FREE_DATETIME1, FREE_DATETIME2], DURATION);
 const expected_times = [get_dt(DAY1,9,0, 1), get_dt(DAY1, 21,0,1)];
-console.log(output_times, expected_times);
-console.log(output_times.map(xx => [xx[0].hour, xx[0].minute, xx[1].hour, xx[1].minute, xx[0].day]));
-console.log("done");
+// console.log(output_times, expected_times);
+// console.log(output_times.map(xx => [xx[0].hour, xx[0].minute, xx[1].hour, xx[1].minute, xx[0].day]));
+// console.log("done");
 
-// test('finds non-empty intersection in two schedules', () => {
-//   const output_times = s.schedule([FREE_DATETIME1, FREE_DATETIME2], DURATION)
-//   const expected_times = [get_dt(DAY1,9,0, 1), get_dt(DAY1, 21,0,1)];
-//   expect(output_times).toEqual(expected_times);
-//   expect(s.add(2,2)).toBe(4);
-// });
+test('finds non-empty intersection in two schedules', () => {
+  const output_times = schedule([FREE_DATETIME1, FREE_DATETIME2], DURATION)
+  const expected_times = [get_dt(DAY1,9,0, 1), get_dt(DAY1, 21,0,1)];
+  expect(output_times).toEqual(expected_times);
+});
 
