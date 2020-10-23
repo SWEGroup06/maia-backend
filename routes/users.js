@@ -2,22 +2,30 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/user.model');
 
-router.post('/', async function(req, res) {
-  const user = new User({
-    userID: req.body.userID,
-    email: req.body.email,
-    token: req.body.token,
-    versionKey: false,
-  });
+// Load environment variables
+require('dotenv').config();
 
-  try {
-    const savedPost = await user.save();
-    res.json(savedPost);
-  } catch (err) {
-    res.json({message: err});
-  }
+const mongoose = require('mongoose');
 
-  console.log('POST Request Successful');
-});
+mongoose.connect(process.env.MONGO_URI,
+    {useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true});
+
+module.exports = {
+  /**
+   * Hello
+   * @param {number} userID
+   * @param {string} email
+   * @param {string} token
+   */
+  createNewUser: function(userID, email, token) {
+    const user = new User({
+      userID: userID,
+      email: email,
+      token: token,
+    });
+
+    user.save().then(() => console.log('Successfully created new user with email ' + email));
+  },
+};
 
 module.exports = router;
