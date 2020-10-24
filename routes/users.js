@@ -6,12 +6,22 @@ require('dotenv').config();
 
 const mongoose = require('mongoose');
 
+// Opens the mongoose connection given the Mongo URI
 mongoose.connect(process.env.MONGO_URI,
     {useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true});
 
+/*
+ * TODO List:
+ *  - Add constraints stuff
+ *  - Do some further checking in each function
+ *  - Make void functions return a boolean according to success
+ *  - Return console logs for each function
+ */
+
+
 module.exports = {
   /**
-   * TODO: Comment
+   * Creates a new user in the database, uniquely identified by User ID, Team ID and token
    * @param {string} userID
    * @param {string} teamID
    * @param {string} token
@@ -28,7 +38,8 @@ module.exports = {
   },
 
   /**
-   * TODO: Comment
+   * Retrieves the token of a user given the User ID and Team ID which uniquely
+   * identifies a user.
    * @param {String} userID
    * @param {String} teamID
    * @return {String} token
@@ -46,7 +57,9 @@ module.exports = {
   },
 
   /**
-   * TODO: Comment
+   * Updates a user's token value with a new token, given the User ID and Team ID
+   * which uniquely identifies a user.
+   * TODO: Ensure that newToken does not already exist in the database.
    * @param {String} userID
    * @param {String} teamID
    * @param {String} newToken
@@ -57,7 +70,7 @@ module.exports = {
   },
 
   /**
-   * TODO: Comment
+   * Checks if the user, identified by a User ID and Team ID, exists in the database.
    * @param {String} userID
    * @param {String} teamID
    * @return {boolean}
@@ -67,7 +80,7 @@ module.exports = {
   },
 
   /**
-   * TODO: Comment
+   * Checks if the given token exists for any user in the database
    * @param {String} token
    */
   tokenExists: async function(token) {
