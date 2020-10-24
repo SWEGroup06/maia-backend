@@ -61,7 +61,7 @@ router.get('/oauth2callback', async function(req, res) {
   }
 });
 
-router.get('/freeslots', function(req, res) {
+router.get('/freeslots', async function(req, res) {
   if (!req.query.userID && !req.query.teamID) {
     res.json({error: 'No userID and teamID'});
     return;
@@ -72,22 +72,30 @@ router.get('/freeslots', function(req, res) {
     return;
   }
 
-  const startDate = decodeURIComponent(req.query.startDate);
-  const endDate = decodeURIComponent(req.query.endDate);
+  try {
+    const userID = JSON.parse(decodeURIComponent(req.query.userID));
+    const teamID = JSON.parse(decodeURIComponent(req.query.teamID));
 
-  if (req.query.tokens) {
-    const tokens = JSON.parse(decodeURIComponent(req.query.tokens));
-    AUTH.getBusySchedule(tokens, startDate, endDate).then(function(data) {
-      res.json(data);
-    }).catch(function(error) {
-      console.error(error);
-      res.json({error});
-    });
-  } else {
-    res.json({TODO: 'NotImplementedYet'});
+    // Check if a user with the provided details existing in the database
+    if (await DATABASE.instance.userExists(userID, teamID)) {
+      res.json({error: 'You are not signed in'});
+      return;
+    }
+
+    // Get tokens from the database
+    const tokens = JSON.parse(await DATABASE.instance.getToken(userID, teamID));
+
+    const startDate = decodeURIComponent(req.query.startDate);
+    const endDate = decodeURIComponent(req.query.endDate);
+
+    // Get the schedule using Google's calendar API
+    const data = AUTH.getBusySchedule(tokens, startDate, endDate);
+
+    res.json(data);
+  } catch (error) {
+    console.error(error);
+    res.send({error});
   }
-
-  // TODO: Check if entry exists in DB
 });
 
 router.get('/meeting', function(req, res) {
