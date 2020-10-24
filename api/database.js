@@ -40,12 +40,12 @@ module.exports = {
             return new Promise(function(resolve, reject) {
               user.save(function(err) {
                 if (err) {
-                  console.log('[Error creating new user] \n' + error);
+                  console.log(`[Error creating new user]\n${err}`);
                   reject(err);
                   return;
                 }
 
-                console.log('[Created new user] ' + 'userID: ' + user.id.userID + ' teamID: ' + user.id.teamID);
+                console.log(`[Created new user] userID: ${userID}, teamID: ${teamID}`);
                 resolve();
               });
             });
