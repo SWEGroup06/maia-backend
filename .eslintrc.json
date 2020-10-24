@@ -9,6 +9,7 @@
     },
     "extends": "google",
     "rules": {
-        "new-cap": "off"
+        "new-cap": "off",
+        "max-len": "off"
     }
 }
