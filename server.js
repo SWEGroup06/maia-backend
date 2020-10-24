@@ -1,6 +1,7 @@
 const express = require('express');
 const routes = require('./api/routes.js');
-const mongoose = require('mongoose');
+
+const DATABASE = require('./api/database.js');
 
 // Load environment variables
 require('dotenv').config();
@@ -13,15 +14,8 @@ app.use(express.json());
 app.use('/success', express.static('public'));
 app.use('/', routes);
 
-app.listen(PORT, () => {
-  console.log(`REST API Server hosted on: http://localhost:${PORT}`);
-});
-
-// Setup Mongo DB
-mongoose.connect(process.env.MONGO_URI,
-    {useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true});
-
-const connection = mongoose.connection;
-connection.once('open', () => {
-  console.log('MongoDB connected');
+DATABASE.connect(process.env.MONGO_URI).then(function() {
+  app.listen(PORT, () => {
+    console.log(`REST API Server hosted on: http://localhost:${PORT}`);
+  });
 });

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const AUTH = require('./auth.js');
+const DATABASE = require('./database.js');
 
 // ROOT PATH
 router.get('/', function(_, res) {
@@ -9,23 +10,33 @@ router.get('/', function(_, res) {
 });
 
 // login callback
-router.get('/login', function(req, res) {
+router.get('/login', async function(req, res) {
   if (!req.query.userID && !req.query.teamID) {
     res.json({error: 'No userID and teamID'});
     return;
   }
 
-  // TODO: Check if entry exists in DB
+  try {
+    const userID = JSON.parse(decodeURIComponent(req.query.userID));
+    const teamID = JSON.parse(decodeURIComponent(req.query.teamID));
 
-  const userID = JSON.parse(decodeURIComponent(req.query.userID));
-  const teamID = JSON.parse(decodeURIComponent(req.query.teamID));
+    // Check if a user with the provided details existing in the database
+    if (await DATABASE.instance.userExists(userID, teamID)) {
+      res.json({exists: true});
+      return;
+    }
 
-  res.json({url: AUTH.generateAuthUrl(userID, teamID)});
+    // If no details were found send URL
+    res.json({url: AUTH.generateAuthUrl(userID, teamID)});
+  } catch (error) {
+    console.error(error);
+    res.send({error});
+  }
 });
 
 
 // Google auth callback
-router.get('/oauth2callback', function(req, res) {
+router.get('/oauth2callback', async function(req, res) {
   if (!req.query.code) {
     res.json({error: 'No code provided'});
     return;
@@ -35,18 +46,23 @@ router.get('/oauth2callback', function(req, res) {
     return;
   }
 
-  const state = JSON.parse(decodeURIComponent(req.query.state));
+  try {
+    const state = JSON.parse(decodeURIComponent(req.query.state));
 
-  AUTH.getTokens(req.query.code).then(function(tokens) {
-    // TODO: Store UserId + tokens in DB
+    const tokens = await AUTH.getTokens(req.query.code);
+    const error = await DATABASE.instance.createNewUser(state.userID, state.teamID, tokens);
 
+    if (error) {
+      res.json({error});
+      return;
+    }
     // Redirect to success page
-    // res.redirect('success');
-    res.json({userID: state.userID, teamID: state.teamID, tokens});
-  }).catch(function(error) {
-    console.log(error);
-    res.json({error});
-  });
+    res.redirect('success');
+    // res.json({userID: state.userID, teamID: state.teamID, tokens});
+  } catch (error) {
+    console.error(error);
+    res.send({error});
+  }
 });
 
 router.get('/freeslots', function(req, res) {
@@ -68,7 +84,7 @@ router.get('/freeslots', function(req, res) {
     AUTH.getBusySchedule(tokens, startDate, endDate).then(function(data) {
       res.json(data);
     }).catch(function(error) {
-      console.log(error);
+      console.error(error);
       res.json({error});
     });
   } else {
