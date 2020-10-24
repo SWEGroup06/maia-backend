@@ -17,9 +17,7 @@ const UserSchema = new Schema({
     required: true,
   },
   /* TODO: constraints: ... */
-  constraints: {
-    type: Array,
-  },
+  constraints: [{startTime: String, endTime: String}],
 });
 
 const User = mongoose.model('User', UserSchema);
