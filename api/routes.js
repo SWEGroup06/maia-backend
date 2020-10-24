@@ -47,7 +47,7 @@ router.get('/oauth2callback', async function(req, res) {
   }
 
   try {
-    // const state = JSON.parse(decodeURIComponent(req.query.state));
+    const state = JSON.parse(decodeURIComponent(req.query.state));
 
     const tokens = await AUTH.getTokens(req.query.code);
     await DATABASE.instance.createNewUser(state.userID, state.teamID, tokens);

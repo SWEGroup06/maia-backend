@@ -10,7 +10,8 @@
     "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint .",
-    "lint-fix": "eslint . --fix"
+    "lint-fix": "eslint . --fix",
+    "heroku": "heroku logs -a maia-server"
   },
   "repository": {
     "type": "git",
@@ -28,6 +29,7 @@
     "chai": "^4.2.0",
     "eslint": "^7.11.0",
     "eslint-config-google": "^0.14.0",
+    "heroku": "^7.46.2",
     "mocha": "^8.2.0",
     "nyc": "^15.1.0"
   }
