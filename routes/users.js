@@ -65,21 +65,28 @@ module.exports = {
   /**
    * Updates a user's token value with a new token, given the User ID and Team ID
    * which uniquely identifies a user.
-   * TODO: Ensure that newToken does not already exist in the database.
    * @param {String} userID
    * @param {String} teamID
    * @param {String} newToken
+   * @return {boolean} Returns true if successful, false if token already exists in database.
    */
   updateToken: async function(userID, teamID, newToken) {
-    return User.findOneAndUpdate({id: {userID: userID, teamID: teamID}},
-        {id: {userID: userID, teamID: teamID}, token: newToken});
+    if (await this.tokenExists(newToken)) {
+      console.log('[Error updating token] Token already exists in database');
+      return false;
+    } else {
+      User.findOneAndUpdate({id: {userID: userID, teamID: teamID}},
+          {id: {userID: userID, teamID: teamID}, token: newToken});
+      console.log('[Token updated successfully]');
+      return true;
+    }
   },
 
   /**
    * Checks if the user, identified by a User ID and Team ID, exists in the database.
    * @param {String} userID
    * @param {String} teamID
-   * @return {boolean}
+   * @return {boolean} Returns true if there exists a unique userID and teamID pair.
    */
   userExists: async function(userID, teamID) {
     return await User.exists({id: {userID: userID, teamID: teamID}});
@@ -88,6 +95,7 @@ module.exports = {
   /**
    * Checks if the given token exists for any user in the database
    * @param {String} token
+   * @return {boolean} Returns true is token exists in database, false otherwise.
    */
   tokenExists: async function(token) {
     return await User.exists({token: token});
