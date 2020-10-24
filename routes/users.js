@@ -1,3 +1,5 @@
+const DateTime = require('luxon');
+
 // Load User model
 const User = require('../models/user.model');
 
@@ -106,5 +108,21 @@ module.exports = {
    */
   tokenExists: async function(token) {
     return await User.exists({token: token});
+  },
+
+  /**
+   * TODO: Fix
+   * @param {String} userID
+   * @param {String} teamID
+   * @param {DateTime} startTime
+   * @param {DateTime} endTime
+   * @param {Number} dayOfWeek - TODO: Amelia + Hasan create constants where Monday is 0
+   */
+  setConstraint: function(userID, teamID, startTime, endTime, dayOfWeek) {
+    User.update(
+        {'id': {userID, teamID}},
+        {$set: {[`constraints.${dayOfWeek}.startTime`]: startTime.toLocaleString(DateTime.TIME_24_SIMPLE),
+          [`constraints.${dayOfWeek}.endTime`]: endTime.toLocaleString(DateTime.TIME_24_SIMPLE)}},
+    );
   },
 };
