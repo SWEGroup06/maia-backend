@@ -25,6 +25,7 @@ module.exports = {
    * @param {string} userID
    * @param {string} teamID
    * @param {string} token
+   * @return {boolean} success
    */
   createNewUser: function(userID, teamID, token) {
     const user = new User({
@@ -32,15 +33,19 @@ module.exports = {
       token: token,
     });
 
+    let success = false;
+
     user.save((error) => {
       if (error) {
         console.log('[Error creating new user] \n' + error);
-        return false;
+        success = false;
       } else {
         console.log('[Created new user] ' + 'userID: ' + user.id.userID + ' teamID: ' + user.id.teamID);
-        return true;
+        success = true;
       }
     });
+
+    return success;
   },
 
   /**
