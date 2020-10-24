@@ -49,9 +49,8 @@ router.get('/oauth2callback', async function(req, res) {
   try {
     // const state = JSON.parse(decodeURIComponent(req.query.state));
 
-    await AUTH.getTokens(req.query.code);
-    res.redirect('success');
-    // await DATABASE.instance.createNewUser(state.userID, state.teamID, tokens);
+    const tokens = await AUTH.getTokens(req.query.code);
+    await DATABASE.instance.createNewUser(state.userID, state.teamID, tokens);
 
     // Redirect to success page
     res.redirect('success');
