@@ -32,9 +32,15 @@ module.exports = {
       token: token,
     });
 
-    user.save().then(() =>
-      console.log('Successfully created new user with: ' +
-      'userID ' + user.id.userID + ' and teamID ' + user.id.teamID));
+    user.save((error) => {
+      if (error) {
+        console.log('[Error creating new user] \n' + error);
+        return false;
+      } else {
+        console.log('[Created new user] ' + 'userID: ' + user.id.userID + ' teamID: ' + user.id.teamID);
+        return true;
+      }
+    });
   },
 
   /**
@@ -42,7 +48,7 @@ module.exports = {
    * identifies a user.
    * @param {String} userID
    * @param {String} teamID
-   * @return {String} token
+   * @return {String} If token exists return it in String format, otherwise returns null.
    */
   getToken: async function(userID, teamID) {
     return User.findOne({id: {userID: userID, teamID: teamID}}).then((user) => {
