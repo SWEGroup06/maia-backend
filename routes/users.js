@@ -56,15 +56,17 @@ module.exports = {
    * @return {String} If token exists return it in String format, otherwise returns null.
    */
   getToken: async function(userID, teamID) {
-    return User.findOne({id: {userID: userID, teamID: teamID}}).then((user) => {
+    let token = null;
+    User.findOne({id: {userID: userID, teamID: teamID}}).then((user) => {
       if (user == null) {
-        return null;
+        token = null;
       } else {
-        return user.token;
+        token = user.token;
       }
     }).catch((err) => {
       console.log(err);
     });
+    return token;
   },
 
   /**
