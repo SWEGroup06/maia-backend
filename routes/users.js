@@ -33,6 +33,13 @@ module.exports = {
     const user = new User({
       id: {userID, teamID},
       token: token,
+      constraints: [{startTime: 's', endTime: 's'},
+        {startTime: 's', endTime: 's'},
+        {startTime: 's', endTime: 's'},
+        {startTime: 's', endTime: 's'},
+        {startTime: 's', endTime: 's'},
+        {startTime: 's', endTime: 's'},
+        {startTime: 's', endTime: 's'}],
     });
 
     let success = false;
@@ -118,10 +125,16 @@ module.exports = {
    * @param {DateTime} endTime
    * @param {Number} dayOfWeek - TODO: Amelia + Hasan create constants where Monday is 0
    */
-  setConstraint: function(userID, teamID, startTime, endTime, dayOfWeek) {
-    User.update(
-        {'id': {userID, teamID}},
-        {$set: {[`constraints.${dayOfWeek}.startTime`]: startTime.toLocaleString(DateTime.TIME_24_SIMPLE),
+  setConstraint: async function(userID, teamID, startTime, endTime, dayOfWeek) {
+    console.log(startTime.toLocaleString(DateTime.TIME_24_SIMPLE));
+
+    // User.findOne({id: {userID: userID, teamID: teamID}}).then((doc) => {
+    //   doc.constraints[dayOfWeek].startTime = startTime.toLocaleString(DateTime.TIME_24_SIMPLE);
+    // });
+
+    await User.findOneAndUpdate(
+        {'id.userID': userID, 'id.teamID': teamID},
+        {'$set': {[`constraints.${dayOfWeek}.startTime`]: startTime.toLocaleString(DateTime.TIME_24_SIMPLE),
           [`constraints.${dayOfWeek}.endTime`]: endTime.toLocaleString(DateTime.TIME_24_SIMPLE)}},
     );
   },
