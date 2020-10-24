@@ -77,7 +77,7 @@ router.get('/freeslots', async function(req, res) {
     const teamID = JSON.parse(decodeURIComponent(req.query.teamID));
 
     // Check if a user with the provided details existing in the database
-    if (await DATABASE.instance.userExists(userID, teamID)) {
+    if (!await DATABASE.instance.userExists(userID, teamID)) {
       res.json({error: 'You are not signed in'});
       return;
     }
