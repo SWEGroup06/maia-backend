@@ -89,7 +89,7 @@ router.get('/freeslots', async function(req, res) {
     const endDate = decodeURIComponent(req.query.endDate);
 
     // Get the schedule using Google's calendar API
-    const data = AUTH.getBusySchedule(tokens, startDate, endDate);
+    const data = await AUTH.getBusySchedule(tokens, startDate, endDate);
 
     res.json(data);
   } catch (error) {
@@ -103,6 +103,13 @@ router.get('/meeting', function(req, res) {
     res.json({error: 'No userIDs and teamID'});
     return;
   }
+
+  // TODO: Taariq + Ihowa
+
+  // Check if all users are signed in
+
+  // Parse userIDs and teamID from request
+
 
   res.json({TODO: 'NotImplementedYet'});
 });

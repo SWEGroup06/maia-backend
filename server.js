@@ -1,10 +1,10 @@
+// Load environment variables
+require('dotenv').config();
+
 const express = require('express');
 const routes = require('./api/routes.js');
 
 const DATABASE = require('./api/database.js');
-
-// Load environment variables
-require('dotenv').config();
 
 // Setup REST Server
 const app = express();
