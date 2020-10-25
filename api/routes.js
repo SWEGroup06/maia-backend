@@ -110,6 +110,13 @@ router.get('/meeting', function(req, res) {
 
   // Parse userIDs and teamID from request
 
+  // Get tokens from the database
+
+  // Get the schedule using Google's calendar API
+
+  // Call the scheduler function to get the slots
+
+  // Return the scheduler results as a json
 
   res.json({TODO: 'NotImplementedYet'});
 });
