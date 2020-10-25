@@ -1,4 +1,4 @@
-const DateTime = require('luxon');
+const Time = require('./time');
 
 // Load User model
 const User = require('../models/user.model');
@@ -118,24 +118,20 @@ module.exports = {
   },
 
   /**
-   * TODO: Fix
+   * TODO: Comment
    * @param {String} userID
    * @param {String} teamID
-   * @param {DateTime} startTime
-   * @param {DateTime} endTime
+   * @param {String} startTime represented in ISO format
+   * @param {String} endTime represented in ISO format
    * @param {Number} dayOfWeek - TODO: Amelia + Hasan create constants where Monday is 0
    */
   setConstraint: async function(userID, teamID, startTime, endTime, dayOfWeek) {
-    console.log(startTime.toLocaleString(DateTime.TIME_24_SIMPLE));
-
-    // User.findOne({id: {userID: userID, teamID: teamID}}).then((doc) => {
-    //   doc.constraints[dayOfWeek].startTime = startTime.toLocaleString(DateTime.TIME_24_SIMPLE);
-    // });
-
     await User.findOneAndUpdate(
         {'id.userID': userID, 'id.teamID': teamID},
-        {'$set': {[`constraints.${dayOfWeek}.startTime`]: startTime.toLocaleString(DateTime.TIME_24_SIMPLE),
-          [`constraints.${dayOfWeek}.endTime`]: endTime.toLocaleString(DateTime.TIME_24_SIMPLE)}},
+        {'$set': {
+          [`constraints.${dayOfWeek}.startTime`]: Time.getTimeFromISO(startTime),
+          [`constraints.${dayOfWeek}.endTime`]: Time.getTimeFromISO(endTime),
+        }},
     );
   },
 };
