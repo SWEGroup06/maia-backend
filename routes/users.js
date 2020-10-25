@@ -30,16 +30,24 @@ module.exports = {
    * @return {boolean} success
    */
   createNewUser: function(userID, teamID, token) {
+    /**
+     * Non-existent constraints for time are represented as empty string
+     * @return {Array} Non-existent constraints for seven days
+     **/
+    function initialiseConstraints() {
+      return [{startTime: '', endTime: ''},
+        {startTime: '', endTime: ''},
+        {startTime: '', endTime: ''},
+        {startTime: '', endTime: ''},
+        {startTime: '', endTime: ''},
+        {startTime: '', endTime: ''},
+        {startTime: '', endTime: ''}];
+    }
+
     const user = new User({
       id: {userID, teamID},
       token: token,
-      constraints: [{startTime: 's', endTime: 's'},
-        {startTime: 's', endTime: 's'},
-        {startTime: 's', endTime: 's'},
-        {startTime: 's', endTime: 's'},
-        {startTime: 's', endTime: 's'},
-        {startTime: 's', endTime: 's'},
-        {startTime: 's', endTime: 's'}],
+      constraints: initialiseConstraints(),
     });
 
     let success = false;
