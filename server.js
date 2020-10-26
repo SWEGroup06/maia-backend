@@ -14,8 +14,13 @@ app.use(express.json());
 app.use('/success', express.static('public'));
 app.use('/', routes);
 
-DATABASE.connect(process.env.MONGO_URI).then(function() {
+/**
+ * If the database connection is successfully established, the server will run.
+ */
+DATABASE.getDatabaseConnection().then(() => {
   app.listen(PORT, () => {
     console.log(`REST API Server hosted on: http://localhost:${PORT}`);
   });
+}).catch((err) => { // mongoose connection error will be handled here
+  console.error('App starting error:', err.stack);
 });
