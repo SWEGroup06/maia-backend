@@ -3,6 +3,7 @@ const router = express.Router();
 
 const AUTH = require('./auth.js');
 const DATABASE = require('./database.js');
+const {schedule, busyToFree, generateConstraints, choose} = require('../src/scheduler');
 
 // ROOT PATH
 router.get('/', function(_, res) {
@@ -11,6 +12,7 @@ router.get('/', function(_, res) {
 
 // login callback
 router.get('/login', async function(req, res) {
+  console.log('here');
   if (!req.query.userID && !req.query.teamID) {
     res.json({error: 'No userID and teamID'});
     return;
@@ -85,8 +87,9 @@ router.get('/freeslots', async function(req, res) {
     // Get tokens from the database
     const tokens = JSON.parse(await DATABASE.instance.getToken(userID, teamID));
 
-    const startDate = decodeURIComponent(req.query.startDate);
-    const endDate = decodeURIComponent(req.query.endDate);
+    const startDate = new Date(decodeURIComponent(req.query.startDate));
+    const endDate = new Date(decodeURIComponent(req.query.endDate)).getUTCDate();
+
 
     // Get the schedule using Google's calendar API
     const data = await AUTH.getBusySchedule(tokens, startDate, endDate);
@@ -98,27 +101,66 @@ router.get('/freeslots', async function(req, res) {
   }
 });
 
-router.get('/meeting', function(req, res) {
+// router.get('/setWorkingHours', async function(req, res) {
+//
+// }
+
+// router.get('/addConstraints',)
+
+router.get('/meeting', async function(req, res) {
   if (!req.query.userIDs && !req.query.teamID) {
     res.json({error: 'No userIDs and teamID'});
     return;
   }
 
-  // TODO: Taariq + Ihowa
+  // if (!req.query.startDate || !req.query.endDate) {
+  //   res.json({error: 'No time period'});
+  //   return;
+  // }
 
-  // Check if all users are signed in
+  // [{"start": datetime, "end": datetime}, ...]
+  // [[datetime, datetime], ...]
+  try {
+    const startDate = new Date().toISOString();
+    const endDate = new Date('30 oct 2020').toISOString();
+    // const startDate = new Date(decodeURIComponent(req.query.startDate));
+    // const endDate = new Date(decodeURIComponent(req.query.endDate));
+    const teamID = JSON.parse(decodeURIComponent(req.query.teamID));
+    const busyTimes = [];
+    // const workingHours = [];
+    const userIDs = JSON.parse(decodeURIComponent(req.query.userIDs));
+    console.log('user ids: ', userIDs);
+    for (const u of userIDs) {
+      console.log('user: ', u);
+      // Check if a user with the provided details existing in the database
+      if (!await DATABASE.instance.userExists(u, teamID)) {
+        res.json({error: 'Someone is not signed in'});
+        return;
+      }
 
-  // Parse userIDs and teamID from request
+      // Get tokens from the database
+      const tokens = JSON.parse(await DATABASE.instance.getToken(u, teamID));
+      // const workingHoursConstraints = JSON.parse(await DATABASE.instance.getWorkingHours(u, teamID));
+      // workingHours.push(workingHoursConstraints);
+      // Get the schedule using Google's calendar API
+      console.log('1');
+      const data = await AUTH.getBusySchedule(tokens, startDate, endDate);
+      console.log('2');
+      busyTimes.push(data);
+    }
 
-  // Get tokens from the database
+    freeTimes = [];
 
-  // Get the schedule using Google's calendar API
-
-  // Call the scheduler function to get the slots
-
-  // Return the scheduler results as a json
-
-  res.json({TODO: 'NotImplementedYet'});
+    // TODO: AMELIA AND HASAN
+    // pass busyTimes through busyToFree() => free times
+    // busyToFree(busyTimes, );
+    // pass busyTimes and workingHours through scheduler to get freeTimes
+    res.json(busyTimes);
+  } catch (error) {
+    console.error(error);
+    res.send({error});
+  }
+  // res.json({TODO: 'NotImplementedYet'});
 });
 
 module.exports = router;
