@@ -7,7 +7,8 @@
     "test": "test"
   },
   "scripts": {
-    "start": "node server.js",
+    "start": "node server.js --dev",
+    "prod": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint .",
     "lint-fix": "eslint . --fix",

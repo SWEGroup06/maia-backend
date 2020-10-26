@@ -3,13 +3,10 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const UserSchema = new Schema({
-  /* id: Compound primary key object consisting of userID and teamID. */
-  id: {
-    type: Object,
-    required: true,
+  email: {
+    type: String,
     unique: true,
-    userID: String,
-    teamID: String,
+    required: true,
   },
   /* token: Authorisation token per user for Google Calendar. */
   token: {
