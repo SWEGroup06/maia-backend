@@ -4,6 +4,7 @@ const router = express.Router();
 const AUTH = require('./auth.js');
 const DATABASE = require('./database.js');
 const {schedule, busyToFree, generateConstraints, choose} = require('../src/scheduler');
+const {Duration} = require('luxon');
 
 // ROOT PATH
 router.get('/', function(_, res) {
@@ -121,6 +122,7 @@ router.get('/meeting', async function(req, res) {
   // [{"start": datetime, "end": datetime}, ...]
   // [[datetime, datetime], ...]
   try {
+    const eventDuration = Duration.fromObject({hours: 1});
     const startDate = new Date().toISOString();
     const endDate = new Date('30 oct 2020').toISOString();
     // const startDate = new Date(decodeURIComponent(req.query.startDate));
@@ -148,14 +150,18 @@ router.get('/meeting', async function(req, res) {
       console.log('2');
       busyTimes.push(data);
     }
-
-    freeTimes = [];
-
     // TODO: AMELIA AND HASAN
     // pass busyTimes through busyToFree() => free times
-    // busyToFree(busyTimes, );
+    const freeTimes = busyTimes.map((schedule) => busyToFree(
+        schedule.map((timeSlot) => [timeSlot['start'], timeSlot['end']]), startDate, endDate));
+    const mutuallyFreeTimes = schedule(freeTimes, eventDuration)
+        .map((timeSlot) => {
+          const start = new Date(timeSlot[0]);
+          const end = new Date(timeSlot[1]);
+          return [start.toGMTString(), end.toGMTString()];
+        });
     // pass busyTimes and workingHours through scheduler to get freeTimes
-    res.json(busyTimes);
+    res.json(mutuallyFreeTimes);
   } catch (error) {
     console.error(error);
     res.send({error});
