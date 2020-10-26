@@ -12,7 +12,7 @@ const s = {
       month: date.month,
       day: date.day,
       hour: time.hour,
-      minute: time.minute
+      minute: time.minute,
     });
   },
   generateConstraints: (workDay, start, end) => {
@@ -35,21 +35,33 @@ const s = {
     return res;
   },
   busyToFree: (schedule, start, end) => {
-    let begin = start;
+    let begin = DateTime.fromISO(start);
+    // console.log(schedule);
+    end = DateTime.fromISO(end);
+    schedule = schedule.map((x) => {
+      x[0] = DateTime.fromISO(x[0]);
+      x[1] = DateTime.fromISO(x[1]);
+      console.log(x[0].hour, x[1].hour);
+      return x;
+    });
     const currFreeTimes = [];
+    if (begin > schedule[0][0] && begin < schedule[0][1]) {
+      begin = schedule[0][1];
+    }
     for (let i = 0; i < schedule.length; i++) {
-      const busyTime = schedule[i];
-      if (busyTime[1] > end) {
+      const busyTimeSlot = schedule[i];
+      if (busyTimeSlot[1] > end) {
         break;
       }
-      if (begin < busyTime[0]) {
-        currFreeTimes.push([begin, busyTime[0]]);
-        begin = busyTime[1];
+      if (begin < busyTimeSlot[0]) {
+        currFreeTimes.push([begin, busyTimeSlot[0]]);
+        begin = busyTimeSlot[1];
       }
     }
     if (begin < end) {
       currFreeTimes.push([begin, end]);
     }
+    console.log(currFreeTimes);
     return currFreeTimes;
   },
   schedule: (schedules, duration, constraints = null) => {
@@ -87,7 +99,7 @@ const s = {
     });
 
     // return list of possible starting time slot intervals
-    return ans.map((xs) => [xs[0], xs[1].minus(duration)])
+    return ans.map((xs) => [xs[0], xs[1].minus(duration)]);
   },
   choose: (freeTimes) => {
     const choices = freeTimes.map((xs) => [xs[0], xs[1].diff(xs[0])]);
