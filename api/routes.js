@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const AUTH = require('./auth.js');
-const DATABASE = require('./database.js');
+const DATABASE = require('./database');
 
 // ROOT PATH
 router.get('/', function(_, res) {
@@ -11,23 +11,22 @@ router.get('/', function(_, res) {
 
 // login callback
 router.get('/login', async function(req, res) {
-  if (!req.query.userID && !req.query.teamID) {
-    res.json({error: 'No userID and teamID'});
+  if (!req.query.email) {
+    res.json({error: 'No email provided'});
     return;
   }
 
   try {
-    const userID = JSON.parse(decodeURIComponent(req.query.userID));
-    const teamID = JSON.parse(decodeURIComponent(req.query.teamID));
+    const email = JSON.parse(decodeURIComponent(req.query.email));
 
     // Check if a user with the provided details existing in the database
-    if (await DATABASE.instance.userExists(userID, teamID)) {
+    if (await DATABASE.userExists(email)) {
       res.json({exists: true});
       return;
     }
 
     // If no details were found send URL
-    res.json({url: AUTH.generateAuthUrl(userID, teamID)});
+    await res.json({url: AUTH.generateAuthUrl(email)});
   } catch (error) {
     console.error(error);
     res.send({error});
@@ -38,11 +37,11 @@ router.get('/login', async function(req, res) {
 // Google auth callback
 router.get('/oauth2callback', async function(req, res) {
   if (!req.query.code) {
-    res.json({error: 'No code provided'});
+    await res.json({error: 'No code provided'});
     return;
   }
   if (!req.query.state) {
-    res.json({error: 'No state provided'});
+    await res.json({error: 'No state provided'});
     return;
   }
 
@@ -50,7 +49,7 @@ router.get('/oauth2callback', async function(req, res) {
     const state = JSON.parse(decodeURIComponent(req.query.state));
 
     const tokens = await AUTH.getTokens(req.query.code);
-    await DATABASE.instance.createNewUser(state.userID, state.teamID, JSON.stringify(tokens));
+    await DATABASE.createNewUser(state.email, JSON.stringify(tokens));
 
     // Redirect to success page
     res.redirect('success');
@@ -62,8 +61,8 @@ router.get('/oauth2callback', async function(req, res) {
 });
 
 router.get('/freeslots', async function(req, res) {
-  if (!req.query.userID && !req.query.teamID) {
-    res.json({error: 'No userID and teamID'});
+  if (!req.query.email) {
+    res.json({error: 'No email provided'});
     return;
   }
 
@@ -73,17 +72,16 @@ router.get('/freeslots', async function(req, res) {
   }
 
   try {
-    const userID = JSON.parse(decodeURIComponent(req.query.userID));
-    const teamID = JSON.parse(decodeURIComponent(req.query.teamID));
+    const email = JSON.parse(decodeURIComponent(req.query.email));
 
     // Check if a user with the provided details existing in the database
-    if (!await DATABASE.instance.userExists(userID, teamID)) {
-      res.json({error: 'You are not signed in'});
+    if (!await DATABASE.userExists(email)) {
+      await res.json({error: 'You are not signed in'});
       return;
     }
 
     // Get tokens from the database
-    const tokens = JSON.parse(await DATABASE.instance.getToken(userID, teamID));
+    const tokens = JSON.parse(await DATABASE.getToken(email));
 
     const startDate = decodeURIComponent(req.query.startDate);
     const endDate = decodeURIComponent(req.query.endDate);
@@ -91,7 +89,7 @@ router.get('/freeslots', async function(req, res) {
     // Get the schedule using Google's calendar API
     const data = await AUTH.getBusySchedule(tokens, startDate, endDate);
 
-    res.json(data);
+    await res.json(data);
   } catch (error) {
     console.error(error);
     res.send({error});
@@ -99,8 +97,8 @@ router.get('/freeslots', async function(req, res) {
 });
 
 router.get('/meeting', function(req, res) {
-  if (!req.query.userIDs && !req.query.teamID) {
-    res.json({error: 'No userIDs and teamID'});
+  if (!req.query.email) {
+    res.json({error: 'No emails'});
     return;
   }
 
