@@ -1,16 +1,8 @@
-const Time = require('./time');
-
 // Load User model
 const User = require('../models/user.model');
 
 // Load environment variables
 require('dotenv').config();
-
-const mongoose = require('mongoose');
-
-// Opens the mongoose connection given the Mongo URI
-mongoose.connect(process.env.MONGO_URI,
-    {useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true});
 
 /*
  * TODO List:
@@ -24,12 +16,11 @@ mongoose.connect(process.env.MONGO_URI,
 module.exports = {
   /**
    * Creates a new user in the database, uniquely identified by User ID, Team ID and token
-   * @param {string} userID
-   * @param {string} teamID
+   * @param {string} email
    * @param {string} token
    * @return {boolean} success
    */
-  createNewUser: function(userID, teamID, token) {
+  createNewUser: function(email, token) {
     /**
      * Non-existent constraints for time are represented as empty string
      * @return {Array} Non-existent constraints for seven days
@@ -45,7 +36,7 @@ module.exports = {
     }
 
     const user = new User({
-      id: {userID, teamID},
+      email: email,
       token: token,
       constraints: initialiseConstraints(),
     });
@@ -57,12 +48,26 @@ module.exports = {
         console.log('[Error creating new user] \n' + error);
         success = false;
       } else {
-        console.log('[Created new user] ' + 'userID: ' + user.id.userID + ' teamID: ' + user.id.teamID);
+        console.log('[Created new user] Email: ' + email);
         success = true;
       }
     });
 
     return success;
+  },
+
+  getToken: async function(email) {
+    let token = null;
+    User.findOne({email: email}).then((user) => {
+      if (user == null) {
+        token = null;
+      } else {
+        token = user.token;
+      }
+    }).catch((err) => {
+      console.log(err);
+    });
+    return token;
   },
 
   /**
