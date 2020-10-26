@@ -1,3 +1,6 @@
+const DEBUG = process.argv.includes('--dev') || false;
+
 module.exports = {
-  serverURL: 'https://maia-server.herokuapp.com',
+  DEBUG,
+  serverURL: DEBUG ? 'http://localhost' : 'https://maia-server.herokuapp.com',
 };

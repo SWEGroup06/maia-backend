@@ -5,6 +5,7 @@ const express = require('express');
 const routes = require('./api/routes.js');
 
 const DATABASE = require('./api/database.js');
+const CONFIG = require('./config.js');
 
 // Setup REST Server
 const app = express();
@@ -16,6 +17,6 @@ app.use('/', routes);
 
 DATABASE.connect(process.env.MONGO_URI).then(function() {
   app.listen(PORT, () => {
-    console.log(`REST API Server hosted on: http://localhost:${PORT}`);
+    console.log(`REST API Server hosted on: ${CONFIG.serverURL}${CONFIG.DEBUG ? `:${PORT}` : ''}`);
   });
 });

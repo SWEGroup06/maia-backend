@@ -3,7 +3,7 @@ const router = express.Router();
 
 const AUTH = require('./auth.js');
 const DATABASE = require('./database.js');
-const {schedule, busyToFree, generateConstraints, choose} = require('../src/scheduler');
+// const {schedule, busyToFree, generateConstraints, choose} = require('../src/scheduler');
 
 // ROOT PATH
 router.get('/', function(_, res) {

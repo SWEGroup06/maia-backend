@@ -12,7 +12,7 @@ const s = {
       month: date.month,
       day: date.day,
       hour: time.hour,
-      minute: time.minute
+      minute: time.minute,
     });
   },
   generateConstraints: (workDay, start, end) => {
@@ -87,7 +87,7 @@ const s = {
     });
 
     // return list of possible starting time slot intervals
-    return ans.map((xs) => [xs[0], xs[1].minus(duration)])
+    return ans.map((xs) => [xs[0], xs[1].minus(duration)]);
   },
   choose: (freeTimes) => {
     const choices = freeTimes.map((xs) => [xs[0], xs[1].diff(xs[0])]);
