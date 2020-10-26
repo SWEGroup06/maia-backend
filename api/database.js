@@ -4,6 +4,8 @@ const User = require('../models/user.model');
 // Load environment variables
 require('dotenv').config();
 
+const mongoose = require('mongoose');
+
 /*
  * TODO List:
  *  - Add constraints stuff
@@ -14,6 +16,21 @@ require('dotenv').config();
 
 
 module.exports = {
+  /**
+   *
+   * @return {Promise<void>}
+   */
+  getDatabaseConnection: async function() {
+    try {
+      await mongoose.connect(process.env.MONGO_URI,
+          {useNewUrlParser: true, useCreateIndex: true, useUnifiedTopology: true});
+      console.log('Connection to DB Successful');
+    } catch (error) {
+      console.log('Connection to DB unsuccessful');
+      console.error('Details:\n' + error);
+    }
+  },
+
   /**
    * Creates a new user in the database, uniquely identified by User ID, Team ID and token
    * @param {string} email
