@@ -56,6 +56,11 @@ module.exports = {
     return success;
   },
 
+  /**
+   * Retrieves token of a user given the email address which uniquely identifies a user.
+   * @param {String} email
+   * @return {String} If token exists return it in String format, otherwise returns null.
+   */
   getToken: async function(email) {
     let token = null;
     User.findOne({email: email}).then((user) => {
@@ -71,41 +76,18 @@ module.exports = {
   },
 
   /**
-   * Retrieves the token of a user given the User ID and Team ID which uniquely
-   * identifies a user.
-   * @param {String} userID
-   * @param {String} teamID
-   * @return {String} If token exists return it in String format, otherwise returns null.
-   */
-  getToken: async function(userID, teamID) {
-    let token = null;
-    User.findOne({id: {userID: userID, teamID: teamID}}).then((user) => {
-      if (user == null) {
-        token = null;
-      } else {
-        token = user.token;
-      }
-    }).catch((err) => {
-      console.log(err);
-    });
-    return token;
-  },
-
-  /**
    * Updates a user's token value with a new token, given the User ID and Team ID
    * which uniquely identifies a user.
-   * @param {String} userID
-   * @param {String} teamID
+   * @param {String} email
    * @param {String} newToken
    * @return {boolean} Returns true if successful, false if token already exists in database.
    */
-  updateToken: async function(userID, teamID, newToken) {
+  updateToken: async function(email, newToken) {
     if (await this.tokenExists(newToken)) {
       console.log('[Error updating token] Token already exists in database');
       return false;
     } else {
-      User.findOneAndUpdate({id: {userID: userID, teamID: teamID}},
-          {id: {userID: userID, teamID: teamID}, token: newToken});
+      User.findOneAndUpdate({email: email}, {email: email, token: newToken});
       console.log('[Token updated successfully]');
       return true;
     }
@@ -113,12 +95,11 @@ module.exports = {
 
   /**
    * Checks if the user, identified by a User ID and Team ID, exists in the database.
-   * @param {String} userID
-   * @param {String} teamID
-   * @return {boolean} Returns true if there exists a unique userID and teamID pair.
+   * @param {String} email
+   * @return {boolean} Returns true if there exists a user registered with this email.
    */
-  userExists: async function(userID, teamID) {
-    return await User.exists({id: {userID: userID, teamID: teamID}});
+  userExists: async function(email) {
+    return await User.exists({email: email});
   },
 
   /**
@@ -132,15 +113,14 @@ module.exports = {
 
   /**
    * TODO: Comment
-   * @param {String} userID
-   * @param {String} teamID
+   * @param {String} email
    * @param {String} startTime represented in ISO format
    * @param {String} endTime represented in ISO format
    * @param {Number} dayOfWeek - TODO: Amelia + Hasan create constants where Monday is 0
    */
-  setConstraint: async function(userID, teamID, startTime, endTime, dayOfWeek) {
+  setConstraint: async function(email, startTime, endTime, dayOfWeek) {
     await User.findOneAndUpdate(
-        {'id.userID': userID, 'id.teamID': teamID},
+        {'email': email},
         {'$set': {
           [`constraints.${dayOfWeek}.startTime`]: Time.getTimeFromISO(startTime),
           [`constraints.${dayOfWeek}.endTime`]: Time.getTimeFromISO(endTime),
