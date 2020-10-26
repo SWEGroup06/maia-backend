@@ -10,7 +10,7 @@ const oauth2Client = new google.auth.OAuth2(
 );
 
 module.exports = {
-  generateAuthUrl(userID, teamID) {
+  generateAuthUrl(email) {
     return oauth2Client.generateAuthUrl({
       access_type: 'offline',
       prompt: 'consent',
@@ -18,7 +18,7 @@ module.exports = {
         'https://www.googleapis.com/auth/calendar',
         'https://www.googleapis.com/auth/plus.me',
       ],
-      state: encodeURIComponent(JSON.stringify({userID, teamID})),
+      state: encodeURIComponent(JSON.stringify({email})),
     });
   },
   getTokens(code) {

@@ -2,8 +2,8 @@ const express = require('express');
 const router = express.Router();
 
 const AUTH = require('./auth.js');
-const DATABASE = require('./database.js');
-const {schedule, busyToFree, generateConstraints, choose} = require('../src/scheduler');
+const DATABASE = require('./database');
+const {schedule, busyToFree, choose} = require('../src/scheduler');
 const {Duration} = require('luxon');
 
 // ROOT PATH
@@ -13,24 +13,22 @@ router.get('/', function(_, res) {
 
 // login callback
 router.get('/login', async function(req, res) {
-  console.log('here');
-  if (!req.query.userID && !req.query.teamID) {
-    res.json({error: 'No userID and teamID'});
+  if (!req.query.email) {
+    res.json({error: 'No email provided'});
     return;
   }
 
   try {
-    const userID = JSON.parse(decodeURIComponent(req.query.userID));
-    const teamID = JSON.parse(decodeURIComponent(req.query.teamID));
+    const email = JSON.parse(decodeURIComponent(req.query.email));
 
     // Check if a user with the provided details existing in the database
-    if (await DATABASE.instance.userExists(userID, teamID)) {
+    if (await DATABASE.userExists(email)) {
       res.json({exists: true});
       return;
     }
 
     // If no details were found send URL
-    res.json({url: AUTH.generateAuthUrl(userID, teamID)});
+    await res.json({url: AUTH.generateAuthUrl(email)});
   } catch (error) {
     console.error(error);
     res.send({error});
@@ -41,11 +39,11 @@ router.get('/login', async function(req, res) {
 // Google auth callback
 router.get('/oauth2callback', async function(req, res) {
   if (!req.query.code) {
-    res.json({error: 'No code provided'});
+    await res.json({error: 'No code provided'});
     return;
   }
   if (!req.query.state) {
-    res.json({error: 'No state provided'});
+    await res.json({error: 'No state provided'});
     return;
   }
 
@@ -53,7 +51,7 @@ router.get('/oauth2callback', async function(req, res) {
     const state = JSON.parse(decodeURIComponent(req.query.state));
 
     const tokens = await AUTH.getTokens(req.query.code);
-    await DATABASE.instance.createNewUser(state.userID, state.teamID, JSON.stringify(tokens));
+    await DATABASE.createNewUser(state.email, JSON.stringify(tokens));
 
     // Redirect to success page
     res.redirect('success');
@@ -65,8 +63,8 @@ router.get('/oauth2callback', async function(req, res) {
 });
 
 router.get('/freeslots', async function(req, res) {
-  if (!req.query.userID && !req.query.teamID) {
-    res.json({error: 'No userID and teamID'});
+  if (!req.query.email) {
+    res.json({error: 'No email provided'});
     return;
   }
 
@@ -76,41 +74,33 @@ router.get('/freeslots', async function(req, res) {
   }
 
   try {
-    const userID = JSON.parse(decodeURIComponent(req.query.userID));
-    const teamID = JSON.parse(decodeURIComponent(req.query.teamID));
+    const email = JSON.parse(decodeURIComponent(req.query.email));
 
     // Check if a user with the provided details existing in the database
-    if (!await DATABASE.instance.userExists(userID, teamID)) {
-      res.json({error: 'You are not signed in'});
+    if (!await DATABASE.userExists(email)) {
+      await res.json({error: 'You are not signed in'});
       return;
     }
 
     // Get tokens from the database
-    const tokens = JSON.parse(await DATABASE.instance.getToken(userID, teamID));
+    const tokens = JSON.parse(await DATABASE.getToken(email));
 
     const startDate = new Date(decodeURIComponent(req.query.startDate));
     const endDate = new Date(decodeURIComponent(req.query.endDate)).getUTCDate();
 
-
     // Get the schedule using Google's calendar API
     const data = await AUTH.getBusySchedule(tokens, startDate, endDate);
 
-    res.json(data);
+    await res.json(data);
   } catch (error) {
     console.error(error);
     res.send({error});
   }
 });
 
-// router.get('/setWorkingHours', async function(req, res) {
-//
-// }
-
-// router.get('/addConstraints',)
-
 router.get('/meeting', async function(req, res) {
-  if (!req.query.userIDs && !req.query.teamID) {
-    res.json({error: 'No userIDs and teamID'});
+  if (!req.query.email) {
+    res.json({error: 'No emails'});
     return;
   }
 
@@ -150,7 +140,6 @@ router.get('/meeting', async function(req, res) {
       console.log('2');
       busyTimes.push(data);
     }
-    // TODO: AMELIA AND HASAN
     // pass busyTimes through busyToFree() => free times
     const freeTimes = busyTimes.map((schedule) => busyToFree(
         schedule.map((timeSlot) => [timeSlot['start'], timeSlot['end']]), startDate, endDate));
@@ -160,8 +149,9 @@ router.get('/meeting', async function(req, res) {
           const end = new Date(timeSlot[1]);
           return [start.toGMTString(), end.toGMTString()];
         });
+    const chosenTimeSlot = choose(mutuallyFreeTimes);
     // pass busyTimes and workingHours through scheduler to get freeTimes
-    res.json(mutuallyFreeTimes);
+    res.json(chosenTimeSlot);
   } catch (error) {
     console.error(error);
     res.send({error});
