@@ -144,7 +144,7 @@ router.get('/meeting', async function(req, res) {
     const currDate = new Date();
     for (const email of emails) {
       // Get tokens from the database
-      const tokens = JSON.parse(await DATABASE.instance.getToken(email));
+      const tokens = JSON.parse(await DATABASE.getToken(email));
 
       // create meeting using google API
       const title = 'Meeting: <' + currDate + '>';
