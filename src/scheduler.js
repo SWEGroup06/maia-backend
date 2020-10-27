@@ -1,6 +1,6 @@
 const {DateTime, Duration} = require('luxon');
 
-const s = {
+const context = {
   intersection: (slot1, slot2, duration) => {
     const newSlot = [DateTime.max(slot1[0], slot2[0]),
       DateTime.min(slot1[1], slot2[1])];
@@ -25,8 +25,8 @@ const s = {
 
     while (start <= end) {
       if (workDay[i].length === 2) {
-        res.push([s.combine(start, workDay[i][0]),
-          s.combine(start, workDay[i][1])]);
+        res.push([context.combine(start, workDay[i][0]),
+          context.combine(start, workDay[i][1])]);
       }
       start = start.plus({days: 1});
       i = (i + 1) % 7;
@@ -34,37 +34,7 @@ const s = {
 
     return res;
   },
-  busyToFree: (schedule, start, end) => {
-    let begin = DateTime.fromISO(start);
-    // console.log(schedule);
-    end = DateTime.fromISO(end);
-    schedule = schedule.map((x) => {
-      x[0] = DateTime.fromISO(x[0]);
-      x[1] = DateTime.fromISO(x[1]);
-      console.log(x[0].hour, x[1].hour);
-      return x;
-    });
-    const currFreeTimes = [];
-    if (begin > schedule[0][0] && begin < schedule[0][1]) {
-      begin = schedule[0][1];
-    }
-    for (let i = 0; i < schedule.length; i++) {
-      const busyTimeSlot = schedule[i];
-      if (busyTimeSlot[1] > end) {
-        break;
-      }
-      if (begin < busyTimeSlot[0]) {
-        currFreeTimes.push([begin, busyTimeSlot[0]]);
-        begin = busyTimeSlot[1];
-      }
-    }
-    if (begin < end) {
-      currFreeTimes.push([begin, end]);
-    }
-    console.log(currFreeTimes);
-    return currFreeTimes;
-  },
-  schedule: (schedules, duration, constraints = null) => {
+  _schedule: (schedules, duration, constraints = null) => {
     /*
     schedules is a list of (start_free_datetime, end_free_datetime)
     pre-conditions:
@@ -75,6 +45,7 @@ const s = {
     :return: ranges for all possible start date times of the event (gives range of every
     possible time event could start at)
     */
+    if (!schedules || !schedules.length || !duration) return null;
     if (constraints != null) {
       schedules = schedules.concat(constraints);
     }
@@ -84,7 +55,7 @@ const s = {
       let i = 0;
       let j = 0;
       while (i < ans.length && j < schedule.length) {
-        const intersection = s.intersection(ans[i], schedule[j], duration);
+        const intersection = context.intersection(ans[i], schedule[j], duration);
         if (intersection != null) {
           curr.push(intersection);
         }
@@ -101,10 +72,59 @@ const s = {
     // return list of possible starting time slot intervals
     return ans.map((xs) => [xs[0], xs[1].minus(duration)]);
   },
-  choose: (freeTimes) => {
+  _choose: (freeTimes) => {
     const choices = freeTimes.map((xs) => [xs[0], xs[1].diff(xs[0])]);
     choices.sort((a, b) => a[1] - b[1]);
     return choices[0][0];
+  },
+  /* [
+    [start, end]
+    .
+    .
+    .
+  ] */
+  getFreeSlots: (busySlots, start, end) => {
+    // Parse start and end times
+    let begin = DateTime.fromISO(start);
+    end = DateTime.fromISO(end);
+
+    // Parse busy slots as DateTime objecs
+    busySlots = busySlots.map((x) => {
+      x[0] = DateTime.fromISO(x[0]);
+      x[1] = DateTime.fromISO(x[1]);
+      return x;
+    });
+
+    // If there are no busy slots return entire time period
+    if (!busySlots.length) {
+      return [[begin, end]];
+    }
+
+    // If start time is within a slot move start time to end of slot
+    if (begin > busySlots[0][0] && begin < busySlots[0][1]) {
+      begin = busySlots[0][1];
+    }
+
+    const freeSlots = [];
+    for (let i = 0; i < busySlots.length; i++) {
+      const busyTimeSlot = busySlots[i];
+      if (busyTimeSlot[1] > end) {
+        break;
+      }
+      if (begin < busyTimeSlot[0]) {
+        freeSlots.push([begin, busyTimeSlot[0]]);
+        begin = busyTimeSlot[1];
+      }
+    }
+    if (begin < end) {
+      freeSlots.push([begin, end]);
+    }
+    return freeSlots;
+  },
+  findMeetingSlot(freeTimes, duration, constraints = null) {
+    const timeSlots = context._schedule(freeTimes, duration, constraints);
+    const choice = context._choose(timeSlots);
+    return {start: new Date(choice.ts).toISOString(), end: new Date(choice.plus(duration).ts).toISOString()};
   },
   busyTimeFrequencies: (lastMonthBusySchedule) => {
     const halfHoursInDay = 48;
@@ -116,15 +136,15 @@ const s = {
       const startHour = begin.hour;
       const startHalf = begin.minute >= 30 ? 1 : 0;
       const halfHour = Duration.fromObject({minutes: 30});
-      let i = startHour*2 + startHalf;
+      let i = startHour * 2 + startHalf;
       while (begin < end) {
         const day = begin.day;
         frequencies[day][i]++;
-        i = (i+1) % halfHoursInDay;
+        i = (i + 1) % halfHoursInDay;
         begin.plus(halfHour);
       }
     }
   },
 };
 
-module.exports = s;
+module.exports = context;
