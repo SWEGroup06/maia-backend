@@ -76,17 +76,13 @@ module.exports = {
    * @return {String} If token exists return it in String format, otherwise returns null.
    */
   getToken: async function(email) {
-    let token = null;
-    User.findOne({email: email}).then((user) => {
-      if (user == null) {
-        token = null;
-      } else {
-        token = user.token;
-      }
-    }).catch((err) => {
+    try {
+      const user = await User.findOne({email});
+      return user ? user.token : null;
+    } catch (err) {
       console.log(err);
-    });
-    return token;
+      return null;
+    }
   },
 
   /**

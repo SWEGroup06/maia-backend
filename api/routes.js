@@ -115,13 +115,13 @@ router.get('/meeting', async function(req, res) {
 
     for (const email of emails) {
       // Check if a user with the provided details existing in the database
-      if (!await DATABASE.instance.userExists(email)) {
+      if (!await DATABASE.userExists(email)) {
         res.json({error: 'Someone is not signed in'});
         return;
       }
 
       // Get tokens from the database
-      const tokens = JSON.parse(await DATABASE.instance.getToken(email));
+      const tokens = JSON.parse(await DATABASE.getToken(email));
       // const workingHoursConstraints = JSON.parse(await DATABASE.instance.getWorkingHours(u, teamID));
       // workingHours.push(workingHoursConstraints);
       // Get the schedule using Google's calendar API
@@ -129,17 +129,18 @@ router.get('/meeting', async function(req, res) {
       busyTimes.push(data);
     }
     // pass busyTimes through busyToFree() => free times
-    const freeTimes = busyTimes.map((schedule) => busyToFree(
-        schedule.map((timeSlot) => [timeSlot['start'], timeSlot['end']]), startDate, endDate));
-    const mutuallyFreeTimes = schedule(freeTimes, eventDuration)
-        .map((timeSlot) => {
-          const start = new Date(timeSlot[0]);
-          const end = new Date(timeSlot[1]);
-          return [start.toGMTString(), end.toGMTString()];
-        });
-    const chosenTimeSlot = choose(mutuallyFreeTimes);
+    // const freeTimes = busyTimes.map((schedule) => busyToFree(
+    //     schedule.map((timeSlot) => [timeSlot['start'], timeSlot['end']]), startDate, endDate));
+    // const mutuallyFreeTimes = schedule(freeTimes, eventDuration)
+    //     .map((timeSlot) => {
+    //       const start = new Date(timeSlot[0]);
+    //       const end = new Date(timeSlot[1]);
+    //       return [start.toGMTString(), end.toGMTString()];
+    //     });
+    // const chosenTimeSlot = choose(mutuallyFreeTimes);
     // pass busyTimes and workingHours through scheduler to get freeTimes
-    res.json(chosenTimeSlot);
+    
+    res.json(busyTimes);
   } catch (error) {
     console.error(error);
     res.send({error});
