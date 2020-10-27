@@ -84,17 +84,28 @@ const context = {
     .
   ] */
   getFreeSlots: (busySlots, start, end) => {
+    // Parse start and end times
     let begin = DateTime.fromISO(start);
     end = DateTime.fromISO(end);
+
+    // Parse busy slots as DateTime objecs
     busySlots = busySlots.map((x) => {
       x[0] = DateTime.fromISO(x[0]);
       x[1] = DateTime.fromISO(x[1]);
       return x;
     });
-    const freeSlots = [];
+
+    // If there are no busy slots return entire time period
+    if (!busySlots.length) {
+      return [[begin, end]];
+    }
+
+    // If start time is within a slot move start time to end of slot
     if (begin > busySlots[0][0] && begin < busySlots[0][1]) {
       begin = busySlots[0][1];
     }
+
+    const freeSlots = [];
     for (let i = 0; i < busySlots.length; i++) {
       const busyTimeSlot = busySlots[i];
       if (busyTimeSlot[1] > end) {

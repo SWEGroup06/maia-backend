@@ -130,8 +130,11 @@ router.get('/meeting', async function(req, res) {
       if (data) busyTimes.push(data.map((e) => [e.start, e.end]));
     }
 
+    // console.log('BUSY TIMES:', busyTimes);
+
     // Get free slots from the provided busy times
     const freeTimes = busyTimes.map((timeSlot) => SCHEDULER.getFreeSlots(timeSlot, startDate, endDate));
+    // console.log('FREE TIMES:', freeTimes);
 
     // Using free times find a meeting slot and get the choice
     const chosenSlot = SCHEDULER.findMeetingSlot(freeTimes, eventDuration);
