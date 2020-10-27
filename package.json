@@ -9,7 +9,7 @@
   "scripts": {
     "start": "node server.js --dev",
     "prod": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "lint": "eslint .",
     "lint-fix": "eslint . --fix",
     "logs": "heroku logs -a maia-server"
@@ -24,6 +24,7 @@
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "googleapis": "^61.0.0",
+    "jest": "^26.6.1",
     "luxon": "^1.25.0",
     "mongoose": "^5.10.9"
   },
@@ -32,7 +33,11 @@
     "eslint": "^7.11.0",
     "eslint-config-google": "^0.14.0",
     "heroku": "^7.46.2",
-    "mocha": "^8.2.0",
-    "nyc": "^15.1.0"
+    "mocha": "^8.2n.0",
+    "nyc": "^15.1.0",
+    "jest": "^26.6.1"
+  },
+  "jest": {
+    "verbose": true
   }
 }
