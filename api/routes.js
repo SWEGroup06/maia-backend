@@ -3,7 +3,7 @@ const router = express.Router();
 
 const AUTH = require('./auth.js');
 const DATABASE = require('./database');
-// const {schedule, busyToFree, choose} = require('../src/scheduler');
+const SCHEDULER = require('../src/scheduler');
 const {Duration} = require('luxon');
 
 // ROOT PATH
@@ -112,6 +112,7 @@ router.get('/meeting', async function(req, res) {
     const endDate = new Date('30 oct 2020').toISOString();
 
     const emails = JSON.parse(decodeURIComponent(req.query.emails));
+    const tokens = [];
 
     for (const email of emails) {
       // Check if a user with the provided details existing in the database
@@ -121,40 +122,27 @@ router.get('/meeting', async function(req, res) {
       }
 
       // Get tokens from the database
-      const tokens = JSON.parse(await DATABASE.getToken(email));
-      // const workingHoursConstraints = JSON.parse(await DATABASE.instance.getWorkingHours(u, teamID));
-      // workingHours.push(workingHoursConstraints);
-      // Get the schedule using Google's calendar API
-      const data = await AUTH.getBusySchedule(tokens, startDate, endDate);
-      busyTimes.push(data);
+      const token = JSON.parse(await DATABASE.getToken(email));
+      tokens.push(token);
+
+      // Format busy times before pushing to array
+      const data = await AUTH.getBusySchedule(token, startDate, endDate);
+      if (data) busyTimes.push(data.map((e) => [e.start, e.end]));
     }
-    // pass busyTimes through busyToFree() => free times
-    // const freeTimes = busyTimes.map((schedule) => busyToFree(
-    //     schedule.map((timeSlot) => [timeSlot['start'], timeSlot['end']]), startDate, endDate));
-    // const mutuallyFreeTimes = schedule(freeTimes, eventDuration)
-    //     .map((timeSlot) => {
-    //       const start = new Date(timeSlot[0]);
-    //       const end = new Date(timeSlot[1]);
-    //       return [start.toGMTString(), end.toGMTString()];
-    //     });
-    // const chosenTimeSlot = choose(mutuallyFreeTimes);
-    // pass busyTimes and workingHours through scheduler to get freeTimes
+
+    // Get free slots from the provided busy times
+    const freeTimes = busyTimes.map((timeSlot) => SCHEDULER.getFreeSlots(timeSlot, startDate, endDate));
+
+    // Using free times find a meeting slot and get the choice
+    const chosenSlot = SCHEDULER.findMeetingSlot(freeTimes, eventDuration);
 
     // create meeeting event in calendars of team members
-    const currDate = new Date();
-    for (const email of emails) {
-      // Get tokens from the database
-      const tokens = JSON.parse(await DATABASE.getToken(email));
-
-      // create meeting using google API
-      const title = 'Meeting: <' + currDate + '>';
-      const response = await AUTH.createMeeting(tokens, title, chosenTimeSlot[0], chosenTimeSlot[1]);
-      if (response != 200) {
-        res.json({error: 'Something went wrong'});
-        return;
-      }
+    const today = new Date();
+    for (const token of tokens) {
+      await AUTH.createMeeting(token, `Meeting: ${today}`, chosenSlot.start, chosenSlot.end);
     }
-    res.json(chosenTimeSlot);
+
+    res.json(chosenSlot);
   } catch (error) {
     console.error(error);
     res.send({error});
