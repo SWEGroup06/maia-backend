@@ -139,6 +139,21 @@ router.get('/meeting', async function(req, res) {
         });
     const chosenTimeSlot = choose(mutuallyFreeTimes);
     // pass busyTimes and workingHours through scheduler to get freeTimes
+
+    // create meeeting event in calendars of team members
+    const currDate = new Date();
+    for (const email of emails) {
+      // Get tokens from the database
+      const tokens = JSON.parse(await DATABASE.instance.getToken(email));
+
+      // create meeting using google API
+      const title = 'Meeting: <' + currDate + '>';
+      const response = await AUTH.createMeeting(tokens, title, chosenTimeSlot[0], chosenTimeSlot[1]);
+      if(response != 200) {
+        res.json({error: 'Something went wrong'});
+        return;
+      }
+    }
     res.json(chosenTimeSlot);
   } catch (error) {
     console.error(error);
