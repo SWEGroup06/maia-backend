@@ -99,45 +99,33 @@ router.get('/freeslots', async function(req, res) {
 });
 
 router.get('/meeting', async function(req, res) {
-  if (!req.query.email) {
+  if (!req.query.emails) {
     res.json({error: 'No emails'});
     return;
   }
 
-  // if (!req.query.startDate || !req.query.endDate) {
-  //   res.json({error: 'No time period'});
-  //   return;
-  // }
-
-  // [{"start": datetime, "end": datetime}, ...]
-  // [[datetime, datetime], ...]
   try {
+    const busyTimes = [];
     const eventDuration = Duration.fromObject({hours: 1});
+
     const startDate = new Date().toISOString();
     const endDate = new Date('30 oct 2020').toISOString();
-    // const startDate = new Date(decodeURIComponent(req.query.startDate));
-    // const endDate = new Date(decodeURIComponent(req.query.endDate));
-    const teamID = JSON.parse(decodeURIComponent(req.query.teamID));
-    const busyTimes = [];
-    // const workingHours = [];
-    const userIDs = JSON.parse(decodeURIComponent(req.query.userIDs));
-    console.log('user ids: ', userIDs);
-    for (const u of userIDs) {
-      console.log('user: ', u);
+
+    const emails = JSON.parse(decodeURIComponent(req.query.emails));
+
+    for (const email of emails) {
       // Check if a user with the provided details existing in the database
-      if (!await DATABASE.instance.userExists(u, teamID)) {
+      if (!await DATABASE.instance.userExists(email)) {
         res.json({error: 'Someone is not signed in'});
         return;
       }
 
       // Get tokens from the database
-      const tokens = JSON.parse(await DATABASE.instance.getToken(u, teamID));
+      const tokens = JSON.parse(await DATABASE.instance.getToken(email));
       // const workingHoursConstraints = JSON.parse(await DATABASE.instance.getWorkingHours(u, teamID));
       // workingHours.push(workingHoursConstraints);
       // Get the schedule using Google's calendar API
-      console.log('1');
       const data = await AUTH.getBusySchedule(tokens, startDate, endDate);
-      console.log('2');
       busyTimes.push(data);
     }
     // pass busyTimes through busyToFree() => free times
