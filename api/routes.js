@@ -171,7 +171,7 @@ router.get('/constraint', async function(req, res) {
   }
 
   if (!req.query.dayOfWeek) {
-    res.json({error: 'No day of week provided'});
+    await res.json({error: 'No day of week provided'});
     return;
   }
 
@@ -181,14 +181,13 @@ router.get('/constraint', async function(req, res) {
     const endTime = TIME.getTimeFromISO(JSON.parse(decodeURIComponent(req.query.endTime)));
     const dayOfWeek = JSON.parse(decodeURIComponent(req.query.dayOfWeek));
 
-
     // Check if a user with the provided details existing in the database
     if (!await DATABASE.userExists(email)) {
       await res.json({error: 'You are not signed in'});
       return;
     }
 
-    await DATABASE.setConstraint(email, startTime, endTime, dayOfWeek);
+    await DATABASE.setConstraint(email, startTime, endTime, TIME.getDayOfWeek(dayOfWeek));
 
     // await res.json(data);
   } catch (error) {
