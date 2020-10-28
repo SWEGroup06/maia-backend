@@ -98,6 +98,72 @@ router.get('/freeslots', async function(req, res) {
   }
 });
 
+router.get('/reschedule', async function(req, res) {
+  // check if event to be reschedule has been specified
+  if (!req.query.eventID) {
+    res.json({error: 'No event specified for rescheduling'});
+  }
+
+  if (!req.query.organiserEmail) {
+    res.json({error: 'Organiser\'s email not found'});
+    return;
+  }
+
+  try {
+    const eventID = JSON.parse(decodeURIComponent(req.query.eventID));
+    const organiserEmail = JSON.parse(decodeURIComponent(req.query.organiserEmail));
+    // check organiser of event (the person trying to reschedule it) is
+    // signed in and check they are the organiser
+    if (!await DATABASE.userExists(organiserEmail)) {
+      res.json({error: 'Organiser is not signed in'});
+      return;
+    }
+
+    // Get organiser's token from the database
+    const organiserToken = JSON.parse(await DATABASE.getToken(organiserEmail));
+
+    // TODO: get attendee emails from event
+    const attendeeEmails = await AUTH.getAttendeesForEvent(eventID);
+
+    // find new time for event using scheduler
+    const busyTimes = [];
+    const eventDuration = Duration.fromObject({hours: 1});
+
+    const startDate = new Date().toISOString();
+    const endDate = new Date('30 oct 2020').toISOString();
+
+    // populate busyTimes array with all attendees' schedules
+    for (const email of attendeeEmails) {
+      // Check if a user with the provided details existing in the database
+      if (!await DATABASE.userExists(email)) {
+        res.json({error: 'Someone is not signed in'});
+        return;
+      }
+
+      // Get tokens from the database
+      const token = JSON.parse(await DATABASE.getToken(email));
+
+      // Format busy times before pushing to array
+      const data = await AUTH.getBusySchedule(token, startDate, endDate);
+      if (data) busyTimes.push(data.map((e) => [e.start, e.end]));
+    }
+
+    // Get free slots from the provided busy times
+    const freeTimes = busyTimes.map((timeSlot) => SCHEDULER.getFreeSlots(timeSlot, startDate, endDate));
+
+    // Using free times find a meeting slot and get the choice
+    const chosenSlot = SCHEDULER.findMeetingSlot(freeTimes, eventDuration);
+
+    // TODO: reschedule meeting to this new time
+    const today = new Date();
+    await AUTH.updateMeeting(organiserToken, eventID, `Meeting: ${today}`, chosenSlot.start, chosenSlot.end);
+    res.json(chosenSlot);
+  } catch (error) {
+    console.error(error);
+    res.send({error});
+  }
+});
+
 router.get('/meeting', async function(req, res) {
   if (!req.query.emails) {
     res.json({error: 'No emails'});
