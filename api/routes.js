@@ -125,15 +125,15 @@ router.get('/reschedule', async function(req, res) {
     }
     // Get organiser's token from the database
     const organiserToken = JSON.parse(await DATABASE.getToken(organiserEmail));
-    // TODO: get attendee emails from event
+    // get attendee emails from event
     const events = await AUTH.getEvents(organiserToken, eventStartTime, eventEndTime);
     if (events.length === 0) {
       res.json({error: 'No event found to reschedule with given details'});
       return;
     }
-    const event = events[0];
+    const originalEvent = events[0];
     let attendeeEmails = [];
-    attendeeEmails = event.attendees.map((person) => person.email);
+    attendeeEmails = originalEvent.attendees.map((person) => person.email);
 
     // find new time for event using scheduler
     const busyTimes = [];
@@ -164,12 +164,12 @@ router.get('/reschedule', async function(req, res) {
     // Using free times find a meeting slot and get the choice
     const chosenSlot = SCHEDULER.findMeetingSlot(freeTimes, eventDuration);
 
-    // TODO: reschedule meeting to this new time
+    // reschedule meeting to this new time
     const today = new Date();
-    event.summary = `Meeting: ${today.toDateString()}`;
-    event.timeMin = chosenSlot.start;
-    event.timeMax = chosenSlot.end;
-    await AUTH.updateMeeting(organiserToken, event);
+    originalEvent.summary = `Meeting: ${today.toDateString()}`;
+    originalEvent.timeMin = chosenSlot.start;
+    originalEvent.timeMax = chosenSlot.end;
+    await AUTH.updateMeeting(organiserToken, originalEvent);
     res.json(chosenSlot);
   } catch (error) {
     console.error(error);

@@ -115,12 +115,12 @@ module.exports = {
   },
   updateMeeting(tokens, event) {
     oauth2Client.setCredentials(tokens);
-    return new Promise(function (resolve, reject) {
+    return new Promise(function(resolve, reject) {
       calendar.events.patch({
         auth: oauth2Client,
         calendarId: 'primary',
         eventId: event.id,
-      }, function (err, res) {
+      }, function(err, res) {
         if (err) {
           reject(err);
           return;
