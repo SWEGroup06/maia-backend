@@ -17,19 +17,13 @@ const context = {
   },
 
   /**
-   * Generate constraints
-   * @param { Array } weekConstraints [{startTime: iso string, endTime:
-   * iso string}] --
-   * weekConstraints
-   * @param { string } _start iso string format
-   * @param { string } _end iso string format
+   * Generate constraints [monday -> 0 .. sunday -> 6]
+   * @param { Array } weekConstraints [{startTime: ISO String, endTime: ISO String}]
+   * @param { string } _start ISO Date/Time format, represents start DateTime that event can occur
+   * @param { string } _end ISO Date/Time format, represents end DateTime
    * @return { Array } [[ dateTime, dateTime ], ...]
    */
   generateConstraints: (weekConstraints, _start, _end) => {
-    // work_day is a list containing the start and end time of a single work day
-    // start is the start datetime that event can occur
-    // end is the end datetime
-    // minus 1 as [monday -> 1 .. sunday -> 7]
     let start = DateTime.fromISO(_start);
     const end = DateTime.fromISO(_end);
     let i = start.weekday - 1;
@@ -46,6 +40,7 @@ const context = {
 
     return res;
   },
+
   _schedule: (schedules, duration, constraints = null) => {
     /*
     schedules is a list of (start_free_datetime, end_free_datetime)
@@ -84,11 +79,13 @@ const context = {
     // return list of possible starting time slot intervals
     return ans.map((xs) => [xs[0], xs[1].minus(duration)]);
   },
+
   _choose: (freeTimes) => {
     const choices = freeTimes.map((xs) => [xs[0], xs[1].diff(xs[0])]);
     choices.sort((a, b) => a[1] - b[1]);
     return choices[0][0];
   },
+
   /* [
     [start, end]
     .
