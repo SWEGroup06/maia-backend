@@ -104,24 +104,22 @@ router.get('/reschedule', async function(req, res) {
     res.json({error: 'No event specified for rescheduling'});
   }
 
-  if (!req.query.organiserEmail) {
-    res.json({error: 'Organiser\'s email not found'});
+  if (!req.query.organiserSlackEmail) {
+    res.json({error: 'Organiser\'s slack email not found'});
     return;
   }
 
   try {
     const eventID = JSON.parse(decodeURIComponent(req.query.eventID));
-    const organiserEmail = JSON.parse(decodeURIComponent(req.query.organiserEmail));
+    const organiserSlackEmail = JSON.parse(decodeURIComponent(req.query.organiserSlackEmail));
     // check organiser of event (the person trying to reschedule it) is
     // signed in and check they are the organiser
-    if (!await DATABASE.userExists(organiserEmail)) {
+    if (!await DATABASE.userExists(organiserSlackEmail)) {
       res.json({error: 'Organiser is not signed in'});
       return;
     }
-
     // Get organiser's token from the database
     const organiserToken = JSON.parse(await DATABASE.getToken(organiserEmail));
-
     // TODO: get attendee emails from event
     const attendeeEmails = await AUTH.getAttendeesForEvent(eventID);
 
@@ -136,7 +134,7 @@ router.get('/reschedule', async function(req, res) {
     for (const email of attendeeEmails) {
       // Check if a user with the provided details existing in the database
       if (!await DATABASE.userExists(email)) {
-        res.json({error: 'Someone is not signed in'});
+        res.json({error: 'Someone is not signed into Maia'});
         return;
       }
 
