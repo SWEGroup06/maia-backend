@@ -111,10 +111,11 @@ router.get('/meeting', async function(req, res) {
     const startDate = new Date().toISOString();
     const endDate = new Date('30 oct 2020').toISOString();
 
-    const emails = JSON.parse(decodeURIComponent(req.query.emails));
+    const slackEmails = JSON.parse(decodeURIComponent(req.query.emails));
+    const googleEmails = [];
     const tokens = [];
 
-    for (const email of emails) {
+    for (const email of slackEmails) {
       // Check if a user with the provided details existing in the database
       if (!await DATABASE.userExists(email)) {
         res.json({error: 'Someone is not signed in'});
@@ -124,6 +125,9 @@ router.get('/meeting', async function(req, res) {
       // Get tokens from the database
       const token = JSON.parse(await DATABASE.getToken(email));
       tokens.push(token);
+
+      // Get Google email for creating meeting later
+      googleEmails.push(await AUTH.getEmail(token));
 
       // Format busy times before pushing to array
       const data = await AUTH.getBusySchedule(token, startDate, endDate);
@@ -141,9 +145,7 @@ router.get('/meeting', async function(req, res) {
 
     // create meeeting event in calendars of team members
     const today = new Date();
-    await AUTH.createMeeting(tokens[0], `Meeting: ${today.toDateString()}`, chosenSlot.start, chosenSlot.end, emails);
-
-    // console.log(await AUTH.getEmail(tokens[0]));
+    await AUTH.createMeeting(tokens[0], `Meeting: ${today.toDateString()}`, chosenSlot.start, chosenSlot.end, googleEmails);
 
     res.json(chosenSlot);
   } catch (error) {

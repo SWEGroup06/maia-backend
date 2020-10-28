@@ -46,7 +46,7 @@ module.exports = {
         if (err) {
           reject(err); return;
         }
-        resolve(res);
+        resolve(res.data.emailAddresses[0].value);
       });
     });
   },
