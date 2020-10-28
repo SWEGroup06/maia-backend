@@ -13,14 +13,10 @@ router.get('/', function(_, res) {
   res.send('This is the REST API for Maia AI calendar assistant');
 });
 
-// router.get('/ui', async function(request, res) {
-//   res.send('This is the ui page');
-//   console.log(request.body);
-// });
-
 router.get('/ui', async function(req, res) {
   try {
     res.send('this is the ui page');
+    console.log(req.body);
   } catch (error) {
     console.error(error);
     res.send({error});
