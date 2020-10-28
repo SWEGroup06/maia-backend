@@ -18,6 +18,7 @@ module.exports = {
       scope: [
         'https://www.googleapis.com/auth/plus.me',
         'https://www.googleapis.com/auth/userinfo.email',
+        'https://www.googleapis.com/auth/userinfo.profile',
         'https://www.googleapis.com/auth/calendar',
       ],
       state: encodeURIComponent(JSON.stringify({email})),
@@ -39,6 +40,8 @@ module.exports = {
     return new Promise(function(resolve, reject) {
       people.people.get({
         auth: oauth2Client,
+        personFields: 'emailAddresses',
+        resourceName: 'people/me',
       }, function(err, res) {
         if (err) {
           reject(err); return;
