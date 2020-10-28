@@ -166,7 +166,10 @@ router.get('/reschedule', async function(req, res) {
 
     // TODO: reschedule meeting to this new time
     const today = new Date();
-    await AUTH.updateMeeting(organiserToken, event, `Meeting: ${today}`, chosenSlot.start, chosenSlot.end);
+    event.summary = `Meeting: ${today.toDateString()}`;
+    event.timeMin = chosenSlot.start;
+    event.timeMax = chosenSlot.end;
+    await AUTH.updateMeeting(organiserToken, event);
     res.json(chosenSlot);
   } catch (error) {
     console.error(error);
