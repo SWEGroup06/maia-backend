@@ -206,10 +206,16 @@ router.get('/meeting', async function(req, res) {
 
       // Get tokens from the database
       const token = JSON.parse(await DATABASE.getToken(email));
-      const weekConstraints = JSON.parse(await DATABASE.getConstraints());
-      // week constraints: [{startTime: String, endTime: String}],
+
+      // Retrieve user constraints in format: [{startTime: String, endTime: String}],
+      const weekConstraints = JSON.parse(await DATABASE.getConstraints(email));
+
+      // Generate constraints in format the scheduler takes in
       const generatedConstraints = SCHEDULER.generateConstraints(weekConstraints, startDate, endDate);
-      if (generatedConstraints.length !== 0) constraints.push(generatedConstraints);
+
+      if (generatedConstraints.length !== 0) {
+        constraints.push(generatedConstraints);
+      }
 
       tokens.push(token);
 
