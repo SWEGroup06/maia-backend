@@ -159,16 +159,19 @@ router.get('/constraint', async function(req, res) {
     res.json({error: 'No email provided'});
     return;
   }
+
   if (!req.query.startTime) {
-    res.json({error: 'No email provided'});
+    res.json({error: 'No start time provided'});
     return;
   }
+
   if (!req.query.endTime) {
-    res.json({error: 'No email provided'});
+    res.json({error: 'No end time provided'});
     return;
   }
+
   if (!req.query.dayOfWeek) {
-    res.json({error: 'No email provided'});
+    res.json({error: 'No day of week provided'});
     return;
   }
 
@@ -185,9 +188,9 @@ router.get('/constraint', async function(req, res) {
       return;
     }
 
-    DATABASE.setConstraint(email, startTime, endTime, dayOfWeek);
+    await DATABASE.setConstraint(email, startTime, endTime, dayOfWeek);
 
-    await res.json(data);
+    // await res.json(data);
   } catch (error) {
     console.error(error);
     res.send({error});
