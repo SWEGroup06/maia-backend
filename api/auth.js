@@ -91,5 +91,24 @@ module.exports = {
       });
     });
   },
-
+  getAttendeesForEvent(organiserToken, eventStartTime, eventEndTime) {
+    oauth2Client.setCredentials(organiserToken);
+    return new Promise(function(resolve, reject) {
+      calendar.events.get(eventId=eventID);
+      freebusy.query({
+        auth: oauth2Client,
+        resource: {
+          items: [{id: 'primary'}],
+          timeMin: startDateTime,
+          timeMax: endDateTime,
+        },
+      }, function(err, res) {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(res.data.calendars.primary.busy);
+      });
+    });
+  },
 };

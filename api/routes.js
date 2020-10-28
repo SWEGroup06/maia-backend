@@ -100,8 +100,12 @@ router.get('/freeslots', async function(req, res) {
 
 router.get('/reschedule', async function(req, res) {
   // check if event to be reschedule has been specified
-  if (!req.query.eventID) {
-    res.json({error: 'No event specified for rescheduling'});
+  if (!req.query.eventStartTime) {
+    res.json({error: 'No event start time specified for rescheduling'});
+  }
+
+  if (!req.query.eventEndTime) {
+    res.json({error: 'No event end time specified for rescheduling'});
   }
 
   if (!req.query.organiserSlackEmail) {
@@ -110,7 +114,8 @@ router.get('/reschedule', async function(req, res) {
   }
 
   try {
-    const eventID = JSON.parse(decodeURIComponent(req.query.eventID));
+    const eventStartTime = JSON.parse(decodeURIComponent(req.query.eventStartTime));
+    const eventEndTime = JSON.parse(decodeURIComponent(req.query.eventEndTime));
     const organiserSlackEmail = JSON.parse(decodeURIComponent(req.query.organiserSlackEmail));
     // check organiser of event (the person trying to reschedule it) is
     // signed in and check they are the organiser
@@ -121,7 +126,7 @@ router.get('/reschedule', async function(req, res) {
     // Get organiser's token from the database
     const organiserToken = JSON.parse(await DATABASE.getToken(organiserEmail));
     // TODO: get attendee emails from event
-    const attendeeEmails = await AUTH.getAttendeesForEvent(eventID);
+    const attendeeEmails = await AUTH.getAttendeesForEvent(organiserToken, eventStartTime, eventEndTime);
 
     // find new time for event using scheduler
     const busyTimes = [];
@@ -154,7 +159,7 @@ router.get('/reschedule', async function(req, res) {
 
     // TODO: reschedule meeting to this new time
     const today = new Date();
-    await AUTH.updateMeeting(organiserToken, eventID, `Meeting: ${today}`, chosenSlot.start, chosenSlot.end);
+    await AUTH.updateMeeting(organiserToken, eventStartTime, `Meeting: ${today}`, chosenSlot.start, chosenSlot.end);
     res.json(chosenSlot);
   } catch (error) {
     console.error(error);
