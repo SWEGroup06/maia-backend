@@ -137,4 +137,19 @@ module.exports = {
         }},
     );
   },
+
+  /**
+   * TODO: Comment
+   * @param {String} email
+   * @return {Promise<null|any>}
+   */
+  getConstraints: async function(email) {
+    try {
+      const user = await User.findOne({email});
+      return user ? user.constraints : null;
+    } catch (err) {
+      console.log(err);
+      return null;
+    }
+  },
 };
