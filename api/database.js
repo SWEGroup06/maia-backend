@@ -132,8 +132,8 @@ module.exports = {
     await User.findOneAndUpdate(
         {'email': email},
         {'$set': {
-          [`constraints.${dayOfWeek}.startTime`]: Time.getTimeFromISO(startTime),
-          [`constraints.${dayOfWeek}.endTime`]: Time.getTimeFromISO(endTime),
+          [`constraints.${dayOfWeek}.startTime`]: startTime,
+          [`constraints.${dayOfWeek}.endTime`]: endTime,
         }},
     );
   },

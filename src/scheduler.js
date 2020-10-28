@@ -6,6 +6,7 @@ const context = {
       DateTime.min(slot1[1], slot2[1])];
     return newSlot[0].plus(duration) <= newSlot[1] ? newSlot : null;
   },
+
   combine: (date, time) => {
     return DateTime.fromObject({
       year: date.year,
@@ -130,11 +131,13 @@ const context = {
     }
     return freeSlots;
   },
+
   findMeetingSlot(freeTimes, duration, constraints = null) {
     const timeSlots = context._schedule(freeTimes, duration, constraints);
     const choice = context._choose(timeSlots);
     return {start: new Date(choice.ts).toISOString(), end: new Date(choice.plus(duration).ts).toISOString()};
   },
+
   busyTimeFrequencies: (lastMonthBusySchedule) => {
     const halfHoursInDay = 48;
     const days = 7;
