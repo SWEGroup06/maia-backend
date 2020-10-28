@@ -141,9 +141,9 @@ router.get('/meeting', async function(req, res) {
 
     // create meeeting event in calendars of team members
     const today = new Date();
-    for (const token of tokens) {
-      await AUTH.createMeeting(token, `Meeting: ${today}`, chosenSlot.start, chosenSlot.end);
-    }
+    await AUTH.createMeeting(tokens[0], `Meeting: ${today.toDateString()}`, chosenSlot.start, chosenSlot.end, emails);
+
+    // console.log(await AUTH.getEmail(tokens[0]));
 
     res.json(chosenSlot);
   } catch (error) {
