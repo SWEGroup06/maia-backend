@@ -4,6 +4,7 @@ const router = express.Router();
 const AUTH = require('./auth.js');
 const DATABASE = require('./database');
 const SCHEDULER = require('../src/scheduler');
+const TIME = require('./time.js')
 const {Duration} = require('luxon');
 
 // ROOT PATH
@@ -170,5 +171,27 @@ router.get('/constraint', async function(req, res) {
     res.json({error: 'No email provided'});
     return;
   }
-}
+
+  try {
+    const email = JSON.parse(decodeURIComponent(req.query.email));
+    const startTime = getTimeFromISO(JSON.parse(decodeURIComponent(req.query.startTime)));
+    const endTime = getTimeFromISO(JSON.parse(decodeURIComponent(req.query.endTime)));
+    const dayOfWeek = JSON.parse(decodeURIComponent(req.query.dayOfWeek));
+
+
+    // Check if a user with the provided details existing in the database
+    if (!await DATABASE.userExists(email)) {
+      await res.json({error: 'You are not signed in'});
+      return;
+    }
+
+    DATABASE.setConstraint(email,startTime, endTime, dayOfWeek);
+
+    await res.json(data);
+  } catch (error) {
+    console.error(error);
+    res.send({error});
+  }
+});
+
 module.exports = router;
