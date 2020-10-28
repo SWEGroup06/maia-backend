@@ -25,8 +25,8 @@ module.exports = {
     });
   },
   getTokens(code) {
-    return new Promise(function(resolve, reject) {
-      oauth2Client.getToken(code, function(err, tokens) {
+    return new Promise(function (resolve, reject) {
+      oauth2Client.getToken(code, function (err, tokens) {
         if (err) {
           reject(err);
           return;
@@ -37,14 +37,15 @@ module.exports = {
   },
   getEmail(tokens) {
     oauth2Client.setCredentials(tokens);
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       people.people.get({
         auth: oauth2Client,
         personFields: 'emailAddresses',
         resourceName: 'people/me',
-      }, function(err, res) {
+      }, function (err, res) {
         if (err) {
-          reject(err); return;
+          reject(err);
+          return;
         }
         resolve(res.data.emailAddresses[0].value);
       });
@@ -52,7 +53,7 @@ module.exports = {
   },
   createMeeting(tokens, title, startDateTime, endDateTime, emails) {
     oauth2Client.setCredentials(tokens);
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       calendar.events.insert({
         auth: oauth2Client,
         calendarId: 'primary',
@@ -64,9 +65,10 @@ module.exports = {
             return {email};
           }),
         },
-      }, function(err, res) {
+      }, function (err, res) {
         if (err) {
-          reject(err); return;
+          reject(err);
+          return;
         }
         resolve(res);
       });
@@ -74,7 +76,7 @@ module.exports = {
   },
   getBusySchedule(tokens, startDateTime, endDateTime) {
     oauth2Client.setCredentials(tokens);
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       calendar.freebusy.query({
         auth: oauth2Client,
         resource: {
@@ -82,7 +84,7 @@ module.exports = {
           timeMin: startDateTime,
           timeMax: endDateTime,
         },
-      }, function(err, res) {
+      }, function (err, res) {
         if (err) {
           reject(err);
           return;
@@ -93,7 +95,7 @@ module.exports = {
   },
   getEvents(tokens, startDateTime, endDateTime) {
     oauth2Client.setCredentials(tokens);
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       calendar.events.list({
         auth: oauth2Client,
         calendarId: 'primary',
@@ -102,7 +104,7 @@ module.exports = {
         maxResults: 1,
         singleEvents: true,
         orderBy: 'startTime',
-      },function(err, res) {
+      }, function (err, res) {
         if (err) {
           reject(err);
           return;
@@ -111,3 +113,4 @@ module.exports = {
       });
     });
   },
+};
