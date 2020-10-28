@@ -4,7 +4,7 @@ const router = express.Router();
 const AUTH = require('./auth.js');
 const DATABASE = require('./database');
 const SCHEDULER = require('../src/scheduler');
-const TIME = require('./time.js')
+const TIME = require('./time.js');
 const {Duration} = require('luxon');
 
 // ROOT PATH
@@ -185,7 +185,7 @@ router.get('/constraint', async function(req, res) {
       return;
     }
 
-    DATABASE.setConstraint(email,startTime, endTime, dayOfWeek);
+    DATABASE.setConstraint(email, startTime, endTime, dayOfWeek);
 
     await res.json(data);
   } catch (error) {
