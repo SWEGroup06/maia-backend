@@ -126,11 +126,15 @@ router.get('/reschedule', async function(req, res) {
     // Get organiser's token from the database
     const organiserToken = JSON.parse(await DATABASE.getToken(organiserEmail));
     // TODO: get attendee emails from event
-    const attendeeEmails = await AUTH.getAttendeesForEvent(organiserToken, eventStartTime, eventEndTime);
+    const events = await AUTH.getEvents(organiserToken, eventStartTime, eventEndTime);
+    const eventAttendees = [];
+    for(const event : events) {
+      eventAttendees = event.attendees.map(person=>person.email);
+    }
 
     // find new time for event using scheduler
     const busyTimes = [];
-    const eventDuration = Duration.fromObject({hours: 1});
+    const eventDuration = eventEndTime - eventStartTime;
 
     const startDate = new Date().toISOString();
     const endDate = new Date('30 oct 2020').toISOString();
