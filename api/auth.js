@@ -91,24 +91,23 @@ module.exports = {
       });
     });
   },
-  getAttendeesForEvent(organiserToken, eventStartTime, eventEndTime) {
-    oauth2Client.setCredentials(organiserToken);
+  getEvents(tokens, startDateTime, endDateTime) {
+    oauth2Client.setCredentials(tokens);
     return new Promise(function(resolve, reject) {
-      calendar.events.get(eventId=eventID);
-      freebusy.query({
+      calendar.events.list({
         auth: oauth2Client,
-        resource: {
-          items: [{id: 'primary'}],
-          timeMin: startDateTime,
-          timeMax: endDateTime,
-        },
-      }, function(err, res) {
+        calendarId: 'primary',
+        timeMin: startDateTime,
+        timeMax: endDateTime,
+        maxResults: 1,
+        singleEvents: true,
+        orderBy: 'startTime',
+      },function(err, res) {
         if (err) {
           reject(err);
           return;
         }
-        resolve(res.data.calendars.primary.busy);
+        resolve(res.items);
       });
     });
   },
-};
