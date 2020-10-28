@@ -13,10 +13,10 @@ router.get('/', function(_, res) {
   res.send('This is the REST API for Maia AI calendar assistant');
 });
 
-router.get('/ui', function(request, response){
-    console.log(request.body);
+router.get('/ui', function(request, response) {
+  console.log(request.body);
 });
-  
+
 // login callback
 router.get('/login', async function(req, res) {
   if (!req.query.email) {
