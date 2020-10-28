@@ -2,8 +2,10 @@ const express = require('express');
 const router = express.Router();
 
 const AUTH = require('./auth.js');
+const TIME = require('./time.js');
 const DATABASE = require('./database');
 const SCHEDULER = require('../src/scheduler');
+
 const {Duration, DateTime} = require('luxon');
 
 // ROOT PATH
@@ -232,6 +234,48 @@ router.get('/meeting', async function(req, res) {
     res.send({error});
   }
   // res.json({TODO: 'NotImplementedYet'});
+});
+
+router.get('/constraint', async function(req, res) {
+  if (!req.query.email) {
+    res.json({error: 'No email provided'});
+    return;
+  }
+
+  if (!req.query.startTime) {
+    res.json({error: 'No start time provided'});
+    return;
+  }
+
+  if (!req.query.endTime) {
+    res.json({error: 'No end time provided'});
+    return;
+  }
+
+  if (!req.query.dayOfWeek) {
+    await res.json({error: 'No day of week provided'});
+    return;
+  }
+
+  try {
+    const email = JSON.parse(decodeURIComponent(req.query.email));
+    const startTime = TIME.getTimeFromISO(JSON.parse(decodeURIComponent(req.query.startTime)));
+    const endTime = TIME.getTimeFromISO(JSON.parse(decodeURIComponent(req.query.endTime)));
+    const dayOfWeek = JSON.parse(decodeURIComponent(req.query.dayOfWeek));
+
+    // Check if a user with the provided details existing in the database
+    if (!await DATABASE.userExists(email)) {
+      await res.json({error: 'You are not signed in'});
+      return;
+    }
+
+    await DATABASE.setConstraint(email, startTime, endTime, TIME.getDayOfWeek(dayOfWeek));
+
+    // await res.json(data);
+  } catch (error) {
+    console.error(error);
+    res.send({error});
+  }
 });
 
 module.exports = router;
