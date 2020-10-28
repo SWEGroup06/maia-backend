@@ -1,5 +1,6 @@
 const {google} = require('googleapis');
 const calendar = google.calendar('v3');
+const people = google.people('v1');
 
 const CONFIG = require('../config.js');
 
@@ -15,8 +16,9 @@ module.exports = {
       access_type: 'offline',
       prompt: 'consent',
       scope: [
-        'https://www.googleapis.com/auth/calendar',
         'https://www.googleapis.com/auth/plus.me',
+        'https://www.googleapis.com/auth/userinfo.email',
+        'https://www.googleapis.com/auth/calendar',
       ],
       state: encodeURIComponent(JSON.stringify({email})),
     });
@@ -32,7 +34,20 @@ module.exports = {
       });
     });
   },
-  createMeeting(tokens, title, startDateTime, endDateTime) {
+  getEmail(tokens) {
+    oauth2Client.setCredentials(tokens);
+    return new Promise(function(resolve, reject) {
+      people.people.get({
+        auth: oauth2Client,
+      }, function(err, res) {
+        if (err) {
+          reject(err); return;
+        }
+        resolve(res);
+      });
+    });
+  },
+  createMeeting(tokens, title, startDateTime, endDateTime, emails) {
     oauth2Client.setCredentials(tokens);
     return new Promise(function(resolve, reject) {
       calendar.events.insert({
@@ -42,12 +57,15 @@ module.exports = {
           summary: title,
           start: {dateTime: startDateTime},
           end: {dateTime: endDateTime},
+          attendees: emails.map((email) => {
+            return {email};
+          }),
         },
-      }, function(calendarError, calendarResponse) {
-        if (calendarError) {
-          reject(calendarError); return;
+      }, function(err, res) {
+        if (err) {
+          reject(err); return;
         }
-        resolve(calendarResponse);
+        resolve(res);
       });
     });
   },
