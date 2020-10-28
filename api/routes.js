@@ -185,6 +185,7 @@ router.get('/meeting', async function(req, res) {
 
   try {
     const busyTimes = [];
+    const constraints = [];
     const eventDuration = Duration.fromObject({hours: 1});
 
     const startDate = new Date().toISOString();
@@ -203,6 +204,11 @@ router.get('/meeting', async function(req, res) {
 
       // Get tokens from the database
       const token = JSON.parse(await DATABASE.getToken(email));
+      const weekConstraints = JSON.parse(await DATABASE.getConstraints());
+      // week constraints: [{startTime: String, endTime: String}],
+      const generatedConstraints = SCHEDULER.generateConstraints(weekConstraints, startDate, endDate);
+      if (generatedConstraints.length !== 0) constraints.push(generatedConstraints);
+
       tokens.push(token);
 
       // Get Google email for creating meeting later
@@ -220,9 +226,9 @@ router.get('/meeting', async function(req, res) {
     // console.log('FREE TIMES:', freeTimes);
 
     // Using free times find a meeting slot and get the choice
-    const chosenSlot = SCHEDULER.findMeetingSlot(freeTimes, eventDuration);
+    const chosenSlot = SCHEDULER.findMeetingSlot(freeTimes, eventDuration, constraints);
 
-    // create meeeting event in calendars of team members
+    // create meeting event in calendars of team members
     const today = new Date();
     await AUTH.createMeeting(tokens[0], `Meeting: ${today.toDateString()}`, chosenSlot.start, chosenSlot.end, googleEmails);
 

@@ -15,18 +15,30 @@ const context = {
       minute: time.minute,
     });
   },
-  generateConstraints: (workDay, start, end) => {
+
+  /**
+   * Generate constraints
+   * @param { Array } weekConstraints [{startTime: iso string, endTime:
+   * iso string}] --
+   * weekConstraints
+   * @param { string } _start iso string format
+   * @param { string } _end iso string format
+   * @return { Array } [[ dateTime, dateTime ], ...]
+   */
+  generateConstraints: (weekConstraints, _start, _end) => {
     // work_day is a list containing the start and end time of a single work day
     // start is the start datetime that event can occur
     // end is the end datetime
     // minus 1 as [monday -> 1 .. sunday -> 7]
+    let start = DateTime.fromISO(_start);
+    const end = DateTime.fromISO(_end);
     let i = start.weekday - 1;
     const res = [];
 
     while (start <= end) {
-      if (workDay[i].length === 2) {
-        res.push([context.combine(start, workDay[i][0]),
-          context.combine(start, workDay[i][1])]);
+      if (weekConstraints[i].startTime !== '' && weekConstraints[i].endTime !== '') {
+        res.push([context.combine(start, DateTime.fromISO(weekConstraints[i].startTime)),
+          context.combine(start, DateTime.fromISO(weekConstraints[i].endTime))]);
       }
       start = start.plus({days: 1});
       i = (i + 1) % 7;
