@@ -174,8 +174,8 @@ router.get('/constraint', async function(req, res) {
 
   try {
     const email = JSON.parse(decodeURIComponent(req.query.email));
-    const startTime = getTimeFromISO(JSON.parse(decodeURIComponent(req.query.startTime)));
-    const endTime = getTimeFromISO(JSON.parse(decodeURIComponent(req.query.endTime)));
+    const startTime = TIME.getTimeFromISO(JSON.parse(decodeURIComponent(req.query.startTime)));
+    const endTime = TIME.getTimeFromISO(JSON.parse(decodeURIComponent(req.query.endTime)));
     const dayOfWeek = JSON.parse(decodeURIComponent(req.query.dayOfWeek));
 
 
