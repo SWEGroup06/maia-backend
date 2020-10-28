@@ -153,4 +153,22 @@ router.get('/meeting', async function(req, res) {
   // res.json({TODO: 'NotImplementedYet'});
 });
 
+router.get('/constraint', async function(req, res) {
+  if (!req.query.email) {
+    res.json({error: 'No email provided'});
+    return;
+  }
+  if (!req.query.startTime) {
+    res.json({error: 'No email provided'});
+    return;
+  }
+  if (!req.query.endTime) {
+    res.json({error: 'No email provided'});
+    return;
+  }
+  if (!req.query.dayOfWeek) {
+    res.json({error: 'No email provided'});
+    return;
+  }
+}
 module.exports = router;
