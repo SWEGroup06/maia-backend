@@ -4,7 +4,7 @@ const router = express.Router();
 const AUTH = require('./auth.js');
 const DATABASE = require('./database');
 const SCHEDULER = require('../src/scheduler');
-const {Duration} = require('luxon');
+const {Duration, DateTime} = require('luxon');
 
 // ROOT PATH
 router.get('/', function(_, res) {
@@ -127,14 +127,17 @@ router.get('/reschedule', async function(req, res) {
     const organiserToken = JSON.parse(await DATABASE.getToken(organiserEmail));
     // TODO: get attendee emails from event
     const events = await AUTH.getEvents(organiserToken, eventStartTime, eventEndTime);
-    const eventAttendees = [];
-    for(const event : events) {
-      eventAttendees = event.attendees.map(person=>person.email);
+    if (events.length === 0) {
+      res.json({error: 'No event found to reschedule with given details'});
+      return;
     }
+    const event = events[0];
+    let attendeeEmails = [];
+    attendeeEmails = event.attendees.map((person) => person.email);
 
     // find new time for event using scheduler
     const busyTimes = [];
-    const eventDuration = eventEndTime - eventStartTime;
+    const eventDuration = DateTime.fromISO(eventEndTime).diff(DateTime.fromISO(eventStartTime));
 
     const startDate = new Date().toISOString();
     const endDate = new Date('30 oct 2020').toISOString();
@@ -163,7 +166,7 @@ router.get('/reschedule', async function(req, res) {
 
     // TODO: reschedule meeting to this new time
     const today = new Date();
-    await AUTH.updateMeeting(organiserToken, eventStartTime, `Meeting: ${today}`, chosenSlot.start, chosenSlot.end);
+    await AUTH.updateMeeting(organiserToken, event, `Meeting: ${today}`, chosenSlot.start, chosenSlot.end);
     res.json(chosenSlot);
   } catch (error) {
     console.error(error);
