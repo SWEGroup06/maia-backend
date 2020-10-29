@@ -1,6 +1,5 @@
 // Load User model
 const User = require('../models/user.model');
-const Time = require('./time');
 const mongoose = require('mongoose');
 
 /*
@@ -132,9 +131,24 @@ module.exports = {
     await User.findOneAndUpdate(
         {'email': email},
         {'$set': {
-          [`constraints.${dayOfWeek}.startTime`]: Time.getTimeFromISO(startTime),
-          [`constraints.${dayOfWeek}.endTime`]: Time.getTimeFromISO(endTime),
+          [`constraints.${dayOfWeek}.startTime`]: startTime,
+          [`constraints.${dayOfWeek}.endTime`]: endTime,
         }},
     );
+  },
+
+  /**
+   * TODO: Comment
+   * @param {String} email
+   * @return {Promise<null|any>}
+   */
+  getConstraints: async function(email) {
+    try {
+      const user = await User.findOne({email});
+      return user ? user.constraints : null;
+    } catch (err) {
+      console.log(err);
+      return null;
+    }
   },
 };

@@ -216,10 +216,17 @@ router.get('/meeting', async function(req, res) {
 
       // Get tokens from the database
       const token = JSON.parse(await DATABASE.getToken(email));
-      const weekConstraints = JSON.parse(await DATABASE.getConstraints());
-      // week constraints: [{startTime: String, endTime: String}],
+
+      // Retrieve user constraints in format: [{startTime: ISO Date/Time String, endTime: ISO Date/Time String}],
+      console.log(await DATABASE.getConstraints(email));
+      const weekConstraints = await DATABASE.getConstraints(email);
+
+      // Generate constraints in format the scheduler takes in
       const generatedConstraints = SCHEDULER.generateConstraints(weekConstraints, startDate, endDate);
-      if (generatedConstraints.length !== 0) constraints.push(generatedConstraints);
+
+      if (generatedConstraints.length !== 0) {
+        constraints.push(generatedConstraints);
+      }
 
       tokens.push(token);
 
@@ -275,8 +282,8 @@ router.get('/constraint', async function(req, res) {
 
   try {
     const email = JSON.parse(decodeURIComponent(req.query.email));
-    const startTime = TIME.getTimeFromISO(JSON.parse(decodeURIComponent(req.query.startTime)));
-    const endTime = TIME.getTimeFromISO(JSON.parse(decodeURIComponent(req.query.endTime)));
+    const startTime = JSON.parse(decodeURIComponent(req.query.startTime));
+    const endTime = JSON.parse(decodeURIComponent(req.query.endTime));
     const dayOfWeek = JSON.parse(decodeURIComponent(req.query.dayOfWeek));
 
     // Check if a user with the provided details existing in the database
