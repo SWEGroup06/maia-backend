@@ -1,15 +1,5 @@
 module.exports = {
   /**
-   * Takes in date as ISO String, returns time in 00:00 format as a String
-   * @param {String} isoDate
-   * @return {*}
-   */
-  getTimeFromISO: function(isoDate) {
-    const result = isoDate.match(/\d\d:\d\d/);
-    return result[0];
-  },
-
-  /**
    * Takes in time in 00:00 format as a String, returns in ISO String format with date 01/01/1970
    * @param {String} time
    * @return {string}
