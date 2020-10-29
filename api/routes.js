@@ -243,7 +243,7 @@ router.get('/meeting', async function(req, res) {
     for (const email of slackEmails) {
       // Check if a user with the provided details existing in the database
       if (!await DATABASE.userExists(email)) {
-        res.json({error: 'Someone is not signed in'});
+        res.json({error: email + ' is not signed in'});
         return;
       }
 

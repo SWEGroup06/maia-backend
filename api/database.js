@@ -101,7 +101,8 @@ module.exports = {
       console.log('[Error updating token] Token already exists in database');
       return false;
     } else {
-      User.findOneAndUpdate({email: email}, {email: email, token: newToken});
+      User.findOneAndUpdate({$or: [{'email': email}, {'google.email': email}]},
+          {email: email, token: newToken});
       console.log('[Token updated successfully]');
       return true;
     }
@@ -122,7 +123,7 @@ module.exports = {
    * @return {boolean} Returns true is token exists in database, false otherwise.
    */
   tokenExists: async function(token) {
-    return await User.exists({token: token});
+    return await User.exists({'google.token': token});
   },
 
   /**
@@ -134,7 +135,7 @@ module.exports = {
    */
   setConstraint: async function(email, startTime, endTime, dayOfWeek) {
     await User.findOneAndUpdate(
-        {'email': email},
+        {$or: [{'email': email}, {'google.email': email}]},
         {'$set': {
           [`constraints.${dayOfWeek}.startTime`]: startTime,
           [`constraints.${dayOfWeek}.endTime`]: endTime,
