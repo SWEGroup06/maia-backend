@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const fetch = require('node-fetch');
 const router = express.Router();
 
 const AUTH = require('./auth.js');
@@ -17,11 +18,6 @@ router.get('/', function(_, res) {
 router.use('/slack/actions', bodyParser.urlencoded({extended: true}));
 
 router.post('/slack/actions', async function(req, res) {
-  console.log('Called POST request');
-  console.log('Received POST request');
-  console.log('Request: %j', req);
-  console.log(req);
-
   const slackPayload = JSON.parse(req.body.payload);
   // TODO: Add error handling
   if (slackPayload.actions[0].block_id === 'submit') {
@@ -40,9 +36,18 @@ router.post('/slack/actions', async function(req, res) {
 
     const email = await DATABASE.getEmailFromID(slackPayload.user.id);
     await DATABASE.setConstraint(email, formattedStartTime, formattedEndTime, formattedDay);
+
+
+    fetch(slackPayload.response_url, {
+      method: 'POST',
+      body: JSON.stringify({text: 'Thank you, your constraint was added successfully.'}),
+      headers: {'Content-Type': 'application/json'},
+    })
+        .then((res) => res.json())
+        .then((json) => console.log(json));
   }
 
-  res.send(200);
+  res.sendStatus(200);
 });
 
 // login callback
