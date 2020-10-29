@@ -1,8 +1,8 @@
 module.exports = {
   /**
-   * Takes in time in 00:00 format as a String, returns in ISO String format with date 01/01/1970
+   * Takes in time in various formats and outputs a String representing ISO DateTime
    * @param {String} time
-   * @return {string}
+   * @return {String}
    */
   parseTime: function(time) {
     // TODO: add edge case checks
@@ -10,8 +10,9 @@ module.exports = {
     const parsedTime = time.match( /(\d+)(?::(\d\d))?\s*(p?)/ );
     dte.setHours( parseInt( parsedTime[1]) + (parsedTime[3] ? 12 : 0) );
     dte.setMinutes( parseInt( parsedTime[2]) || 0 );
-    return dte;
+    return dte.toISOString();
   },
+
   getISOFromTime: function(time) {
     const hourMin = time.split(':');
     const hour = parseInt(hourMin[0]);
@@ -46,6 +47,4 @@ module.exports = {
       return -1;
     }
   },
-
-
 };
