@@ -325,47 +325,4 @@ router.get('/meeting', async function(req, res) {
   // res.json({TODO: 'NotImplementedYet'});
 });
 
-router.get('/constraint', async function(req, res) {
-  if (!req.query.email) {
-    res.json({error: 'No email provided'});
-    return;
-  }
-
-  if (!req.query.startTime) {
-    res.json({error: 'No start time provided'});
-    return;
-  }
-
-  if (!req.query.endTime) {
-    res.json({error: 'No end time provided'});
-    return;
-  }
-
-  if (!req.query.dayOfWeek) {
-    await res.json({error: 'No day of week provided'});
-    return;
-  }
-
-  try {
-    const email = JSON.parse(decodeURIComponent(req.query.email));
-    let startTime = JSON.parse(decodeURIComponent(req.query.startTime));
-    let endTime = JSON.parse(decodeURIComponent(req.query.endTime));
-    const dayOfWeek = JSON.parse(decodeURIComponent(req.query.dayOfWeek));
-
-    // Check if a user with the provided details existing in the database
-    if (!await DATABASE.userExists(email)) {
-      await res.json({error: 'You are not signed in'});
-      return;
-    }
-    startTime = TIME.parseTime(startTime);
-    endTime = TIME.parseTime(endTime);
-
-    await DATABASE.setConstraint(email, startTime, endTime, TIME.getDayOfWeek(dayOfWeek));
-    // await res.json(data);
-  } catch (error) {
-    console.error(error);
-    res.send({error});
-  }
-});
-
 module.exports = router;
