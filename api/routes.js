@@ -20,6 +20,7 @@ router.post('/slack/actions', async function(req, res) {
   console.log('called psot request');
   console.log('Received post request');
   console.log('Request: %j', req);
+  console.log(req);
   const slackPayload = JSON.parse(req.body.payload);
   if (slackPayload.actions[0].block_id == 'submit') {
     // Submit button has been clicked so get information
@@ -38,7 +39,7 @@ router.post('/slack/actions', async function(req, res) {
     const formattedStartTime = TIME.getISOFromTime(startTime);
     const formattedEndTime = TIME.getISOFromTime(endTime);
 
-    // await DATABASE.setConstraint(email,  TIME.getISOFromTime(startTime), TIME.getISOFromTime(endTime), TIME.getDayOfWeek(day));
+    //await DATABASE.setConstraint(email, TIME.getISOFromTime(startTime), TIME.getISOFromTime(endTime), TIME.getDayOfWeek(day));
   }
 
   try {
