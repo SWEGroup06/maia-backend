@@ -160,7 +160,9 @@ router.get('/reschedule', async function(req, res) {
     const endDate = new Date('30 Nov 2020').toISOString();
 
     const organiserEmail = await AUTH.getEmail(organiserToken);
-    attendeeEmails.push(organiserEmail)
+    // remove organiser from attendees to avoid adding twice
+    attendeeEmails.pop();
+    attendeeEmails.push(organiserEmail);
     console.log(attendeeEmails);
     // populate busyTimes array with all attendees' schedules
     for (const email of attendeeEmails) {
@@ -196,11 +198,7 @@ router.get('/reschedule', async function(req, res) {
     }
 
     // reschedule meeting to this new time
-    const today = new Date();
-    originalEvent.summary = `Meeting: ${today.toDateString()}`;
-    originalEvent.timeMin = chosenSlot.start;
-    originalEvent.timeMax = chosenSlot.end;
-    await AUTH.updateMeeting(organiserToken, originalEvent);
+    await AUTH.updateMeeting(organiserToken, originalEvent, chosenSlot.start, chosenSlot.end);
     res.json(chosenSlot);
   } catch (error) {
     console.error(error);
