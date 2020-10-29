@@ -141,21 +141,23 @@ router.get('/reschedule', async function(req, res) {
     // get attendee emails from event
     const events = await AUTH.getEvents(organiserToken, eventStartTime, eventEndTime);
 
-    if (events.length === 0) {
+    if (!events || events.length === 0) {
       res.json({error: 'No event found to reschedule with given details'});
       return;
     }
 
     const originalEvent = events[0];
     let attendeeEmails = [];
-    attendeeEmails = originalEvent.attendees.map((person) => person.email);
+    if (originalEvent.attendees) {
+      attendeeEmails = originalEvent.attendees.map((person) => person.email);
+    }
 
     // find new time for event using scheduler
     const busyTimes = [];
     const eventDuration = DateTime.fromISO(eventEndTime).diff(DateTime.fromISO(eventStartTime));
 
     const startDate = new Date().toISOString();
-    const endDate = new Date('30 oct 2020').toISOString();
+    const endDate = new Date('30 Nov 2020').toISOString();
 
     // populate busyTimes array with all attendees' schedules
     for (const email of attendeeEmails) {
@@ -176,8 +178,16 @@ router.get('/reschedule', async function(req, res) {
     // Get free slots from the provided busy times
     const freeTimes = busyTimes.map((timeSlot) => SCHEDULER.getFreeSlots(timeSlot, startDate, endDate));
 
+    console.log('busyTimes: ' + busyTimes);
+    console.log('freeTimes ' + freeTimes);
+
     // Using free times find a meeting slot and get the choice
     const chosenSlot = SCHEDULER.findMeetingSlot(freeTimes, eventDuration);
+
+    if (!chosenSlot) {
+      await res.json({error: 'No free time to assign'});
+      return;
+    }
 
     // reschedule meeting to this new time
     const today = new Date();
