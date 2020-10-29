@@ -126,9 +126,10 @@ router.get('/reschedule', async function(req, res) {
   }
 
   try {
-    const eventStartTime = JSON.parse(decodeURIComponent(req.query.eventStartTime));
-    const eventEndTime = JSON.parse(decodeURIComponent(req.query.eventEndTime));
+    const eventStartTime = new Date(JSON.parse(decodeURIComponent(req.query.eventStartTime))).toISOString();
+    const eventEndTime = new Date(JSON.parse(decodeURIComponent(req.query.eventEndTime))).toISOString();
     const organiserSlackEmail = JSON.parse(decodeURIComponent(req.query.organiserSlackEmail));
+
     // check organiser of event (the person trying to reschedule it) is
     // signed in and check they are the organiser
     if (!await DATABASE.userExists(organiserSlackEmail)) {
@@ -136,13 +137,15 @@ router.get('/reschedule', async function(req, res) {
       return;
     }
     // Get organiser's token from the database
-    const organiserToken = JSON.parse(await DATABASE.getToken(organiserEmail));
+    const organiserToken = JSON.parse(await DATABASE.getToken(organiserSlackEmail));
     // get attendee emails from event
     const events = await AUTH.getEvents(organiserToken, eventStartTime, eventEndTime);
+
     if (events.length === 0) {
       res.json({error: 'No event found to reschedule with given details'});
       return;
     }
+
     const originalEvent = events[0];
     let attendeeEmails = [];
     attendeeEmails = originalEvent.attendees.map((person) => person.email);
