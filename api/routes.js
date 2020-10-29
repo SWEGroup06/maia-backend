@@ -159,14 +159,20 @@ router.get('/reschedule', async function(req, res) {
     const startDate = new Date().toISOString();
     const endDate = new Date('30 Nov 2020').toISOString();
 
+    const organiserEmail = await AUTH.getEmail(organiserToken);
+    attendeeEmails.push(organiserEmail)
+    console.log(attendeeEmails);
     // populate busyTimes array with all attendees' schedules
     for (const email of attendeeEmails) {
       // Check if a user with the provided details existing in the database
+      // TODO: change this to check if user exists from their google email
+      //  (maia email) NOT their slack email
       if (!await DATABASE.userExists(email)) {
-        res.json({error: 'Someone is not signed into Maia'});
+        res.json({error: ' ' + email + ' is not signed into Maia'});
         return;
       }
-
+      // TODO: change this to get user's token from their google email (maia
+      //  email) not their slack email
       // Get tokens from the database
       const token = JSON.parse(await DATABASE.getToken(email));
 
@@ -179,7 +185,7 @@ router.get('/reschedule', async function(req, res) {
     const freeTimes = busyTimes.map((timeSlot) => SCHEDULER.getFreeSlots(timeSlot, startDate, endDate));
 
     console.log('busyTimes: ' + busyTimes);
-    console.log('freeTimes ' + freeTimes);
+    console.log('freeTimes: ' + freeTimes);
 
     // Using free times find a meeting slot and get the choice
     const chosenSlot = SCHEDULER.findMeetingSlot(freeTimes, eventDuration);
