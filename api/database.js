@@ -29,11 +29,12 @@ module.exports = {
 
   /**
    * Creates a new user in the database, uniquely identified by User ID, Team ID and token
+   * @param {string} userID
    * @param {string} email
    * @param {string} token
    * @return {boolean} success
    */
-  createNewUser: function(email, token) {
+  createNewUser: function(userID, email, token) {
     /**
      * Non-existent constraints for time are represented as empty string
      * @return {Array} Non-existent constraints for seven days
@@ -49,6 +50,7 @@ module.exports = {
     }
 
     const user = new User({
+      id: userID,
       email: email,
       token: token,
       constraints: initialiseConstraints(),
@@ -67,6 +69,20 @@ module.exports = {
     });
 
     return success;
+  },
+
+  /**
+   * TODO: Return the slack email given a slack user ID
+   * @param {String} userID
+   */
+  getEmailFromID: async function(userID) {
+    try {
+      const user = await User.findOne({id: userID});
+      return user ? user.email : null;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
   },
 
   /**
