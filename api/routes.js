@@ -70,6 +70,13 @@ router.get('/oauth2callback', async function(req, res) {
 
     // Redirect to success page
     res.redirect('success');
+
+    console.log('**********');
+    console.log(state);
+
+    console.log('user.id: ' + state.user.id);
+    console.log('id: ' + state.id);
+
     // res.json({userID: state.userID, teamID: state.teamID, tokens});
   } catch (error) {
     console.error(error);
