@@ -14,15 +14,17 @@ router.get('/', function(_, res) {
   res.send('This is the REST API for Maia AI calendar assistant');
 });
 
-
 router.use('/slack/actions', bodyParser.urlencoded({extended: true}));
+
 router.post('/slack/actions', async function(req, res) {
-  console.log('called psot request');
-  console.log('Received post request');
+  console.log('Called POST request');
+  console.log('Received POST request');
   console.log('Request: %j', req);
   console.log(req);
+
   const slackPayload = JSON.parse(req.body.payload);
-  if (slackPayload.actions[0].block_id == 'submit') {
+  // TODO: Add error handling
+  if (slackPayload.actions[0].block_id === 'submit') {
     // Submit button has been clicked so get information
     console.log('submit clicked');
     console.log(slackPayload);
@@ -30,16 +32,19 @@ router.post('/slack/actions', async function(req, res) {
     const day = constraints.day.selected_option.value;
     const startTime = constraints.startTime.selected_time;
     const endTime = constraints.endTime.selected_time;
-    console.log(day);
-    console.log(startTime);
-    console.log(endTime);
 
     // Convert to appropriate format
     const formattedDay = TIME.getDayOfWeek(day);
     const formattedStartTime = TIME.getISOFromTime(startTime);
     const formattedEndTime = TIME.getISOFromTime(endTime);
 
-    //await DATABASE.setConstraint(email, TIME.getISOFromTime(startTime), TIME.getISOFromTime(endTime), TIME.getDayOfWeek(day));
+    console.log('*****************');
+    console.log(slackPayload);
+    console.log(slackPayload.user);
+    console.log('*****************');
+
+    const email = await DATABASE.getEmailFromID(slackPayload.user.id);
+    await DATABASE.setConstraint(email, formattedStartTime, formattedEndTime, formattedDay);
   }
 
   try {
@@ -55,7 +60,13 @@ router.get('/login', async function(req, res) {
     return;
   }
 
+  if (!req.query.userID) {
+    res.json({error: 'No ID provided'});
+    return;
+  }
+
   try {
+    const userID = JSON.parse(decodeURIComponent(req.query.userID));
     const email = JSON.parse(decodeURIComponent(req.query.email));
 
     // Check if a user with the provided details existing in the database
@@ -65,7 +76,7 @@ router.get('/login', async function(req, res) {
     }
 
     // If no details were found send URL
-    await res.json({url: AUTH.generateAuthUrl(email)});
+    await res.json({url: AUTH.generateAuthUrl(userID, email)});
   } catch (error) {
     console.error(error);
     res.send({error});
@@ -88,7 +99,7 @@ router.get('/oauth2callback', async function(req, res) {
     const state = JSON.parse(decodeURIComponent(req.query.state));
 
     const tokens = await AUTH.getTokens(req.query.code);
-    await DATABASE.createNewUser(state.email, JSON.stringify(tokens));
+    await DATABASE.createNewUser(state.userID, state.email, JSON.stringify(tokens));
 
     // Redirect to success page
     res.redirect('success');
