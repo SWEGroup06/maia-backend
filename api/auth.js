@@ -11,7 +11,7 @@ const oauth2Client = new google.auth.OAuth2(
 );
 
 module.exports = {
-  generateAuthUrl(email) {
+  generateAuthUrl(userID, email) {
     return oauth2Client.generateAuthUrl({
       access_type: 'offline',
       prompt: 'consent',
@@ -21,7 +21,7 @@ module.exports = {
         'https://www.googleapis.com/auth/userinfo.profile',
         'https://www.googleapis.com/auth/calendar',
       ],
-      state: encodeURIComponent(JSON.stringify({email})),
+      state: encodeURIComponent(JSON.stringify({userID, email})),
     });
   },
   getTokens(code) {
