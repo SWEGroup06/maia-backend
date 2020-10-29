@@ -35,8 +35,14 @@ module.exports = {
       });
     });
   },
-  getEmail(tokens) {
-    oauth2Client.setCredentials(tokens);
+
+  /**
+   * Retrieve the Google email address associated with this account
+   * @param {Credentials} token
+   * @return {Promise<unknown>}
+   */
+  getEmail(token) {
+    oauth2Client.setCredentials(token);
     return new Promise(function(resolve, reject) {
       people.people.get({
         auth: oauth2Client,
@@ -51,6 +57,16 @@ module.exports = {
       });
     });
   },
+
+  /**
+   * TODO: Ihowa
+   * @param {Credentials} tokens
+   * @param {String} title
+   * @param {String} startDateTime
+   * @param {String} endDateTime
+   * @param {Array} emails
+   * @return {Promise<unknown>}
+   */
   createMeeting(tokens, title, startDateTime, endDateTime, emails) {
     oauth2Client.setCredentials(tokens);
     return new Promise(function(resolve, reject) {
@@ -77,9 +93,9 @@ module.exports = {
 
   /**
    * TODO: Ihowa
-   * @param tokens
-   * @param startDateTime
-   * @param endDateTime
+   * @param {Type} tokens
+   * @param {Type} startDateTime
+   * @param {Type} endDateTime
    * @return {Promise<unknown>}
    */
   getBusySchedule(tokens, startDateTime, endDateTime) {
@@ -104,9 +120,9 @@ module.exports = {
 
   /**
    * TODO: Ihowa
-   * @param tokens
-   * @param startDateTime
-   * @param endDateTime
+   * @param {Type} tokens
+   * @param {Type} startDateTime
+   * @param {Type} endDateTime
    * @return {Promise<unknown>}
    */
   getEvents(tokens, startDateTime, endDateTime) {
@@ -132,8 +148,8 @@ module.exports = {
 
   /**
    * TODO: Ihowa
-   * @param tokens
-   * @param event
+   * @param {Type} tokens
+   * @param {Type} event
    * @return {Promise<unknown>}
    */
   updateMeeting(tokens, event) {

@@ -153,7 +153,6 @@ module.exports = {
       if (!user) {
         user = await User.findOne({'google.email': email});
       }
-      console.log(user.constraints);
       return user ? user.constraints : null;
     } catch (err) {
       console.log(err);
