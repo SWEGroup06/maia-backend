@@ -40,7 +40,7 @@ router.post('/slack/actions', async function(req, res) {
 
     fetch(slackPayload.response_url, {
       method: 'POST',
-      body: JSON.stringify({text: 'Thank you, your constraint was added successfully.'}),
+      body: JSON.stringify({text: 'Okay, cool! :thumbsup::skin-tone-3: I\'ll keep this in mind.'}),
       headers: {'Content-Type': 'application/json'},
     })
         .then((res) => res.json())
