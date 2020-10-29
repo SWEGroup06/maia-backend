@@ -38,19 +38,11 @@ router.post('/slack/actions', async function(req, res) {
     const formattedStartTime = TIME.getISOFromTime(startTime);
     const formattedEndTime = TIME.getISOFromTime(endTime);
 
-    console.log('*****************');
-    console.log(slackPayload);
-    console.log(slackPayload.user);
-    console.log('*****************');
-
     const email = await DATABASE.getEmailFromID(slackPayload.user.id);
     await DATABASE.setConstraint(email, formattedStartTime, formattedEndTime, formattedDay);
   }
 
-  try {
-  } catch (error) {
-    console.error(error);
-  }
+  res.send(200);
 });
 
 // login callback
