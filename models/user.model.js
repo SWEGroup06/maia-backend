@@ -2,18 +2,18 @@ const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
+const GoogleAccountSchema = new Schema({
+  email: String, // Email associated with Google Calendar account
+  token: String, // Authorisation token per user for Google Calendar
+});
+
 const UserSchema = new Schema({
   email: {
     type: String,
     unique: true,
     required: true,
   },
-  /* token: Authorisation token per user for Google Calendar. */
-  token: {
-    type: String,
-    required: true,
-  },
-  /* TODO: constraints: ... */
+  google: GoogleAccountSchema,
   constraints: [{startTime: String, endTime: String}],
 });
 

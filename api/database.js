@@ -10,10 +10,9 @@ const mongoose = require('mongoose');
  *  - Return console logs for each function
  */
 
-
 module.exports = {
   /**
-   *
+   * TODO: Comment
    * @return {Promise<void>}
    */
   getDatabaseConnection: async function() {
@@ -29,11 +28,12 @@ module.exports = {
 
   /**
    * Creates a new user in the database, uniquely identified by User ID, Team ID and token
-   * @param {string} email
-   * @param {string} token
+   * @param {String} slackEmail
+   * @param {String} googleEmail
+   * @param {String} googleAuthToken
    * @return {boolean} success
    */
-  createNewUser: function(email, token) {
+  createNewUser: function(slackEmail, googleEmail, googleAuthToken) {
     /**
      * Non-existent constraints for time are represented as empty string
      * @return {Array} Non-existent constraints for seven days
@@ -49,8 +49,8 @@ module.exports = {
     }
 
     const user = new User({
-      email: email,
-      token: token,
+      email: slackEmail,
+      google: {email: googleEmail, token: googleAuthToken},
       constraints: initialiseConstraints(),
     });
 
@@ -61,7 +61,7 @@ module.exports = {
         console.log('[Error creating new user] \n' + error);
         success = false;
       } else {
-        console.log('[Created new user] Email: ' + email);
+        console.log('[Created new user] Email: ' + slackEmail);
         success = true;
       }
     });
@@ -76,8 +76,13 @@ module.exports = {
    */
   getToken: async function(email) {
     try {
-      const user = await User.findOne({email});
-      return user ? user.token : null;
+      // Tries to find a user associated with slack email
+      let user = await User.findOne({email});
+      // If no user with slack email is found, checks google emails
+      if (!user) {
+        user = await User.findOne({'google.email': email});
+      }
+      return user ? user.google.token : null;
     } catch (err) {
       console.log(err);
       return null;
@@ -108,7 +113,7 @@ module.exports = {
    * @return {boolean} Returns true if there exists a user registered with this email.
    */
   userExists: async function(email) {
-    return await User.exists({email: email});
+    return (await User.exists({email: email}) || await User.exists({'google.email': email}));
   },
 
   /**
@@ -144,7 +149,10 @@ module.exports = {
    */
   getConstraints: async function(email) {
     try {
-      const user = await User.findOne({email});
+      let user = await User.findOne({email});
+      if (!user) {
+        user = await User.findOne({'google.email': email});
+      }
       return user ? user.constraints : null;
     } catch (err) {
       console.log(err);

@@ -64,7 +64,9 @@ router.get('/oauth2callback', async function(req, res) {
     const state = JSON.parse(decodeURIComponent(req.query.state));
 
     const tokens = await AUTH.getTokens(req.query.code);
-    await DATABASE.createNewUser(state.email, JSON.stringify(tokens));
+    const googleEmail = await AUTH.getEmail(tokens);
+
+    await DATABASE.createNewUser(state.email, googleEmail, JSON.stringify(tokens));
 
     // Redirect to success page
     res.redirect('success');
@@ -127,9 +129,11 @@ router.get('/reschedule', async function(req, res) {
   }
 
   try {
-    const eventStartTime = JSON.parse(decodeURIComponent(req.query.eventStartTime));
-    const eventEndTime = JSON.parse(decodeURIComponent(req.query.eventEndTime));
+    const constraints = [];
+    const eventStartTime = new Date(JSON.parse(decodeURIComponent(req.query.eventStartTime))).toISOString();
+    const eventEndTime = new Date(JSON.parse(decodeURIComponent(req.query.eventEndTime))).toISOString();
     const organiserSlackEmail = JSON.parse(decodeURIComponent(req.query.organiserSlackEmail));
+
     // check organiser of event (the person trying to reschedule it) is
     // signed in and check they are the organiser
     if (!await DATABASE.userExists(organiserSlackEmail)) {
@@ -137,34 +141,58 @@ router.get('/reschedule', async function(req, res) {
       return;
     }
     // Get organiser's token from the database
-    const organiserToken = JSON.parse(await DATABASE.getToken(organiserEmail));
+    const organiserToken = JSON.parse(await DATABASE.getToken(organiserSlackEmail));
     // get attendee emails from event
     const events = await AUTH.getEvents(organiserToken, eventStartTime, eventEndTime);
-    if (events.length === 0) {
+
+    if (!events || events.length === 0) {
       res.json({error: 'No event found to reschedule with given details'});
       return;
     }
+
     const originalEvent = events[0];
     let attendeeEmails = [];
-    attendeeEmails = originalEvent.attendees.map((person) => person.email);
+    if (originalEvent.attendees) {
+      attendeeEmails = originalEvent.attendees.map((person) => person.email);
+    }
 
     // find new time for event using scheduler
     const busyTimes = [];
     const eventDuration = DateTime.fromISO(eventEndTime).diff(DateTime.fromISO(eventStartTime));
 
     const startDate = new Date().toISOString();
-    const endDate = new Date('30 oct 2020').toISOString();
+    const endDate = new Date('30 Nov 2020').toISOString();
 
+    const organiserEmail = await AUTH.getEmail(organiserToken);
+    // remove organiser from attendees to avoid adding twice
+    attendeeEmails.pop();
+    attendeeEmails.push(organiserEmail);
+    console.log(attendeeEmails);
     // populate busyTimes array with all attendees' schedules
     for (const email of attendeeEmails) {
       // Check if a user with the provided details existing in the database
+      // TODO: change this to check if user exists from their google email
+      //  (maia email) NOT their slack email
       if (!await DATABASE.userExists(email)) {
-        res.json({error: 'Someone is not signed into Maia'});
+        res.json({error: ' ' + email + ' is not signed into Maia'});
         return;
       }
-
+      // TODO: change this to get user's token from their google email (maia
+      //  email) not their slack email
       // Get tokens from the database
       const token = JSON.parse(await DATABASE.getToken(email));
+
+      // Retrieve user constraints in format: [{startTime: ISO Date/Time String, endTime: ISO Date/Time String}],
+      // TODO: getConstraints from user's maia/google email
+      console.log(await DATABASE.getConstraints(email));
+      const weekConstraints = await DATABASE.getConstraints(email);
+
+      // Generate constraints in format the scheduler takes in
+      const generatedConstraints = SCHEDULER.generateConstraints(weekConstraints, startDate, endDate);
+
+      if (generatedConstraints.length !== 0) {
+        constraints.push(generatedConstraints);
+      }
 
       // Format busy times before pushing to array
       const data = await AUTH.getBusySchedule(token, startDate, endDate);
@@ -174,15 +202,19 @@ router.get('/reschedule', async function(req, res) {
     // Get free slots from the provided busy times
     const freeTimes = busyTimes.map((timeSlot) => SCHEDULER.getFreeSlots(timeSlot, startDate, endDate));
 
+    console.log('busyTimes: ' + busyTimes);
+    console.log('freeTimes: ' + freeTimes);
+
     // Using free times find a meeting slot and get the choice
-    const chosenSlot = SCHEDULER.findMeetingSlot(freeTimes, eventDuration);
+    const chosenSlot = SCHEDULER.findMeetingSlot(freeTimes, eventDuration, constraints);
+
+    if (!chosenSlot) {
+      await res.json({error: 'No free time to assign'});
+      return;
+    }
 
     // reschedule meeting to this new time
-    const today = new Date();
-    originalEvent.summary = `Meeting: ${today.toDateString()}`;
-    originalEvent.timeMin = chosenSlot.start;
-    originalEvent.timeMax = chosenSlot.end;
-    await AUTH.updateMeeting(organiserToken, originalEvent);
+    await AUTH.updateMeeting(organiserToken, originalEvent, chosenSlot.start, chosenSlot.end);
     res.json(chosenSlot);
   } catch (error) {
     console.error(error);
@@ -292,8 +324,8 @@ router.get('/constraint', async function(req, res) {
       await res.json({error: 'You are not signed in'});
       return;
     }
-    startTime = TIME.parseTime(startTime).toISOString();
-    endTime = TIME.parseTime(endTime).toISOString();
+    startTime = TIME.parseTime(startTime);
+    endTime = TIME.parseTime(endTime);
 
     await DATABASE.setConstraint(email, startTime, endTime, TIME.getDayOfWeek(dayOfWeek));
     // await res.json(data);

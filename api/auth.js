@@ -35,8 +35,14 @@ module.exports = {
       });
     });
   },
-  getEmail(tokens) {
-    oauth2Client.setCredentials(tokens);
+
+  /**
+   * Retrieve the Google email address associated with this account
+   * @param {Credentials} token
+   * @return {Promise<unknown>}
+   */
+  getEmail(token) {
+    oauth2Client.setCredentials(token);
     return new Promise(function(resolve, reject) {
       people.people.get({
         auth: oauth2Client,
@@ -51,6 +57,16 @@ module.exports = {
       });
     });
   },
+
+  /**
+   * TODO: Ihowa
+   * @param {Credentials} tokens
+   * @param {String} title
+   * @param {String} startDateTime
+   * @param {String} endDateTime
+   * @param {Array} emails
+   * @return {Promise<unknown>}
+   */
   createMeeting(tokens, title, startDateTime, endDateTime, emails) {
     oauth2Client.setCredentials(tokens);
     return new Promise(function(resolve, reject) {
@@ -74,6 +90,14 @@ module.exports = {
       });
     });
   },
+
+  /**
+   * TODO: Ihowa
+   * @param {Type} tokens
+   * @param {Type} startDateTime
+   * @param {Type} endDateTime
+   * @return {Promise<unknown>}
+   */
   getBusySchedule(tokens, startDateTime, endDateTime) {
     oauth2Client.setCredentials(tokens);
     return new Promise(function(resolve, reject) {
@@ -93,6 +117,14 @@ module.exports = {
       });
     });
   },
+
+  /**
+   * TODO: Ihowa
+   * @param {Type} tokens
+   * @param {Type} startDateTime
+   * @param {Type} endDateTime
+   * @return {Promise<unknown>}
+   */
   getEvents(tokens, startDateTime, endDateTime) {
     oauth2Client.setCredentials(tokens);
     return new Promise(function(resolve, reject) {
@@ -109,17 +141,34 @@ module.exports = {
           reject(err);
           return;
         }
-        resolve(res.items);
+        resolve(res.data.items);
       });
     });
   },
-  updateMeeting(tokens, event) {
+
+  /**
+   * TODO: Ihowa
+   * @param {Type} tokens
+   * @param {Type} event
+   * @param {Type} startDateTime
+   * @param {Type} endDateTime
+   * @return {Promise<unknown>}
+   */
+  updateMeeting(tokens, event, startDateTime, endDateTime) {
     oauth2Client.setCredentials(tokens);
+    console.log('id: ', event.id);
     return new Promise(function(resolve, reject) {
-      calendar.events.patch({
+      calendar.events.update({
         auth: oauth2Client,
         calendarId: 'primary',
         eventId: event.id,
+        event: event,
+        resource: {
+          summary: event.summary,
+          start: {dateTime: startDateTime},
+          end: {dateTime: endDateTime},
+          attendees: event.attendees,
+        },
       }, function(err, res) {
         if (err) {
           reject(err);
