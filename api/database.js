@@ -113,7 +113,7 @@ module.exports = {
    * @return {boolean} Returns true if there exists a user registered with this email.
    */
   userExists: async function(email) {
-    return await User.exists({email: email});
+    return (await User.exists({email: email}) || await User.exists({'google.email': email}));
   },
 
   /**
