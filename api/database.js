@@ -149,7 +149,11 @@ module.exports = {
    */
   getConstraints: async function(email) {
     try {
-      const user = await User.findOne({email});
+      let user = await User.findOne({email});
+      if (!user) {
+        user = await User.findOne({'google.email': email});
+      }
+      console.log(user.constraints);
       return user ? user.constraints : null;
     } catch (err) {
       console.log(err);
