@@ -1,4 +1,5 @@
 const express = require('express');
+const bodyParser = require('body-parser');
 const router = express.Router();
 
 const AUTH = require('./auth.js');
@@ -14,11 +15,33 @@ router.get('/', function(_, res) {
 });
 
 
-router.post('/ui', async function(req, res) {
+router.use('/slack/actions', bodyParser.urlencoded({extended: true}));
+router.post('/slack/actions', async function(req, res) {
+  console.log('called psot request');
+  console.log('Received post request');
+  console.log('Request: %j', req);
+  const slackPayload = JSON.parse(req.body.payload);
+  if (slackPayload.actions[0].block_id == 'submit') {
+    // Submit button has been clicked so get information
+    console.log('submit clicked');
+    console.log(slackPayload);
+    const constraints = slackPayload.state.values.constraints;
+    const day = constraints.day.selected_option.value;
+    const startTime = constraints.startTime.selected_time;
+    const endTime = constraints.endTime.selected_time;
+    console.log(day);
+    console.log(startTime);
+    console.log(endTime);
+
+    // Convert to appropriate format
+    const formattedDay = TIME.getDayOfWeek(day);
+    const formattedStartTime = TIME.getISOFromTime(startTime);
+    const formattedEndTime = TIME.getISOFromTime(endTime);
+
+    // await DATABASE.setConstraint(email,  TIME.getISOFromTime(startTime), TIME.getISOFromTime(endTime), TIME.getDayOfWeek(day));
+  }
+
   try {
-    res.send('POST request to the homepage');
-    console.log(req.body.payload);
-    return res.send();
   } catch (error) {
     console.error(error);
   }
