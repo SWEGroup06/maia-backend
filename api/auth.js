@@ -125,7 +125,6 @@ module.exports = {
           reject(err);
           return;
         }
-        console.log(res);
         resolve(res.data.items);
       });
     });

@@ -133,6 +133,9 @@ const context = {
   },
 
   findMeetingSlot(freeTimes, duration, constraints = null) {
+    if (!freeTimes || freeTimes.length === 0) {
+      return;
+    }
     const timeSlots = context._schedule(freeTimes, duration, constraints);
     const choice = context._choose(timeSlots);
     return {start: new Date(choice.ts).toISOString(), end: new Date(choice.plus(duration).ts).toISOString()};
