@@ -150,6 +150,8 @@ module.exports = {
    * TODO: Ihowa
    * @param {Type} tokens
    * @param {Type} event
+   * @param {Type} startDateTime
+   * @param {Type} endDateTime
    * @return {Promise<unknown>}
    */
   updateMeeting(tokens, event, startDateTime, endDateTime) {

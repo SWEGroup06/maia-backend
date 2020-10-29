@@ -12,7 +12,7 @@ const mongoose = require('mongoose');
 
 module.exports = {
   /**
-   *
+   * TODO: Comment
    * @return {Promise<void>}
    */
   getDatabaseConnection: async function() {
