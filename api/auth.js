@@ -74,6 +74,14 @@ module.exports = {
       });
     });
   },
+
+  /**
+   * TODO: Ihowa
+   * @param tokens
+   * @param startDateTime
+   * @param endDateTime
+   * @return {Promise<unknown>}
+   */
   getBusySchedule(tokens, startDateTime, endDateTime) {
     oauth2Client.setCredentials(tokens);
     return new Promise(function(resolve, reject) {
@@ -93,6 +101,14 @@ module.exports = {
       });
     });
   },
+
+  /**
+   * TODO: Ihowa
+   * @param tokens
+   * @param startDateTime
+   * @param endDateTime
+   * @return {Promise<unknown>}
+   */
   getEvents(tokens, startDateTime, endDateTime) {
     oauth2Client.setCredentials(tokens);
     return new Promise(function(resolve, reject) {
@@ -113,6 +129,13 @@ module.exports = {
       });
     });
   },
+
+  /**
+   * TODO: Ihowa
+   * @param tokens
+   * @param event
+   * @return {Promise<unknown>}
+   */
   updateMeeting(tokens, event) {
     oauth2Client.setCredentials(tokens);
     return new Promise(function(resolve, reject) {
