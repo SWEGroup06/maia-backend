@@ -176,4 +176,16 @@ module.exports = {
       return null;
     }
   },
+
+  /**
+   * Deletes a user along with all its associated data, given its email (either Slack or Google email)
+   * @param {String} email
+   */
+  deleteUser: async function(email) {
+    await User.deleteOne({$or: [{'email': email}, {'google.email': email}]}).then(() => {
+      console.log('Successfully deleted account associated with email: ' + email); // Success
+    }).catch(function(error) {
+      console.log(error); // Failure
+    });
+  },
 };
