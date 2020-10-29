@@ -126,6 +126,7 @@ router.get('/reschedule', async function(req, res) {
   }
 
   try {
+    const constraints = [];
     const eventStartTime = new Date(JSON.parse(decodeURIComponent(req.query.eventStartTime))).toISOString();
     const eventEndTime = new Date(JSON.parse(decodeURIComponent(req.query.eventEndTime))).toISOString();
     const organiserSlackEmail = JSON.parse(decodeURIComponent(req.query.organiserSlackEmail));
@@ -178,6 +179,18 @@ router.get('/reschedule', async function(req, res) {
       // Get tokens from the database
       const token = JSON.parse(await DATABASE.getToken(email));
 
+      // Retrieve user constraints in format: [{startTime: ISO Date/Time String, endTime: ISO Date/Time String}],
+      // TODO: getConstraints from user's maia/google email
+      console.log(await DATABASE.getConstraints(email));
+      const weekConstraints = await DATABASE.getConstraints(email);
+
+      // Generate constraints in format the scheduler takes in
+      const generatedConstraints = SCHEDULER.generateConstraints(weekConstraints, startDate, endDate);
+
+      if (generatedConstraints.length !== 0) {
+        constraints.push(generatedConstraints);
+      }
+
       // Format busy times before pushing to array
       const data = await AUTH.getBusySchedule(token, startDate, endDate);
       if (data) busyTimes.push(data.map((e) => [e.start, e.end]));
@@ -190,7 +203,7 @@ router.get('/reschedule', async function(req, res) {
     console.log('freeTimes: ' + freeTimes);
 
     // Using free times find a meeting slot and get the choice
-    const chosenSlot = SCHEDULER.findMeetingSlot(freeTimes, eventDuration);
+    const chosenSlot = SCHEDULER.findMeetingSlot(freeTimes, eventDuration, constraints);
 
     if (!chosenSlot) {
       await res.json({error: 'No free time to assign'});
