@@ -14,6 +14,14 @@ module.exports = {
    * @param {String} time
    * @return {string}
    */
+  parseTime: function(time) {
+    // TODO: add edge case checks
+    const dte = new Date();
+    const parsedTime = time.match( /(\d+)(?::(\d\d))?\s*(p?)/ );
+    dte.setHours( parseInt( parsedTime[1]) + (parsedTime[3] ? 12 : 0) );
+    dte.setMinutes( parseInt( parsedTime[2]) || 0 );
+    return dte;
+  },
   getISOFromTime: function(time) {
     const hourMin = time.split(':');
     const hour = parseInt(hourMin[0]);
@@ -48,5 +56,6 @@ module.exports = {
       return -1;
     }
   },
+
 
 };

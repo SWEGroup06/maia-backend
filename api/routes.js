@@ -201,7 +201,7 @@ router.get('/meeting', async function(req, res) {
     const eventDuration = Duration.fromObject({hours: 1});
 
     const startDate = new Date().toISOString();
-    const endDate = new Date('30 oct 2020').toISOString();
+    const endDate = new Date('30 nov 2020').toISOString();
 
     const slackEmails = JSON.parse(decodeURIComponent(req.query.emails));
     const googleEmails = [];
@@ -282,8 +282,8 @@ router.get('/constraint', async function(req, res) {
 
   try {
     const email = JSON.parse(decodeURIComponent(req.query.email));
-    const startTime = JSON.parse(decodeURIComponent(req.query.startTime));
-    const endTime = JSON.parse(decodeURIComponent(req.query.endTime));
+    let startTime = JSON.parse(decodeURIComponent(req.query.startTime));
+    let endTime = JSON.parse(decodeURIComponent(req.query.endTime));
     const dayOfWeek = JSON.parse(decodeURIComponent(req.query.dayOfWeek));
 
     // Check if a user with the provided details existing in the database
@@ -291,9 +291,10 @@ router.get('/constraint', async function(req, res) {
       await res.json({error: 'You are not signed in'});
       return;
     }
+    startTime = TIME.parseTime(startTime).toISOString();
+    endTime = TIME.parseTime(endTime).toISOString();
 
     await DATABASE.setConstraint(email, startTime, endTime, TIME.getDayOfWeek(dayOfWeek));
-
     // await res.json(data);
   } catch (error) {
     console.error(error);
