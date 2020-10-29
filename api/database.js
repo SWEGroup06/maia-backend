@@ -1,6 +1,5 @@
 // Load User model
 const User = require('../models/user.model');
-const Time = require('./time');
 const mongoose = require('mongoose');
 
 /*
