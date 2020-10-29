@@ -63,7 +63,9 @@ router.get('/oauth2callback', async function(req, res) {
     const state = JSON.parse(decodeURIComponent(req.query.state));
 
     const tokens = await AUTH.getTokens(req.query.code);
-    await DATABASE.createNewUser(state.email, JSON.stringify(tokens));
+    const googleEmail = await AUTH.getEmail(tokens);
+
+    await DATABASE.createNewUser(state.email, googleEmail, JSON.stringify(tokens));
 
     // Redirect to success page
     res.redirect('success');
@@ -304,8 +306,8 @@ router.get('/constraint', async function(req, res) {
       await res.json({error: 'You are not signed in'});
       return;
     }
-    startTime = TIME.parseTime(startTime).toISOString();
-    endTime = TIME.parseTime(endTime).toISOString();
+    startTime = TIME.parseTime(startTime);
+    endTime = TIME.parseTime(endTime);
 
     await DATABASE.setConstraint(email, startTime, endTime, TIME.getDayOfWeek(dayOfWeek));
     // await res.json(data);
