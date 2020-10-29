@@ -136,13 +136,21 @@ module.exports = {
    * @param event
    * @return {Promise<unknown>}
    */
-  updateMeeting(tokens, event) {
+  updateMeeting(tokens, event, startDateTime, endDateTime) {
     oauth2Client.setCredentials(tokens);
+    console.log('id: ', event.id);
     return new Promise(function(resolve, reject) {
-      calendar.events.patch({
+      calendar.events.update({
         auth: oauth2Client,
         calendarId: 'primary',
         eventId: event.id,
+        event: event,
+        resource: {
+          summary: event.summary,
+          start: {dateTime: startDateTime},
+          end: {dateTime: endDateTime},
+          attendees: event.attendees,
+        },
       }, function(err, res) {
         if (err) {
           reject(err);
