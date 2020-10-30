@@ -86,6 +86,9 @@ const context = {
   _choose: (freeTimes) => {
     const choices = freeTimes.map((xs) => [xs[0], xs[1].diff(xs[0])]);
     choices.sort((a, b) => a[1] - b[1]);
+    if (choices.length === 0) {
+      return null;
+    }
     return choices[0][0];
   },
 
@@ -140,7 +143,13 @@ const context = {
     }
     const timeSlots = context._schedule(freeTimes, duration, constraints);
     const choice = context._choose(timeSlots);
-    return {start: new Date(choice.ts).toISOString(), end: new Date(choice.plus(duration).ts).toISOString()};
+    if (choice) {
+      return {
+        start: new Date(choice.ts).toISOString(),
+        end: new Date(choice.plus(duration).ts).toISOString()
+      };
+    }
+    return null;
   },
 
   busyTimeFrequencies: (lastMonthBusySchedule) => {
