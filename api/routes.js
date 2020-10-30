@@ -81,8 +81,10 @@ router.get('/logout', async function(req, res) {
     const email = JSON.parse(decodeURIComponent(req.query.email));
     if (await DATABASE.userExists(email)) {
       await DATABASE.deleteUser(email);
+      res.send({message: 'Successfully deleted account associated with email: ' + email});
     } else {
       console.log('Account with email ' + email + 'does not exist.');
+      res.send({message: 'Account with email ' + email + ' does not exist.'});
     }
   } catch (error) {
     console.error(error);
