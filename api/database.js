@@ -50,7 +50,7 @@ module.exports = {
 
     const user = new User({
       email: slackEmail,
-      google: {email: googleEmail, token: googleAuthToken},
+      google: {email: googleEmail.toLowerCase(), token: googleAuthToken},
       constraints: initialiseConstraints(),
     });
 
@@ -80,7 +80,7 @@ module.exports = {
       let user = await User.findOne({email});
       // If no user with slack email is found, checks google emails
       if (!user) {
-        user = await User.findOne({'google.email': email});
+        user = await User.findOne({'google.email': email.toLowerCase()});
       }
       return user ? user.google.token : null;
     } catch (err) {
@@ -114,7 +114,7 @@ module.exports = {
    * @return {boolean} Returns true if there exists a user registered with this email.
    */
   userExists: async function(email) {
-    return (await User.exists({email: email}) || await User.exists({'google.email': email}));
+    return (await User.exists({email: email}) || await User.exists({'google.email': email.toLowerCase()}));
   },
 
   /**
@@ -152,7 +152,7 @@ module.exports = {
     try {
       let user = await User.findOne({email});
       if (!user) {
-        user = await User.findOne({'google.email': email});
+        user = await User.findOne({'google.email': email.toLowerCase()});
       }
       return user ? user.constraints : null;
     } catch (err) {
