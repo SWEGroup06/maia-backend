@@ -8,6 +8,10 @@ const GoogleAccountSchema = new Schema({
 });
 
 const UserSchema = new Schema({
+  id: {
+    type: String,
+    unique: true,
+  },
   email: {
     type: String,
     unique: true,

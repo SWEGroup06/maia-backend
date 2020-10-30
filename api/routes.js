@@ -1,4 +1,6 @@
 const express = require('express');
+const bodyParser = require('body-parser');
+const fetch = require('node-fetch');
 const router = express.Router();
 
 const AUTH = require('./auth.js');
@@ -13,15 +15,39 @@ router.get('/', function(_, res) {
   res.send('This is the REST API for Maia AI calendar assistant');
 });
 
+router.use('/slack/actions', bodyParser.urlencoded({extended: true}));
 
-router.post('/ui', async function(req, res) {
-  try {
-    res.send('POST request to the homepage');
-    console.log(req.body.payload);
-    return res.send();
-  } catch (error) {
-    console.error(error);
+router.post('/slack/actions', async function(req, res) {
+  const slackPayload = JSON.parse(req.body.payload);
+  // TODO: Add error handling
+  if (slackPayload.actions[0].block_id === 'submit') {
+    // Submit button has been clicked so get information
+    console.log('submit clicked');
+    console.log(slackPayload);
+    const constraints = slackPayload.state.values.constraints;
+    const day = constraints.day.selected_option.value;
+    const startTime = constraints.startTime.selected_time;
+    const endTime = constraints.endTime.selected_time;
+
+    // Convert to appropriate format
+    const formattedDay = TIME.getDayOfWeek(day);
+    const formattedStartTime = TIME.getISOFromTime(startTime);
+    const formattedEndTime = TIME.getISOFromTime(endTime);
+
+    const email = await DATABASE.getEmailFromID(slackPayload.user.id);
+    await DATABASE.setConstraint(email, formattedStartTime, formattedEndTime, formattedDay);
+
+
+    fetch(slackPayload.response_url, {
+      method: 'POST',
+      body: JSON.stringify({text: 'Okay, cool! :thumbsup::skin-tone-3: I\'ll keep this in mind.'}),
+      headers: {'Content-Type': 'application/json'},
+    })
+        .then((res) => res.json())
+        .then((json) => console.log(json));
   }
+
+  res.sendStatus(200);
 });
 
 // login callback
@@ -31,7 +57,13 @@ router.get('/login', async function(req, res) {
     return;
   }
 
+  if (!req.query.userID) {
+    res.json({error: 'No ID provided'});
+    return;
+  }
+
   try {
+    const userID = JSON.parse(decodeURIComponent(req.query.userID));
     const email = JSON.parse(decodeURIComponent(req.query.email));
 
     // Check if a user with the provided details existing in the database
@@ -41,7 +73,7 @@ router.get('/login', async function(req, res) {
     }
 
     // If no details were found send URL
-    await res.json({url: AUTH.generateAuthUrl(email)});
+    await res.json({url: AUTH.generateAuthUrl(userID, email)});
   } catch (error) {
     console.error(error);
     res.send({error});
@@ -65,11 +97,17 @@ router.get('/oauth2callback', async function(req, res) {
 
     const tokens = await AUTH.getTokens(req.query.code);
     const googleEmail = await AUTH.getEmail(tokens);
-
-    await DATABASE.createNewUser(state.email, googleEmail, JSON.stringify(tokens));
+    await DATABASE.createNewUser(state.userID, state.email, googleEmail, JSON.stringify(tokens));
 
     // Redirect to success page
     res.redirect('success');
+
+    console.log('**********');
+    console.log(state);
+
+    console.log('user.id: ' + state.user.id);
+    console.log('id: ' + state.id);
+
     // res.json({userID: state.userID, teamID: state.teamID, tokens});
   } catch (error) {
     console.error(error);
@@ -278,49 +316,6 @@ router.get('/meeting', async function(req, res) {
     res.send({error});
   }
   // res.json({TODO: 'NotImplementedYet'});
-});
-
-router.get('/constraint', async function(req, res) {
-  if (!req.query.email) {
-    res.json({error: 'No email provided'});
-    return;
-  }
-
-  if (!req.query.startTime) {
-    res.json({error: 'No start time provided'});
-    return;
-  }
-
-  if (!req.query.endTime) {
-    res.json({error: 'No end time provided'});
-    return;
-  }
-
-  if (!req.query.dayOfWeek) {
-    await res.json({error: 'No day of week provided'});
-    return;
-  }
-
-  try {
-    const email = JSON.parse(decodeURIComponent(req.query.email));
-    let startTime = JSON.parse(decodeURIComponent(req.query.startTime));
-    let endTime = JSON.parse(decodeURIComponent(req.query.endTime));
-    const dayOfWeek = JSON.parse(decodeURIComponent(req.query.dayOfWeek));
-
-    // Check if a user with the provided details existing in the database
-    if (!await DATABASE.userExists(email)) {
-      await res.json({error: 'You are not signed in'});
-      return;
-    }
-    startTime = TIME.parseTime(startTime);
-    endTime = TIME.parseTime(endTime);
-
-    await DATABASE.setConstraint(email, startTime, endTime, TIME.getDayOfWeek(dayOfWeek));
-    // await res.json(data);
-  } catch (error) {
-    console.error(error);
-    res.send({error});
-  }
 });
 
 module.exports = router;
