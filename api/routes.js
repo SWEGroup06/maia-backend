@@ -75,6 +75,20 @@ router.get('/login', async function(req, res) {
   }
 });
 
+// logout callback
+router.get('/logout', async function(req, res) {
+  try {
+    const email = JSON.parse(decodeURIComponent(req.query.email));
+    if (await DATABASE.userExists(email)) {
+      await DATABASE.deleteUser(email);
+    } else {
+      console.log('Account with email ' + email + 'does not exist.');
+    }
+  } catch (error) {
+    console.error(error);
+    res.send({error});
+  }
+});
 
 // Google auth callback
 router.get('/oauth2callback', async function(req, res) {
