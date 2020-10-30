@@ -199,7 +199,7 @@ router.get('/reschedule', async function(req, res) {
     const eventDuration = DateTime.fromISO(eventEndTime).diff(DateTime.fromISO(eventStartTime));
 
     const startDate = new Date().toISOString();
-    const endDate = new Date('30 Nov 2020').toISOString();
+    const endDate = new Date('6 nov 2020 23:30').toISOString();
 
     const organiserEmail = await AUTH.getEmail(organiserToken);
     // remove organiser from attendees to avoid adding twice
@@ -236,7 +236,7 @@ router.get('/reschedule', async function(req, res) {
     const chosenSlot = SCHEDULER.findMeetingSlot(freeTimes, eventDuration, constraints);
 
     if (!chosenSlot) {
-      await res.json({error: 'No free time to assign'});
+      await res.json({error: 'No meeting slot found'});
       return;
     }
 
@@ -261,7 +261,7 @@ router.get('/meeting', async function(req, res) {
     const eventDuration = Duration.fromObject({hours: 1});
 
     const startDate = new Date().toISOString();
-    const endDate = new Date('30 nov 2020').toISOString();
+    const endDate = new Date('6 nov 2020 23:30').toISOString();
 
     const slackEmails = JSON.parse(decodeURIComponent(req.query.emails));
     const googleEmails = [];
@@ -305,7 +305,10 @@ router.get('/meeting', async function(req, res) {
 
     // Using free times find a meeting slot and get the choice
     const chosenSlot = SCHEDULER.findMeetingSlot(freeTimes, eventDuration, constraints);
-
+    if (!chosenSlot) {
+      res.json({error: 'No meeting slot found'});
+      return;
+    }
     // create meeting event in calendars of team members
     const today = new Date();
     await AUTH.createMeeting(tokens[0], `Meeting: ${today.toDateString()}`, chosenSlot.start, chosenSlot.end, googleEmails);
