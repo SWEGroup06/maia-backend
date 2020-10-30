@@ -25,15 +25,17 @@ const context = {
    * @return { Array } [[ dateTime, dateTime ], ...]
    */
   generateConstraints: (weekConstraints, _start, _end) => {
+    if (weekConstraints == null) {
+      return [];
+    }
     let start = DateTime.fromISO(_start);
     const end = DateTime.fromISO(_end);
     let i = start.weekday - 1;
     const res = [];
-
     while (start <= end) {
       if (weekConstraints[i].startTime !== '' && weekConstraints[i].endTime !== '') {
         res.push([context.combine(start, DateTime.fromISO(weekConstraints[i].startTime)),
-          context.combine(start, DateTime.fromISO(weekConstraints[i].endTime))]);
+          context.combine(start, DateTime.min(DateTime.fromISO(weekConstraints[i].endTime), end))]);
       }
       start = start.plus({days: 1});
       i = (i + 1) % 7;
