@@ -146,7 +146,7 @@ const context = {
     if (choice) {
       return {
         start: new Date(choice.ts).toISOString(),
-        end: new Date(choice.plus(duration).ts).toISOString()
+        end: new Date(choice.plus(duration).ts).toISOString(),
       };
     }
     return null;
