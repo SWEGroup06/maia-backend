@@ -35,7 +35,12 @@ const context = {
     while (start <= end) {
       if (weekConstraints[i].startTime !== '' && weekConstraints[i].endTime !== '') {
         res.push([context.combine(start, DateTime.fromISO(weekConstraints[i].startTime)),
-          context.combine(start, DateTime.min(DateTime.fromISO(weekConstraints[i].endTime), end))]);
+          context.combine(start, DateTime.fromISO(weekConstraints[i].endTime))]);
+      } else {
+        // console.log('start ', context.combine(start, DateTime.fromObject({hour: 0, minute: 0})).toISO());
+        // console.log('end ', context.combine(start, DateTime.min(DateTime.fromObject({hour: 23, minute: 59}), end)).toISO());
+        res.push([context.combine(start, DateTime.fromObject({hour: 0, minute: 0})),
+          context.combine(start, DateTime.fromObject({hour: 23, minute: 59}))]);
       }
       start = start.plus({days: 1});
       i = (i + 1) % 7;
