@@ -21,6 +21,7 @@
   "author": "SWEGroup06",
   "license": "Proprietary",
   "dependencies": {
+    "dialogflow": "^1.2.0",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "googleapis": "^61.0.0",

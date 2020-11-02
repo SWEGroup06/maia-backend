@@ -337,4 +337,8 @@ router.get('/meeting', async function(req, res) {
   // res.json({TODO: 'NotImplementedYet'});
 });
 
+router.post('/nlp', async function(req, res) {
+  console.log(req.body);
+});
+
 module.exports = router;
