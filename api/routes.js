@@ -339,6 +339,7 @@ router.get('/meeting', async function(req, res) {
 
 router.post('/nlp', async function(req, res) {
   console.log(req.body);
+  res.send(200);
 });
 
 module.exports = router;
