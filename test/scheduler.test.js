@@ -1,5 +1,5 @@
 const {DateTime, Duration} = require('luxon');
-const {schedule, busyToFree, generateConstraints, choose} = require('../src/scheduler');
+const {schedule, busyToFree, generateConstraints, choose, busyTimeFrequencies} = require('../src/scheduler');
 
 const DAY1 = DateTime.local(2020, 10, 14);
 const DAY2 = DateTime.local(2020, 10, 15);
@@ -89,3 +89,29 @@ test('chooses the shortest duration', () => {
   const outputChoice = choose(choices);
   expect(outputChoice).toEqual(expectedChoice);
 });
+
+test('gets busy times frequencies', () => {
+  const schedule = [{start: "2020-11-03T17:14:00+0000",
+                     end:   "2020-11-03T19:30:00+0000"},
+                    {start: "2020-11-04T17:14:00+0000",
+                     end:   "2020-11-04T19:30:00+0000"},
+                    {start: "2020-11-05T17:14:00+0000",
+                     end:   "2020-11-06T19:30:00+0000"},
+                    ]
+  const halfHoursInDay = 24 * 2;
+  const days = 7;
+  const expectedFreqs = Array(days).fill(Array(halfHoursInDay).fill(0));
+  for (let i = 34; i <= 39; i++) {
+    expectedFreqs[1][i]++;
+    expectedFreqs[2][i]++;
+    expectedFreqs[3][i]++;
+  }
+  for (let i = 40; i <= 48; i++) {
+    expectedFreqs[3][i]++
+  }
+  for (let i = 0; i <=39; i++) {
+    expectedFreqs[4][i]++
+  }
+  const frequencies = busyTimeFrequencies(schedule);
+  expect(frequencies).toEqual(expectedFreqs)
+})
