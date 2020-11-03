@@ -160,21 +160,28 @@ const context = {
   busyTimeFrequencies: (lastMonthBusySchedule) => {
     const halfHoursInDay = 48;
     const days = 7;
-    const frequencies = Array(days).fill(Array(halfHoursInDay).fill(0));
+    const halfHour = Duration.fromObject({minutes: 30});
+    const frequencies = [];
+    for (let i = 0; i < days; i++) {
+      frequencies[i] = Array(halfHoursInDay).fill(0);
+    }
     for (const timeSlot of lastMonthBusySchedule) {
-      const begin = DateTime.fromISO(timeSlot[0]);
-      const end = DateTime.fromISO(timeSlot[1]);
+      let begin = DateTime.fromISO(timeSlot.start);
+      const end = DateTime.fromISO(timeSlot.end);
+      console.log('begin: ', begin.weekday, ' end: ', end.weekday);
       const startHour = begin.hour;
       const startHalf = begin.minute >= 30 ? 1 : 0;
-      const halfHour = Duration.fromObject({minutes: 30});
       let i = startHour * 2 + startHalf;
+      console.log('i: ', i);
       while (begin < end) {
-        const day = begin.day;
+        const day = begin.weekday - 1;
         frequencies[day][i]++;
         i = (i + 1) % halfHoursInDay;
-        begin.plus(halfHour);
+        begin = begin.plus(halfHour);
       }
     }
+    console.log(frequencies);
+    return frequencies;
   },
 };
 
