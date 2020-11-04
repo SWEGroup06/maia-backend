@@ -3,8 +3,9 @@ const bodyParser = require('body-parser');
 const fetch = require('node-fetch');
 const router = express.Router();
 
-const AUTH = require('./auth.js');
-const TIME = require('./time.js');
+const MEETINGS = require('./meetings');
+const AUTH = require('./auth');
+const TIME = require('./time');
 const DATABASE = require('./database');
 const SCHEDULER = require('../src/scheduler');
 
@@ -18,25 +19,35 @@ router.get('/', function(_, res) {
 router.use('/slack/actions', bodyParser.urlencoded({extended: true}));
 router.post('/slack/actions/meeting_options', async function(req, res) {
   const slackPayload = JSON.parse(req.body.payload);
+  const option =
+  {
+    'options': [],
+  };
 
   if (slackPayload.type === 'block_suggestion') {
     if (slackPayload.action_id === 'meeting_select') {
       console.log('get meeting options');
+      const email = await DATABASE.getEmailFromID(slackPayload.user.id);
+      const meetings = await MEETINGS.getMeetings(email);
+      console.log(meetings);
+      console.log(meetings.length);
+      for (let i = 0; i < meetings.length; i++) {
+        const meetingName = meetings[i][0];
+        const meetingStart = meetings[i][1];
+        const meetingEnd = meetings[i][2];
+        console.log(meetingName);
+        option.options.push({
+          'text': {
+            'type': 'plain_text',
+            'text': meetingName + '|' + meetingStart + '|' + meetingEnd,
+          },
+          'value': meetingName,
+        });
+      }
     }
   }
 
-  // TODO implement get meetings
-  const option =
-    {
-      'options': [],
-    };
-  option.options.push({
-    'text': {
-      'type': 'plain_text',
-      'text': 'aldi',
-    },
-    'value': 'aldi',
-  });
+
   res.json(option);
 });
 
@@ -367,43 +378,6 @@ router.get('/meeting', async function(req, res) {
     res.send({error});
   }
   // res.json({TODO: 'NotImplementedYet'});
-});
-
-router.get('/getMeetings', async function(req, res) {
-  if (!req.query.email) {
-    res.json({error: 'No emails'});
-    return;
-  }
-
-  try {
-    const email = JSON.parse(decodeURIComponent(req.query.email));
-
-    // Check if a user with the provided details existing in the database
-    if (!await DATABASE.userExists(email)) {
-      res.json({error: email + ' is not signed in'});
-      return;
-    }
-
-    // Get tokens from the database
-    const token = JSON.parse(await DATABASE.getToken(email));
-    const today = new Date();
-    // End date in one week for now
-    const endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate()+7);
-    const events = await AUTH.getMeetings(token, today.toISOString(), endDate.toISOString());
-
-    if (!events || events.length === 0) {
-      res.json({error: 'No event found in time frame'});
-      return;
-    }
-    // could possible have the same summary multiple times
-    const eventDict = [];
-    events.map((event) => [event.summary, event.start.date, event.end.date]);
-
-    res.json(eventDict);
-  } catch (error) {
-    console.error(error);
-    res.send({error});
-  }
 });
 
 module.exports = router;
