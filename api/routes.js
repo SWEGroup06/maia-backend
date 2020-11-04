@@ -16,10 +16,42 @@ router.get('/', function(_, res) {
 });
 
 router.use('/slack/actions', bodyParser.urlencoded({extended: true}));
+router.post('/slack/actions/meeting_options', async function(req, res) {
+  const slackPayload = JSON.parse(req.body.payload);
+
+  if (slackPayload.type === 'block_suggestion') {
+    if (slackPayload.action_id === 'meeting_select') {
+      console.log('get meeting options');
+    }
+  }
+
+  // TODO implement get meetings
+  const option =
+    {
+      'options': [],
+    };
+  option.options.push({
+    'text': {
+      'type': 'plain_text',
+      'text': 'aldi',
+    },
+    'value': 'aldi',
+  });
+  res.json(option);
+});
 
 router.post('/slack/actions', async function(req, res) {
   const slackPayload = JSON.parse(req.body.payload);
   // TODO: Add error handling
+  // console.log(slackPayload);
+
+  if (slackPayload.actions[0].block_id === 'meeting_select') {
+    // console.log(slackPayload);
+    console.log('Meeting selected');
+    const meeting = slackPayload.actions[0].selected_option;
+    const meetingName = meeting.value;
+    console.log(meetingName);
+  }
   if (slackPayload.actions[0].block_id === 'submit') {
     // Submit button has been clicked so get information
     console.log('submit clicked');
