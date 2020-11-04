@@ -6,7 +6,10 @@ const creds = JSON.parse(process.env.CREDS);
 const context = {
   _actionHandlers: {
     'input.meeting': function(fields) {
-      return {...context._parseTimeObj(fields['meeting-time']), people: fields['people'].listValue.values.map((e) => e.stringValue)};
+      return ({
+        ...context._parseTimeObj(fields['meeting-time']),
+        people: fields['people'].listValue.values.map((e) => e.stringValue),
+      });
     },
   },
   _parseTimeObj(time) {
@@ -20,9 +23,9 @@ const context = {
       if (time['date_time']) {
         res.time = time['date_time'].stringValue;
       }
-      if (time['startDateTime'] && time['endDateTime']) {
-        res.startTime = time['startDateTime'].stringValue;
-        res.endTime = time['endDateTime'].stringValue;
+      if (time['endDate'] && time['startDate']) {
+        res.startTime = time['startDate'].stringValue;
+        res.endTime = time['endDate'].stringValue;
       }
     } else {
       res.time = time.stringValue;
