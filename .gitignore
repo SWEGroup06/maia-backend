@@ -10,3 +10,7 @@
 # Node
 node_modules
 .DS_Store
+
+#packages
+package.json
+package-lock.json
