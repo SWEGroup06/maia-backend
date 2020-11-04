@@ -54,6 +54,8 @@ const context = {
     });
 
     let res = {};
+
+    // Checking if the reponses is invalid e.g null etc
     if (responses && responses.length && responses[0]) {
       const queryRes = responses[0].queryResult;
       console.log('QUERY RES', queryRes);
@@ -61,7 +63,7 @@ const context = {
 
       // Determine which action this is and call the relevant action handler
       const handler = context._actionHandlers[queryRes.action];
-      if (handler) res = {...handler(queryRes.parameters.fields)};
+      if (handler) res = {...res, ...handler(queryRes.parameters.fields)};
     } else {
       res.error = 'No response found';
     }
