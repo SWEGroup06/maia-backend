@@ -3,7 +3,32 @@ const uuid = require('uuid');
 
 const creds = JSON.parse(process.env.CREDS);
 
-module.exports = {
+const context = {
+  _actionHandlers: {
+    'input.meeting': function(fields) {
+      return {...context._parseTimeObj(fields['meeting-time']), people: fields['people'].listValue.values.map((e) => e.stringValue)};
+    },
+  },
+  _parseTimeObj(time) {
+    const res = {};
+    if (!time) {
+      res.error = 'No time found';
+      return res;
+    }
+    if (time.structValue) {
+      time = time.structValue.fields;
+      if (time['date_time']) {
+        res.time = time['date_time'].stringValue;
+      }
+      if (time['startDateTime'] && time['endDateTime']) {
+        res.startTime = time['startDateTime'].stringValue;
+        res.endTime = time['endDateTime'].stringValue;
+      }
+    } else {
+      res.time = time.stringValue;
+    }
+    return res;
+  },
   async sendQuery(msg) {
     // Session id
     const sessionId = uuid.v4();
@@ -27,37 +52,21 @@ module.exports = {
         },
       },
     });
-    const obj = {};
+
+    let res = {};
     if (responses && responses.length && responses[0]) {
-      const res = responses[0].queryResult;
-      obj.type = res.action;
-      switch (res.action) {
-        case 'input.meeting':
-          let time = res.parameters.fields['meeting-time'];
-          if (!time) {
-            obj.error = 'No time found';
-            break;
-          }
-          if (time.structValue) {
-            time = time.structValue.fields;
-            if (time['date_time']) {
-              obj.time = time['date_time'].stringValue;
-            }
-            if (time['startDateTime'] && time['endDateTime']) {
-              obj.startTime = time['startDateTime'].stringValue;
-              obj.endTime = time['endDateTime'].stringValue;
-            }
-          } else {
-            obj.time = time.stringValue;
-          }
-          break;
-        default:
-          break;
-      }
-      console.log(obj);
+      const queryRes = responses[0].queryResult;
+      console.log('QUERY RES', queryRes);
+      res.type = queryRes.action;
+
+      // Determine which action this is and call the relevant action handler
+      const handler = context._actionHandlers[queryRes.action];
+      if (handler) res = {...handler(queryRes.parameters.fields)};
     } else {
-      obj.error = 'No response found';
+      res.error = 'No response found';
     }
-    return obj;
+    return res;
   },
 };
+
+module.exports = context;
