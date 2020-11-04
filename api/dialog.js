@@ -20,9 +20,6 @@ const context = {
     }
     if (time.structValue) {
       time = time.structValue.fields;
-      if (time['date_time']) {
-        res.time = time['date_time'].stringValue;
-      }
       if (time['endDate'] && time['startDate']) {
         res.startTime = time['startDate'].stringValue;
         res.endTime = time['endDate'].stringValue;
