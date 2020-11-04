@@ -337,4 +337,42 @@ router.get('/meeting', async function(req, res) {
   // res.json({TODO: 'NotImplementedYet'});
 });
 
+router.get('/getMeetings', async function(req, res) {
+    if (!req.query.email) {
+        res.json({error: 'No emails'});
+        return;
+    }
+
+    try {
+        const email = JSON.parse(decodeURIComponent(req.query.email));
+
+        // Check if a user with the provided details existing in the database
+        if (!await DATABASE.userExists(email)) {
+          res.json({error: email + ' is not signed in'});
+          return;
+        }
+
+        // Get tokens from the database
+        const token = JSON.parse(await DATABASE.getToken(email));
+        const today = new Date();
+        // End date in one week for now
+        const endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate()+7);
+        const events = await AUTH.getMeetings(token, today.toISOString(), endDate.toISOString());
+
+        if (!events || events.length === 0) {
+              res.json({error: 'No event found in time frame'});
+              return;
+        }
+        // could possible have the same summary multiple times
+        let eventDict = [];
+        events.map((event) => [event.summary, event.start.date, event.end.date]);
+
+        res.json(eventDict);
+
+    } catch (error) {
+          console.error(error);
+          res.send({error});
+    }
+});
+
 module.exports = router;
