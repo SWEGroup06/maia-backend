@@ -7,12 +7,23 @@ const AUTH = require('./auth.js');
 const TIME = require('./time.js');
 const DATABASE = require('./database');
 const SCHEDULER = require('../src/scheduler');
+const DIALOG = require('./dialog.js');
 
 const {Duration, DateTime} = require('luxon');
 
 // ROOT PATH
 router.get('/', function(_, res) {
   res.send('This is the REST API for Maia AI calendar assistant');
+});
+
+router.get('/dialog', async function(req, res) {
+  const msg = req.query.msg;
+  try {
+    res.json(await DIALOG.sendQuery(msg));
+  } catch (error) {
+    console.error(error);
+    res.send({error});
+  }
 });
 
 router.use('/slack/actions', bodyParser.urlencoded({extended: true}));
