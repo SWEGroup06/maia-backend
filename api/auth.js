@@ -173,6 +173,7 @@ module.exports = {
     });
   },
 
+  // eslint-disable-next-line valid-jsdoc
   /**
    * Updates a meeting in user's calendar to a different time
    * @param {Credentials} tokens
