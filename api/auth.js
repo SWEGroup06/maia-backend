@@ -59,7 +59,7 @@ module.exports = {
   },
 
   /**
-   * TODO: Ihowa
+   * Create meeting in user's calendar with associated attendees
    * @param {Credentials} tokens
    * @param {String} title
    * @param {String} startDateTime
@@ -92,10 +92,10 @@ module.exports = {
   },
 
   /**
-   * TODO: Ihowa
-   * @param {Type} tokens
-   * @param {Type} startDateTime
-   * @param {Type} endDateTime
+   * Gets busy schedule of user for scheduling purposes
+   * @param {Credentials} tokens
+   * @param {String} startDateTime
+   * @param {String} endDateTime
    * @return {Promise<unknown>}
    */
   getBusySchedule(tokens, startDateTime, endDateTime) {
@@ -119,10 +119,37 @@ module.exports = {
   },
 
   /**
-   * TODO: Ihowa
-   * @param {Type} tokens
-   * @param {Type} startDateTime
-   * @param {Type} endDateTime
+   * Get all scheduled meetings within a time period
+   * @param {Credentials} tokens
+   * @param {String} startDateTime
+   * @param {String} endDateTime
+   * @return {Promise<unknown>}
+   */
+  getMeetings(tokens, startDateTime, endDateTime) {
+    oauth2Client.setCredentials(tokens);
+    return new Promise(function(resolve, reject) {
+      calendar.events.list({
+        auth: oauth2Client,
+        calendarId: 'primary',
+        timeMin: startDateTime,
+        timeMax: endDateTime,
+        singleEvents: true,
+        orderBy: 'startTime',
+      }, function(err, res) {
+        if (err) {
+          reject(err);
+          return;
+        }
+        resolve(res.data.items);
+      });
+    });
+  },
+
+  /**
+   * Get a single event at a specific time
+   * @param {Credentials} tokens
+   * @param {String} startDateTime
+   * @param {String} endDateTime
    * @return {Promise<unknown>}
    */
   getEvents(tokens, startDateTime, endDateTime) {
@@ -147,11 +174,11 @@ module.exports = {
   },
 
   /**
-   * TODO: Ihowa
-   * @param {Type} tokens
-   * @param {Type} event
-   * @param {Type} startDateTime
-   * @param {Type} endDateTime
+   * Updates a meeting in user's calendar to a different time
+   * @param {Credentials} tokens
+   * @param {Google Calendar Event} event
+   * @param {String} startDateTime
+   * @param {String} endDateTime
    * @return {Promise<unknown>}
    */
   updateMeeting(tokens, event, startDateTime, endDateTime) {
