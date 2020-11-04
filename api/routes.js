@@ -29,8 +29,6 @@ router.post('/slack/actions/meeting_options', async function(req, res) {
       console.log('get meeting options');
       const email = await DATABASE.getEmailFromID(slackPayload.user.id);
       const meetings = await MEETINGS.getMeetings(email);
-      console.log(meetings);
-      console.log(meetings.length);
       for (let i = 0; i < meetings.length; i++) {
         const meetingName = meetings[i][0];
         const meetingStart = meetings[i][1];
@@ -39,7 +37,7 @@ router.post('/slack/actions/meeting_options', async function(req, res) {
         option.options.push({
           'text': {
             'type': 'plain_text',
-            'text': meetingName + '|' + meetingStart + '|' + meetingEnd,
+            'text': meetingName + '|' + meetingStart + '-' + meetingEnd,
           },
           'value': meetingName,
         });
