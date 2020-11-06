@@ -11,7 +11,7 @@ const MEETINGS = require('../lib/meetings.js');
 router.use('/actions', bodyParser.urlencoded({extended: true}));
 
 const actionHandlers = {
-  'meeting_select': async function(payload, action) {
+  meeting_select: async function(payload, action) {
     try {
       const meetingDetails = decode(action.selected_option.value);
 
@@ -27,7 +27,7 @@ const actionHandlers = {
       return error;
     }
   },
-  'submit': async function(payload, action) {
+  constraints_submit: async function(payload, action) {
     try {
       const constraints = payload.state.values.constraints;
       const day = constraints.day.selected_option.value;
