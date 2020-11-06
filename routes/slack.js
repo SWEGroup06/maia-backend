@@ -3,12 +3,23 @@ const router = express.Router();
 
 const bodyParser = require('body-parser');
 const fetch = require('node-fetch');
+const {DateTime} = require('luxon');
 
 const TIME = require('../lib/time.js');
 const DATABASE = require('../lib/database.js');
 const MEETINGS = require('../lib/meetings.js');
 
 router.use('/actions', bodyParser.urlencoded({extended: true}));
+
+const submitResponse = async function(payload, obj) {
+  await fetch(payload.response_url, {
+    method: 'POST',
+    body: JSON.stringify(obj),
+    headers: {'Content-Type': 'application/json'},
+  });
+  // const json = await res.json();
+  // console.log(json);
+};
 
 const actionHandlers = {
   meeting_select: async function(payload, action) {
@@ -24,36 +35,35 @@ const actionHandlers = {
 
       return;
     } catch (error) {
-      return error;
+      return error.toString();
     }
   },
-  constraints_submit: async function(payload, action) {
+  constraints: async function(payload, action) {
     try {
+      // Parse state
+      if (!payload.state) return 'Please select a day.';
       const constraints = payload.state.values.constraints;
-      const day = constraints.day.selected_option.value;
-      const startTime = constraints.startTime.selected_time;
-      const endTime = constraints.endTime.selected_time;
+      const day = parseInt(constraints.day.selected_option.value);
+      const startTime = new Date(`1 Jan 1970 ${ constraints.start_time.selected_time}`).toISOString();
+      const endTime = new Date(`1 Jan 1970 ${ constraints.end_time.selected_time}`).toISOString();
 
-      // Convert to appropriate format
-      const formattedDay = TIME.getDayOfWeek(day);
-      const formattedStartTime = TIME.getISOFromTime(startTime);
-      const formattedEndTime = TIME.getISOFromTime(endTime);
+      if (startTime == 'Invalid Date' || endTime == 'Invalid Date') {
+        return 'Invalid Time';
+      }
 
+      // Dont update if the input is not the submit button
+      if (action.action_id != 'submit') return;
+
+      // Set constraint
       const email = await DATABASE.getEmailFromID(payload.user.id);
-      await DATABASE.setConstraint(email, formattedStartTime, formattedEndTime, formattedDay);
+      await DATABASE.setConstraint(email, startTime, endTime, day);
 
       // Send response
-      const res = await fetch(payload.response_url, {
-        method: 'POST',
-        body: JSON.stringify({text: 'Okay, cool! :thumbsup::skin-tone-3: I\'ll keep this in mind.'}),
-        headers: {'Content-Type': 'application/json'},
-      });
-      const json = await res.json();
-      console.log(json);
+      await submitResponse(payload, {text: 'Okay, cool! :thumbsup::skin-tone-3: I\'ll keep this in mind.'});
 
-      return null;
+      return;
     } catch (error) {
-      return error;
+      return error.toString();
     }
   },
 };
@@ -70,11 +80,20 @@ router.post('/actions', async function(req, res) {
   const action = payload.actions[0];
   const handler = actionHandlers[action.block_id];
   if (handler) {
-    const error = handler(payload, action);
-    if (error) console.log(error);
+    const error = await handler(payload, action);
+    if (error) {
+      console.log(error);
+      await submitResponse(payload, {
+        response_type: 'ephemeral',
+        replace_original: false,
+        text: error,
+      });
+    } else {
+      res.sendStatus(200);
+    }
+  } else {
+    res.sendStatus(200);
   }
-
-  res.sendStatus(200);
 });
 
 router.post('/actions/meeting_options', async function(req, res) {
