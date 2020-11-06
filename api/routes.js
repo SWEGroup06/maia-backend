@@ -30,24 +30,47 @@ router.post('/slack/actions/meeting_options', async function(req, res) {
       const email = await DATABASE.getEmailFromID(slackPayload.user.id);
       const meetings = await MEETINGS.getMeetings(email);
       for (let i = 0; i < meetings.length; i++) {
-        const meetingName = meetings[i][0];
+        const meetingName = (meetings[i][0]).substring(0, 21);
+
+
         const meetingStart = meetings[i][1];
+        const startDate = new DateTime(meetings[i][1]);
+
         const meetingEnd = meetings[i][2];
-        console.log(meetingName);
+        const endDate = new DateTime(meetings[i][2]);
+        console.log(startDate.toLocaleString(startDate.TIME_24_SIMPLE));
+        console.log(endDate.toLocaleString(DateTime.TIME_24_SIMPLE));
+
         option.options.push({
           'text': {
             'type': 'plain_text',
-            'text': meetingName + '|' + meetingStart + '-' + meetingEnd,
+            'text': meetingName + ' | ' + TIME.getDayOfWeekFromInt(startDate.weekday) +
+            ' ' + startDate.TIME_24_SIMPLE + ' - ' +
+             endDate.TIME_24_SIMPLE,
           },
-          'value': meetingName,
+          'value': meetingName +'|' + meetingStart + '|' + meetingEnd,
         });
       }
     }
   }
-
-
   res.json(option);
 });
+
+/**
+ * @param {number} value The slack user email.
+ * @return {number} A list of meetings for the following week.
+ */
+function decode(value) {
+  console.log('decoding');
+  const meetingDetails = value.split('|');
+  const meetingName = meetingDetails[0];
+  const meetingStart = meetingDetails[1];
+  const meetingEnd = meetingDetails[2];
+  console.log(meetingName);
+  console.log(meetingStart);
+  console.log(meetingEnd);
+  return meetingDetails;
+}
 
 router.post('/slack/actions', async function(req, res) {
   const slackPayload = JSON.parse(req.body.payload);
@@ -58,8 +81,16 @@ router.post('/slack/actions', async function(req, res) {
     // console.log(slackPayload);
     console.log('Meeting selected');
     const meeting = slackPayload.actions[0].selected_option;
-    const meetingName = meeting.value;
-    console.log(meetingName);
+    console.log(meeting.value + ' selected');
+    const meetingDetails = decode(meeting.value);
+    // const meetingDetails = AUTH.getSingleMeeting(token, eventId);
+    // const meetingName = meetingDetails[i][0];
+    const meetingStart = meetingDetails[1];
+    const meetingEnd = meetingDetails[2];
+    const email = await DATABASE.getEmailFromID(slackPayload.user.id);
+    MEETINGS.reschedule(meetingStart, meetingEnd, email);
+
+    // MEETINGS.reschedule(st)
   }
   if (slackPayload.actions[0].block_id === 'submit') {
     // Submit button has been clicked so get information
