@@ -12,7 +12,6 @@ const PORT = process.env.PORT || 3000;
 
 // Configure routes
 app.use(express.json());
-app.use('/success', express.static('public'));
 
 const routes = ['auth', 'api', 'slack', 'nlp'];
 routes.forEach((name) => app.use(`/${name}`, require(`./routes/${name}.js`)));

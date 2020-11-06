@@ -18,10 +18,11 @@ router.get('/schedule', async function(req, res) {
   try {
     const busyTimes = [];
     const constraints = [];
-    const eventDuration = Duration.fromObject({hours: 1});
 
+    //TODO: Change to input
     const startDate = new Date().toISOString();
     const endDate = new Date('6 nov 2020 23:30').toISOString();
+    const eventDuration = Duration.fromObject({hours: 1});
 
     const slackEmails = JSON.parse(decodeURIComponent(req.query.emails));
     const googleEmails = [];

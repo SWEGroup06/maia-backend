@@ -4,6 +4,8 @@ const router = express.Router();
 const GOOGLE = require('../lib/google.js');
 const DATABASE = require('../lib/database');
 
+router.use('/success', express.static('public'));
+
 // Login
 router.get('/login', async function(req, res) {
   if (!req.query.email) {
