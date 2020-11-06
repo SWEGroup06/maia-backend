@@ -10,50 +10,68 @@ const MEETINGS = require('../lib/meetings.js');
 
 router.use('/actions', bodyParser.urlencoded({extended: true}));
 
+const actionHandlers = {
+  'meeting_select': async function(payload, action) {
+    try {
+      const meetingDetails = decode(action.selected_option.value);
+
+      const meetingStart = meetingDetails[1];
+      const meetingEnd = meetingDetails[2];
+
+      const email = await DATABASE.getEmailFromID(payload.user.id);
+
+      MEETINGS.reschedule(meetingStart, meetingEnd, email);
+
+      return;
+    } catch (error) {
+      return error;
+    }
+  },
+  'submit': async function(payload, action) {
+    try {
+      const constraints = payload.state.values.constraints;
+      const day = constraints.day.selected_option.value;
+      const startTime = constraints.startTime.selected_time;
+      const endTime = constraints.endTime.selected_time;
+
+      // Convert to appropriate format
+      const formattedDay = TIME.getDayOfWeek(day);
+      const formattedStartTime = TIME.getISOFromTime(startTime);
+      const formattedEndTime = TIME.getISOFromTime(endTime);
+
+      const email = await DATABASE.getEmailFromID(payload.user.id);
+      await DATABASE.setConstraint(email, formattedStartTime, formattedEndTime, formattedDay);
+
+      // Send response
+      const res = await fetch(payload.response_url, {
+        method: 'POST',
+        body: JSON.stringify({text: 'Okay, cool! :thumbsup::skin-tone-3: I\'ll keep this in mind.'}),
+        headers: {'Content-Type': 'application/json'},
+      });
+      const json = await res.json();
+      console.log(json);
+
+      return null;
+    } catch (error) {
+      return error;
+    }
+  },
+};
+
 // Handles Block-kit UI actions
 router.post('/actions', async function(req, res) {
   const payload = JSON.parse(req.body.payload);
-  if (payload && payload.actions && payload.actions[0] && payload.actions[0].block_id === 'meeting_select') {
-    // console.log(payload);
-    console.log('Meeting selected');
-    const meeting = payload.actions[0].selected_option;
-    console.log(meeting.value + ' selected');
-    const meetingDetails = decode(meeting.value);
-    // const meetingDetails = AUTH.getSingleMeeting(token, eventId);
-    // const meetingName = meetingDetails[i][0];
-    const meetingStart = meetingDetails[1];
-    const meetingEnd = meetingDetails[2];
-    const email = await DATABASE.getEmailFromID(payload.user.id);
-    MEETINGS.reschedule(meetingStart, meetingEnd, email);
-
-    // MEETINGS.reschedule(st)
+  if (!payload || !payload.actions || !payload.actions[0]) {
+    res.sendStatus(200);
+    return;
   }
-  if (payload.actions[0].block_id === 'submit') {
-    // Submit button has been clicked so get information
-    console.log('submit clicked');
-    console.log(payload);
-    const constraints = payload.state.values.constraints;
-    const day = constraints.day.selected_option.value;
-    const startTime = constraints.startTime.selected_time;
-    const endTime = constraints.endTime.selected_time;
 
-    // Convert to appropriate format
-    const formattedDay = TIME.getDayOfWeek(day);
-    const formattedStartTime = TIME.getISOFromTime(startTime);
-    const formattedEndTime = TIME.getISOFromTime(endTime);
-
-    const email = await DATABASE.getEmailFromID(payload.user.id);
-    await DATABASE.setConstraint(email, formattedStartTime, formattedEndTime, formattedDay);
-
-    fetch(payload.response_url, {
-      method: 'POST',
-      body: JSON.stringify({text: 'Okay, cool! :thumbsup::skin-tone-3: I\'ll keep this in mind.'}),
-      headers: {'Content-Type': 'application/json'},
-    }).then((res) => res.json()).then(function(json) {
-      console.log(json);
-    }).catch(function(error) {
-      console.error(error);
-    });
+  // Delegate specific tasks to action handler
+  const action = payload.actions[0];
+  const handler = actionHandlers[action.block_id];
+  if (handler) {
+    const error = handler(payload, action);
+    if (error) console.log(error);
   }
 
   res.sendStatus(200);
