@@ -219,4 +219,39 @@ router.get('/meetings', async function(req, res) {
   }
 });
 
+// Add constraints
+router.get('/constraint', async function(req, res) {
+  if (!req.query.email) {
+    res.json({error: 'No email found'});
+  }
+
+  if (!req.query.busyTimes) {
+    res.json({error: 'Busy times not found'});
+  }
+
+  if (!req.query.busyDays) {
+    res.json({error: 'Busy days not found'});
+    return;
+  }
+
+  try {
+    const email = JSON.parse(decodeURIComponent(req.query.email));
+    const days = JSON.parse(decodeURIComponent(req.query.busyDays));
+    const times = JSON.parse(decodeURIComponent(req.query.busyTimes));
+
+    for (let i = 0; i < 7; i++) {
+      if (days[i] === 1) {
+        for (let j = 0; j < times.length; j++) {
+          await DATABASE.setConstraint(email, times[j].startTime, times[j].endTime, i);
+        }
+      }
+    }
+
+    res.send({success: true});
+  } catch (error) {
+    console.error(error);
+    res.send({error: error.toString()});
+  }
+});
+
 module.exports = router;
