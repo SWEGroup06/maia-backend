@@ -1,5 +1,10 @@
 const {DateTime, Duration} = require('luxon');
 
+/* CONSTANTS */
+const halfHoursInDay = 24 * 2;
+const days = 7;
+const halfHour = Duration.fromObject({minutes: 30});
+
 const context = {
   intersection: (slot1, slot2, duration) => {
     const newSlot = [DateTime.max(slot1[0], slot2[0]),
@@ -96,6 +101,58 @@ const context = {
     }
     return choices[0][0];
   },
+  getTimeSlotValue: (begin, end, historyFreq) => {
+    let val = 0;
+    const startHour = begin.hour;
+    const startHalf = begin.minute >= 30 ? 1 : 0;
+    let i = startHour * 2 + startHalf;
+    while (begin < end) {
+      const day = begin.weekday - 1;
+      val += historyFreq[day][i] ** 2;
+      i = (i + 1) % halfHoursInDay;
+      begin = begin.plus(halfHour);
+    }
+    return val;
+  },
+  /**
+   * chooses the best time slot out of list of free times considering the user's history of most common busy times
+   * @param {Array} freeTimes -- array returned by _schedule [[start1, start2]]
+   * @param {Array} historyFreq -- array returned by userHistory()
+   * @param {Duration} duration -- event's duration
+   * @param {Boolean} isClustered -- attempts to maximise clustering if this is true
+   * @return {DateTime} -- best start date time for event
+   * @private
+   */
+  _chooseFromHistory: (freeTimes, historyFreq, duration, isClustered) => {
+    let maxTimeSlotValue = 0;
+    let bestTimeSlot = null;
+    for (const timeSlot of freeTimes) {
+      let begin = timeSlot[0];
+      const end = timeSlot[1];
+      if (isClustered) {
+        let v = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
+        if (bestTimeSlot === null || v > maxTimeSlotValue) {
+          maxTimeSlotValue = v;
+          bestTimeSlot = begin;
+        }
+        v = context.getTimeSlotValue(end, end.plus(duration), historyFreq);
+        if (v > maxTimeSlotValue) {
+          maxTimeSlotValue = v;
+          bestTimeSlot = begin;
+        }
+      } else {
+        while (begin <= end) {
+          const v = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
+          if (v > maxTimeSlotValue) {
+            maxTimeSlotValue = v;
+            bestTimeSlot = new DateTime(begin);
+          }
+          begin = begin.plus(halfHour);
+        }
+      }
+    }
+    return bestTimeSlot;
+  },
 
   /* [
     [start, end]
@@ -162,10 +219,7 @@ const context = {
    * @param { Array } lastMonthBusySchedule [{startTime: ISO String, endTime: ISO String}]
    * @return {[]}
    */
-  userHistory: (lastMonthBusySchedule) => {
-    const halfHoursInDay = 24 * 2;
-    const days = 7;
-    const halfHour = Duration.fromObject({minutes: 30});
+  getUserHistory: (lastMonthBusySchedule) => {
     const frequencies = [];
     for (let i = 0; i < days; i++) {
       frequencies[i] = Array(halfHoursInDay).fill(0);
@@ -173,11 +227,11 @@ const context = {
     for (const timeSlot of lastMonthBusySchedule) {
       let begin = DateTime.fromISO(timeSlot.start);
       const end = DateTime.fromISO(timeSlot.end);
-      console.log('begin: ', begin.weekday, ' end: ', end.weekday);
+      // console.log('begin: ', begin.weekday, ' end: ', end.weekday);
       const startHour = begin.hour;
       const startHalf = begin.minute >= 30 ? 1 : 0;
       let i = startHour * 2 + startHalf;
-      console.log('i: ', i);
+      // console.log('i: ', i);
       while (begin < end) {
         const day = begin.weekday - 1;
         frequencies[day][i]++;
