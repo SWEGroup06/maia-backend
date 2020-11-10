@@ -158,9 +158,11 @@ const context = {
   },
 
   /**
-   *  @param { Array } lastMonthBusySchedule [{startTime: ISO String, endTime: ISO String}]
+   *
+   * @param { Array } lastMonthBusySchedule [{startTime: ISO String, endTime: ISO String}]
+   * @return {[]}
    */
-  busyTimeFrequencies: (lastMonthBusySchedule) => {
+  userHistory: (lastMonthBusySchedule) => {
     const halfHoursInDay = 24 * 2;
     const days = 7;
     const halfHour = Duration.fromObject({minutes: 30});

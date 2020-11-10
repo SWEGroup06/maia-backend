@@ -1,5 +1,5 @@
 const {DateTime, Duration} = require('luxon');
-const {_schedule, getFreeSlots, generateConstraints, _choose, busyTimeFrequencies} = require('../src/scheduler');
+const {_schedule, getFreeSlots, generateConstraints, _choose, userHistory} = require('../src/scheduler');
 
 // wednesday
 const DAY1 = DateTime.local(2020, 10, 14);
@@ -93,6 +93,28 @@ test('chooses the shortest duration', () => {
   expect(outputChoice).toEqual(expectedChoice);
 });
 
+/**
+ * takes list of busy time slots and returns a matrix containing an entry for every half hour of
+ * of every day of the week saying how many times that slot has been `used`
+ */
+test('gets busy times frequencies simple', () => {
+  const schedule = [{start: '2020-11-03T17:00:00.000Z',
+    end: '2020-11-03T19:00:00.000Z'},
+  ];
+  const halfHoursInDay = 24 * 2;
+  const days = 7;
+  const expectedFreqs = [];
+  for (let i = 0; i < days; i++) {
+    expectedFreqs[i] = Array(halfHoursInDay).fill(0);
+  }
+  for (let i = 34; i < 38; i++) {
+    expectedFreqs[1][i]++;
+  }
+  const frequencies = userHistory(schedule);
+  expect(frequencies).toEqual(expectedFreqs);
+});
+
+
 test('gets busy times frequencies', () => {
   const schedule = [{start: '2020-11-03T17:14:00.000Z',
     end: '2020-11-03T19:30:00.000Z'},
@@ -103,18 +125,21 @@ test('gets busy times frequencies', () => {
   ];
   const halfHoursInDay = 24 * 2;
   const days = 7;
-  const expectedFreqs = Array(days).fill(Array(halfHoursInDay).fill(0));
-  for (let i = 34; i < 40; i++) {
+  const expectedFreqs = [];
+  for (let i = 0; i < days; i++) {
+    expectedFreqs[i] = Array(halfHoursInDay).fill(0);
+  }
+  for (let i = 34; i < 39; i++) {
     expectedFreqs[1][i]++;
     expectedFreqs[2][i]++;
     expectedFreqs[3][i]++;
   }
-  for (let i = 40; i < 48; i++) {
+  for (let i = 39; i < 48; i++) {
     expectedFreqs[3][i]++;
   }
-  for (let i = 0; i < 40; i++) {
+  for (let i = 0; i < 39; i++) {
     expectedFreqs[4][i]++;
   }
-  const frequencies = busyTimeFrequencies(schedule);
+  const frequencies = userHistory(schedule);
   expect(frequencies).toEqual(expectedFreqs);
 });
