@@ -35,7 +35,12 @@ const context = {
     while (start <= end) {
       if (weekConstraints[i].startTime !== '' && weekConstraints[i].endTime !== '') {
         res.push([context.combine(start, DateTime.fromISO(weekConstraints[i].startTime)),
-          context.combine(start, DateTime.min(DateTime.fromISO(weekConstraints[i].endTime), end))]);
+          context.combine(start, DateTime.fromISO(weekConstraints[i].endTime))]);
+      } else {
+        // console.log('start ', context.combine(start, DateTime.fromObject({hour: 0, minute: 0})).toISO());
+        // console.log('end ', context.combine(start, DateTime.min(DateTime.fromObject({hour: 23, minute: 59}), end)).toISO());
+        res.push([context.combine(start, DateTime.fromObject({hour: 0, minute: 0})),
+          context.combine(start, DateTime.fromObject({hour: 23, minute: 59}))]);
       }
       start = start.plus({days: 1});
       i = (i + 1) % 7;
@@ -158,21 +163,38 @@ const context = {
   busyTimeFrequencies: (lastMonthBusySchedule) => {
     const halfHoursInDay = 24 * 2;
     const days = 7;
+<<<<<<< HEAD
     const frequencies = Array(days).fill(Array(halfHoursInDay).fill(0));
     const halfHour = Duration.fromObject({minutes: 30});
     for (const timeSlot of lastMonthBusySchedule) {
       const begin = DateTime.fromISO(timeSlot.start);
       const end   = DateTime.fromISO(timeSlot.end);
+=======
+    const halfHour = Duration.fromObject({minutes: 30});
+    const frequencies = [];
+    for (let i = 0; i < days; i++) {
+      frequencies[i] = Array(halfHoursInDay).fill(0);
+    }
+    for (const timeSlot of lastMonthBusySchedule) {
+      let begin = DateTime.fromISO(timeSlot.start);
+      const end = DateTime.fromISO(timeSlot.end);
+      console.log('begin: ', begin.weekday, ' end: ', end.weekday);
+>>>>>>> refs/remotes/origin/main
       const startHour = begin.hour;
       const startHalf = begin.minute >= 30 ? 1 : 0;
       let i = startHour * 2 + startHalf;
+      console.log('i: ', i);
       while (begin < end) {
-        const day = begin.day;
+        const day = begin.weekday - 1;
         frequencies[day][i]++;
         i = (i + 1) % halfHoursInDay;
-        begin.plus(halfHour);
+        begin = begin.plus(halfHour);
       }
     }
+<<<<<<< HEAD
+=======
+    console.log(frequencies);
+>>>>>>> refs/remotes/origin/main
     return frequencies;
   },
 };

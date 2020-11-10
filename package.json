@@ -21,12 +21,14 @@
   "author": "SWEGroup06",
   "license": "Proprietary",
   "dependencies": {
+    "@google-cloud/dialogflow": "^3.3.0",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "googleapis": "^61.0.0",
     "jest": "^26.6.1",
     "luxon": "^1.25.0",
-    "mongoose": "^5.10.9"
+    "mongoose": "^5.10.9",
+    "uuid": "^8.3.1"
   },
   "devDependencies": {
     "chai": "^4.2.0",
