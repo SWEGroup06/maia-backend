@@ -152,16 +152,19 @@ const context = {
     return null;
   },
 
+  /**
+   *  @param { Array } lastMonthBusySchedule [{startTime: ISO String, endTime: ISO String}]
+   */
   busyTimeFrequencies: (lastMonthBusySchedule) => {
-    const halfHoursInDay = 48;
+    const halfHoursInDay = 24 * 2;
     const days = 7;
     const frequencies = Array(days).fill(Array(halfHoursInDay).fill(0));
+    const halfHour = Duration.fromObject({minutes: 30});
     for (const timeSlot of lastMonthBusySchedule) {
-      const begin = DateTime.fromISO(timeSlot[0]);
-      const end = DateTime.fromISO(timeSlot[1]);
+      const begin = DateTime.fromISO(timeSlot.start);
+      const end   = DateTime.fromISO(timeSlot.end);
       const startHour = begin.hour;
       const startHalf = begin.minute >= 30 ? 1 : 0;
-      const halfHour = Duration.fromObject({minutes: 30});
       let i = startHour * 2 + startHalf;
       while (begin < end) {
         const day = begin.day;
@@ -170,6 +173,7 @@ const context = {
         begin.plus(halfHour);
       }
     }
+    return frequencies;
   },
 };
 
