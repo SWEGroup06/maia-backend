@@ -15,13 +15,27 @@ router.get('/schedule', async function(req, res) {
     return;
   }
 
+  let startDate;
+  if (!req.query.startDateTimeOfRange) {
+    startDate = new Date().toISOString();
+  } else {
+    startDate = JSON.parse(decodeURIComponent(req.query.startDateTimeOfRange));
+  }
+
+  let endDate;
+  if (!req.query.endDateTimeOfRange) {
+    endDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDay() + 14).toISOString();
+  } else {
+    endDate = JSON.parse(decodeURIComponent(req.query.endDateTimeOfRange));
+  }
+
   try {
     const busyTimes = [];
     const constraints = [];
 
     // TODO: Change to input
-    const startDate = new Date().toISOString();
-    const endDate = new Date('6 nov 2020 23:30').toISOString();
+    // const startDate = new Date().toISOString();
+    // const endDate = new Date('6 nov 2020 23:30').toISOString();
     const eventDuration = Duration.fromObject({hours: 1});
 
     const slackEmails = JSON.parse(decodeURIComponent(req.query.emails));
