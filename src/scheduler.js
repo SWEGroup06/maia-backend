@@ -163,13 +163,6 @@ const context = {
   busyTimeFrequencies: (lastMonthBusySchedule) => {
     const halfHoursInDay = 24 * 2;
     const days = 7;
-<<<<<<< HEAD
-    const frequencies = Array(days).fill(Array(halfHoursInDay).fill(0));
-    const halfHour = Duration.fromObject({minutes: 30});
-    for (const timeSlot of lastMonthBusySchedule) {
-      const begin = DateTime.fromISO(timeSlot.start);
-      const end   = DateTime.fromISO(timeSlot.end);
-=======
     const halfHour = Duration.fromObject({minutes: 30});
     const frequencies = [];
     for (let i = 0; i < days; i++) {
@@ -179,7 +172,6 @@ const context = {
       let begin = DateTime.fromISO(timeSlot.start);
       const end = DateTime.fromISO(timeSlot.end);
       console.log('begin: ', begin.weekday, ' end: ', end.weekday);
->>>>>>> refs/remotes/origin/main
       const startHour = begin.hour;
       const startHalf = begin.minute >= 30 ? 1 : 0;
       let i = startHour * 2 + startHalf;
@@ -191,10 +183,6 @@ const context = {
         begin = begin.plus(halfHour);
       }
     }
-<<<<<<< HEAD
-=======
-    console.log(frequencies);
->>>>>>> refs/remotes/origin/main
     return frequencies;
   },
 };
