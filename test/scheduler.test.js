@@ -1,5 +1,5 @@
 const {DateTime, Duration} = require('luxon');
-const {_schedule, getFreeSlots, generateConstraints, _choose, userHistory} = require('../src/scheduler');
+const {_schedule, getFreeSlots, generateConstraints, _choose, getUserHistory, _chooseFromHistory} = require('../src/scheduler');
 
 // wednesday
 const DAY1 = DateTime.local(2020, 10, 14);
@@ -110,7 +110,7 @@ test('gets busy times frequencies simple', () => {
   for (let i = 34; i < 38; i++) {
     expectedFreqs[1][i]++;
   }
-  const frequencies = userHistory(schedule);
+  const frequencies = getUserHistory(schedule);
   expect(frequencies).toEqual(expectedFreqs);
 });
 
@@ -140,6 +140,25 @@ test('gets busy times frequencies', () => {
   for (let i = 0; i < 39; i++) {
     expectedFreqs[4][i]++;
   }
-  const frequencies = userHistory(schedule);
+  const frequencies = getUserHistory(schedule);
   expect(frequencies).toEqual(expectedFreqs);
+});
+
+
+test('choose from history simple', () => {
+  // just busy from 17-19 on a Wednesday
+  const halfHoursInDay = 24 * 2;
+  const days = 7;
+  const historyFreqs = [];
+  for (let i = 0; i < days; i++) {
+    historyFreqs[i] = Array(halfHoursInDay).fill(0);
+  }
+  for (let i = 34; i < 38; i++) {
+    historyFreqs[2][i]++;
+  }
+  //  const FREE_DATETIME1 = [0, 1, 2, 3, 4].map((x) => getDt(DAY1, 9 + 3 * x, 0, 1));
+  // free timeslots: 9-10, 12-13, 15-16, 18-19, 21-22
+  const chosen = _chooseFromHistory(FREE_DATETIME1, historyFreqs, Duration.fromObject({hours: 1}), true);
+  const expected = combine(DAY1, 18);
+  expect(chosen.c).toEqual(expected.c);
 });
