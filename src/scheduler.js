@@ -220,7 +220,6 @@ const context = {
    * @return {[]}
    */
   getUserHistory: (lastMonthBusySchedule) => {
-
     const frequencies = [];
     for (let i = 0; i < days; i++) {
       frequencies[i] = Array(halfHoursInDay).fill(0);
