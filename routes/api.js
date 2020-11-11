@@ -112,6 +112,25 @@ router.get('/reschedule', async function(req, res) {
     res.json({error: 'No event end time specified for rescheduling'});
   }
 
+  console.log('********\n');
+  console.log(req.query.eventEndTime);
+  console.log('********\n');
+
+
+  let newStartDateTime;
+  if (!req.query.newStartDateTime) {
+    newStartDateTime = new Date().toISOString();
+  } else {
+    newStartDateTime = JSON.parse(decodeURIComponent(req.query.newStartDateTime));
+  }
+
+  let newEndDateTime;
+  if (!req.query.newEndDateTime) {
+    newEndDateTime = new Date(newStartDateTime.getFullYear(), newStartDateTime.getMonth(), newStartDateTime.getDay() + 14).toISOString();
+  } else {
+    newEndDateTime = JSON.parse(decodeURIComponent(req.query.newEndDateTime));
+  }
+
   try {
     const constraints = [];
     const eventStartTime = new Date(JSON.parse(decodeURIComponent(req.query.eventStartTime))).toISOString();
@@ -145,8 +164,16 @@ router.get('/reschedule', async function(req, res) {
     const busyTimes = [];
     const eventDuration = DateTime.fromISO(eventEndTime).diff(DateTime.fromISO(eventStartTime));
 
-    const startDate = new Date().toISOString();
-    const endDate = new Date('6 nov 2020 23:30').toISOString();
+    console.log('ORIGINALEVENT *******:\n');
+    console.log(originalEvent);
+    console.log('********');
+
+    console.log('DURATION *******:\n');
+    console.log(eventDuration);
+    console.log('********');
+
+    const startDate = newStartDateTime;
+    const endDate = newEndDateTime;
 
     const organiserEmail = await GOOGLE.getEmail(organiserToken);
     // remove organiser from attendees to avoid adding twice
