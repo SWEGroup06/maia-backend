@@ -6,12 +6,26 @@ const days = 7;
 const halfHour = Duration.fromObject({minutes: 30});
 
 const context = {
+  /**
+   * Internal function that takes two datetime objects and returns their interection, if that
+   * intersectoin is of a minimum size
+   * @param { datetime } slot1
+   * @param { datetime } slot2
+   * @param { duration } duration minimum size of interction is given by duration
+   * @return { datetime } intersection of slot1 and slot2 or null
+   */
   intersection: (slot1, slot2, duration) => {
     const newSlot = [DateTime.max(slot1[0], slot2[0]),
       DateTime.min(slot1[1], slot2[1])];
     return newSlot[0].plus(duration) <= newSlot[1] ? newSlot : null;
   },
-
+  /**
+   * Internal function that takes two objects, one for date info and one for time info, and returns
+   * a datetime based on it
+   * @param { Object } date object with year, month and day fields
+   * @param { Object } time object with hour and minute fields
+   * @return { datetime }
+   */
   combine: (date, time) => {
     return DateTime.fromObject({
       year: date.year,
@@ -58,33 +72,34 @@ const context = {
 
     return res;
   },
-
+  /**
+   * Takes in a team's schedules, the duration of the event and any other constraints, and will
+   * return all possible times that the event can take place.
+   * @param { Array } schedules array of array of array of 2 datetimes [[[starttime, endtime], ...]]
+   * @param { Duration } duration duration of the event
+   * @param { Array } constraints array of array of two datetimes, [[starttime, endtime]]
+   * @return { Array } array of array of two datetimes, [[starttime, endtime]]
+   */
   _schedule: (schedules, duration, constraints = null) => {
-    /*
-    schedules is a list of (start_free_datetime, end_free_datetime)
-    pre-conditions:
-    schedules contains all times between possible start datetime and end datetime
-    of meeting
-    :param schedules: list containing everyone's free schedules
-    :param duration: duration of event to be booked
-    :return: ranges for all possible start date times of the event (gives range of every
-    possible time event could start at)
-    */
-    if (!schedules || !schedules.length || !duration) return null;
-    if (constraints != null) {
-      schedules = schedules.concat(constraints);
-    }
+    // bad input
+    if (!schedules
+      || !schedules.length
+      || !duration) return null;
+
+    // include availability constraints
+    if (constraints != null) schedules = schedules.concat(constraints);
+
     let ans = schedules[0];
     schedules.forEach((schedule) => {
       const curr = [];
-      let i = 0;
-      let j = 0;
+      let i = 0, j = 0;
       while (i < ans.length && j < schedule.length) {
+        // find intersection
         const intersection = context.intersection(ans[i], schedule[j], duration);
         if (intersection != null) {
           curr.push(intersection);
         }
-        // increment pointer for free list item that ends first, keeps the other the same
+        // increment pointer for item that ends first
         if (ans[i][1] < schedule[j][1]) {
           i++;
         } else {
@@ -97,7 +112,11 @@ const context = {
     // return list of possible starting time slot intervals
     return ans.map((xs) => [xs[0], xs[1].minus(duration)]);
   },
-
+  /**
+   * Chooses a time period, preferencing time slots which are smaller
+   * @param { Array } freeTimes times that event could be scheduled
+   * @return { datetime } chosen time for the event
+   */
   _choose: (freeTimes) => {
     const choices = freeTimes.map((xs) => [xs[0], xs[1].diff(xs[0])]);
     choices.sort((a, b) => a[1] - b[1]);
@@ -120,7 +139,8 @@ const context = {
     return val;
   },
   /**
-   * chooses the best time slot out of list of free times considering the user's history of most common busy times
+   * chooses the best time slot out of list of free times considering the user's history of most
+   * common busy times
    * @param {Array} freeTimes -- array returned by _schedule [[start1, start2]]
    * @param {Array} historyFreq -- array returned by userHistory()
    * @param {Duration} duration -- event's duration
