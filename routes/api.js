@@ -5,7 +5,7 @@ const {Duration, DateTime} = require('luxon');
 
 const GOOGLE = require('../lib/google.js');
 const DATABASE = require('../lib/database');
-
+const TIME = require('../lib/time.js');
 const SCHEDULER = require('../src/scheduler');
 
 // Schedule a new meeting
@@ -112,28 +112,27 @@ router.get('/reschedule', async function(req, res) {
     res.json({error: 'No event end time specified for rescheduling'});
   }
 
-  console.log('********\n');
-  console.log(req.query.eventEndTime);
+  console.log('FROM THE FRONT END********\n');
+  console.log(req.query);
   console.log('********\n');
 
-
-  let newStartDateTime;
+  let startOfRangeToRescheduleTo;
   if (!req.query.newStartDateTime) {
-    newStartDateTime = new Date().toISOString();
+    startOfRangeToRescheduleTo = DateTime.local();
   } else {
-    newStartDateTime = JSON.parse(decodeURIComponent(req.query.newStartDateTime));
+    startOfRangeToRescheduleTo = JSON.parse(decodeURIComponent(req.query.newStartDateTime));
   }
 
-  let newEndDateTime;
+  let endOfRangeToRescheduleTo;
   if (!req.query.newEndDateTime) {
-    newEndDateTime = new Date(newStartDateTime.getFullYear(), newStartDateTime.getMonth(), newStartDateTime.getDay() + 14).toISOString();
+    endOfRangeToRescheduleTo = DateTime.local(startOfRangeToRescheduleTo.getFullYear(), startOfRangeToRescheduleTo.getMonth(), startOfRangeToRescheduleTo.getDay() + 14).toISOString();
   } else {
-    newEndDateTime = JSON.parse(decodeURIComponent(req.query.newEndDateTime));
+    endOfRangeToRescheduleTo = JSON.parse(decodeURIComponent(req.query.newEndDateTime));
   }
 
   try {
     const constraints = [];
-    const eventStartTime = new Date(JSON.parse(decodeURIComponent(req.query.eventStartTime))).toISOString();
+    const eventStartTime = DateTime.fromISO(JSON.parse(decodeURIComponent(req.query.eventStartTime))).setZone('Europe/Paris').toISO();
     const organiserSlackEmail = JSON.parse(decodeURIComponent(req.query.organiserSlackEmail));
 
     // check organiser of event (the person trying to reschedule it) is
@@ -147,7 +146,18 @@ router.get('/reschedule', async function(req, res) {
     // get attendee emails from event
     const events = await GOOGLE.getEvents(organiserToken, eventStartTime);
 
-    if (!events || events.length === 0) {
+    console.log('Start times ****************\n');
+    console.log(events[0].start.dateTime);
+    console.log(eventStartTime);
+    console.log('compareTime****************************\n');
+    console.log(TIME.compareTime(events[0].start.dateTime, eventStartTime));
+    console.log('GOOGLE *****************************\n');
+    console.log(DateTime.fromISO(events[0].start.dateTime, {zone: events[0].start.timeZone}).toISO());
+    console.log(DateTime.fromISO(eventStartTime, {zone: events[0].start.timeZone}).toISO());
+
+    console.log('*****************************\n');
+
+    if (!events || events.length === 0 || !TIME.compareTime(events[0].start.dateTime, eventStartTime)) {
       res.json({error: 'No event found to reschedule with given details'});
       return;
     }
@@ -162,7 +172,7 @@ router.get('/reschedule', async function(req, res) {
 
     // find new time for event using scheduler
     const busyTimes = [];
-    const eventDuration = DateTime.fromISO(eventEndTime).diff(DateTime.fromISO(eventStartTime));
+    const eventDuration = DateTime.fromISO(eventEndTime).diff(DateTime.fromISO(new Date(events[0].start.dateTime).toISOString()));
 
     console.log('ORIGINALEVENT *******:\n');
     console.log(originalEvent);
@@ -172,8 +182,8 @@ router.get('/reschedule', async function(req, res) {
     console.log(eventDuration);
     console.log('********');
 
-    const startDate = newStartDateTime;
-    const endDate = newEndDateTime;
+    const startDate = startOfRangeToRescheduleTo;
+    const endDate = endOfRangeToRescheduleTo;
 
     const organiserEmail = await GOOGLE.getEmail(organiserToken);
     // remove organiser from attendees to avoid adding twice
