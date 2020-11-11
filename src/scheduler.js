@@ -23,32 +23,37 @@ const context = {
   },
 
   /**
-   * Generate constraints [monday -> 0 .. sunday -> 6]
-   * @param { Array } weekConstraints [{startTime: ISO String, endTime: ISO String}]
-   * @param { string } _start ISO Date/Time format, represents start DateTime that event can occur
-   * @param { string } _end ISO Date/Time format, represents end DateTime
-   * @return { Array } [[ dateTime, dateTime ], ...]
+   * Takes in days of the week to produce availablities for, indicated by weekdayAvailable array. The
+   * available times are passed in the availableTimes array. The function will produce availablities
+   * for a number of weeks, specified by the weeks parameter
+   * @param { Array } weekdayAvailable array of boolean flags
+   * @param { Array } availableTimes [{starttime: x, endtime: y}], where starttime < endtime
+   * @param { Int } weeks number of weeks to produce availablity for
+   * @return { Array } [[ dateTime, dateTime ], ...],
    */
-  generateConstraints: (weekConstraints, _start, _end) => {
-    if (weekConstraints == null) {
-      return [];
-    }
-    let start = DateTime.fromISO(_start);
-    const end = DateTime.fromISO(_end);
-    let i = start.weekday - 1;
+  generateConstraints: (weekdayAvailable, availableTimes, weeks=1) => {
+    // bad input
+    if (weekdayAvailable == null
+      || availableTimes == null
+      || availableTimes.length === 0
+      || weeks < 1)
+      return null
+
+    let date    = DataTime.fromISO(availableTimes[0].starttime)
+    let weekday = date.weekday - 1
+    availableTimes = availableTimes.map(x => { return {start: DateTime.fromISO(x.startTime),
+                                                       end:   DataTime.fromIso(x.endTime)} })
     const res = [];
-    while (start <= end) {
-      if (weekConstraints[i].startTime !== '' && weekConstraints[i].endTime !== '') {
-        res.push([context.combine(start, DateTime.fromISO(weekConstraints[i].startTime)),
-          context.combine(start, DateTime.fromISO(weekConstraints[i].endTime))]);
-      } else {
-        // console.log('start ', context.combine(start, DateTime.fromObject({hour: 0, minute: 0})).toISO());
-        // console.log('end ', context.combine(start, DateTime.min(DateTime.fromObject({hour: 23, minute: 59}), end)).toISO());
-        res.push([context.combine(start, DateTime.fromObject({hour: 0, minute: 0})),
-          context.combine(start, DateTime.fromObject({hour: 23, minute: 59}))]);
+    for (let days = weeks * 7; days >= 0; days--) {
+      // generate available times for only days of the weekday that are specified
+      if (weekdayAvailable[weekday]) {
+        for (time in availableTimes) {
+          res.push([context.combine(date, time.start), context.combine(date, time.end)])
+        }
       }
-      start = start.plus({days: 1});
-      i = (i + 1) % 7;
+      // increment to the next day
+      weekday = (weekday + 1) % 7
+      date    = date.plus({days: 1})
     }
 
     return res;
