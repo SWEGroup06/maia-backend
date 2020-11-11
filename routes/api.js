@@ -98,6 +98,11 @@ router.get('/schedule', async function(req, res) {
 
 // Reschedule an existing meeting
 router.get('/reschedule', async function(req, res) {
+  if (!req.query.organiserSlackEmail) {
+    res.json({error: 'Organiser\'s slack email not found'});
+    return;
+  }
+
   // check if event to be reschedule has been specified
   if (!req.query.eventStartTime) {
     res.json({error: 'No event start time specified for rescheduling'});
@@ -107,15 +112,9 @@ router.get('/reschedule', async function(req, res) {
     res.json({error: 'No event end time specified for rescheduling'});
   }
 
-  if (!req.query.organiserSlackEmail) {
-    res.json({error: 'Organiser\'s slack email not found'});
-    return;
-  }
-
   try {
     const constraints = [];
     const eventStartTime = new Date(JSON.parse(decodeURIComponent(req.query.eventStartTime))).toISOString();
-    const eventEndTime = new Date(JSON.parse(decodeURIComponent(req.query.eventEndTime))).toISOString();
     const organiserSlackEmail = JSON.parse(decodeURIComponent(req.query.organiserSlackEmail));
 
     // check organiser of event (the person trying to reschedule it) is
@@ -127,7 +126,7 @@ router.get('/reschedule', async function(req, res) {
     // Get organiser's token from the database
     const organiserToken = JSON.parse(await DATABASE.getToken(organiserSlackEmail));
     // get attendee emails from event
-    const events = await GOOGLE.getEvents(organiserToken, eventStartTime, eventEndTime);
+    const events = await GOOGLE.getEvents(organiserToken, eventStartTime);
 
     if (!events || events.length === 0) {
       res.json({error: 'No event found to reschedule with given details'});
@@ -135,6 +134,8 @@ router.get('/reschedule', async function(req, res) {
     }
 
     const originalEvent = events[0];
+    const eventEndTime = new Date(events[0].end.dateTime).toISOString();
+
     let attendeeEmails = [];
     if (originalEvent.attendees) {
       attendeeEmails = originalEvent.attendees.map((person) => person.email);
