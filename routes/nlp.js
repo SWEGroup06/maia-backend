@@ -5,7 +5,7 @@ const DIALOGFLOW = require('../lib/dialogflow.js');
 
 // Determines which command the user wants
 router.get('/', async function(req, res) {
-  const text = req.query.text;
+  const text = JSON.parse(decodeURIComponent(req.query.text));
   try {
     res.json(await DIALOGFLOW.sendQuery(text));
   } catch (error) {
