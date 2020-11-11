@@ -33,8 +33,8 @@ DATABASE.getDatabaseConnection().then(() => {
   });
 
   // Start AUTOMATION
-  console.log(`AUTOMATION started`);
-  AUTOMATION.start(INTERVAL);
+  // console.log(`AUTOMATION started`);
+  // AUTOMATION.start(INTERVAL);
 }).catch((err) => { // mongoose connection error will be handled here
   console.error('App starting error:', err.stack);
 });
