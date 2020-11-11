@@ -72,11 +72,8 @@ router.get('/schedule', async function(req, res) {
       if (data) busyTimes.push(data.map((e) => [e.start, e.end]));
     }
 
-    // console.log('BUSY TIMES:', busyTimes);
-
     // Get free slots from the provided busy times
     const freeTimes = busyTimes.map((timeSlot) => SCHEDULER.getFreeSlots(timeSlot, startDate, endDate));
-    // console.log('FREE TIMES:', freeTimes);
 
     // Using free times find a meeting slot and get the choice
     const chosenSlot = SCHEDULER.findMeetingSlot(freeTimes, eventDuration, constraints);
@@ -112,10 +109,6 @@ router.get('/reschedule', async function(req, res) {
     res.json({error: 'No event end time specified for rescheduling'});
   }
 
-  console.log('FROM THE FRONT END********\n');
-  console.log(req.query);
-  console.log('********\n');
-
   let startOfRangeToRescheduleTo;
   if (!req.query.newStartDateTime) {
     startOfRangeToRescheduleTo = DateTime.local();
@@ -146,17 +139,6 @@ router.get('/reschedule', async function(req, res) {
     // get attendee emails from event
     const events = await GOOGLE.getEvents(organiserToken, eventStartTime);
 
-    console.log('Start times ****************\n');
-    console.log(events[0].start.dateTime);
-    console.log(eventStartTime);
-    console.log('compareTime****************************\n');
-    console.log(TIME.compareTime(events[0].start.dateTime, eventStartTime));
-    console.log('GOOGLE *****************************\n');
-    console.log(DateTime.fromISO(events[0].start.dateTime, {zone: 'Europe/London'}).toISO());
-    console.log(DateTime.fromISO(eventStartTime, {zone: 'Europe/London'}).toISO());
-
-    console.log('*****************************\n');
-
     if (!events || events.length === 0 || !TIME.compareTime(events[0].start.dateTime, eventStartTime)) {
       res.json({error: 'No event found to reschedule with given details'});
       return;
@@ -173,14 +155,6 @@ router.get('/reschedule', async function(req, res) {
     // find new time for event using scheduler
     const busyTimes = [];
     const eventDuration = DateTime.fromISO(eventEndTime).diff(DateTime.fromISO(new Date(events[0].start.dateTime).toISOString()));
-
-    console.log('ORIGINALEVENT *******:\n');
-    console.log(originalEvent);
-    console.log('********');
-
-    console.log('DURATION *******:\n');
-    console.log(eventDuration);
-    console.log('********');
 
     const startDate = startOfRangeToRescheduleTo;
     const endDate = endOfRangeToRescheduleTo;
