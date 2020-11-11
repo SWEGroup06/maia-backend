@@ -25,13 +25,18 @@ const actionHandlers = {
   meeting_select: async function(payload, action) {
     try {
       const meetingDetails = decode(action.selected_option.value);
-
+      const meetingName = meetingDetails[0];
       const meetingStart = meetingDetails[1];
       const meetingEnd = meetingDetails[2];
-
       const email = await DATABASE.getEmailFromID(payload.user.id);
-
-      MEETINGS.reschedule(meetingStart, meetingEnd, email);
+      const newSlot = await MEETINGS.reschedule(meetingStart, meetingEnd, email);
+      const startDateTime = DateTime.fromISO(newSlot.start);
+      const endDateTime = DateTime.fromISO(newSlot.end);
+      const startTime = startDateTime.toLocaleString(DateTime.TIME_24_SIMPLE);
+      const endTime = endDateTime.toLocaleString(DateTime.TIME_24_SIMPLE);
+      const weekDay = TIME.getDayOfWeekFromInt(startDateTime.weekday);
+      console.log(startDateTime.weekday);
+      await submitResponse(payload, {text: 'Okay, cool! :thumbsup::skin-tone-3: Rescheduled ' + meetingName + ' to ' + weekDay + ' from ' + startTime + ' to ' + endTime});
 
       return;
     } catch (error) {
@@ -98,36 +103,36 @@ router.post('/actions', async function(req, res) {
 
 router.post('/actions/meeting_options', async function(req, res) {
   const payload = JSON.parse(req.body.payload);
-  const option = {options: []};
+  const meetingOptions = {options: []};
   if (payload && payload.type === 'block_suggestion') {
     if (payload.action_id === 'meeting_select') {
-      console.log('get meeting options');
       const email = await DATABASE.getEmailFromID(payload.user.id);
       const meetings = await MEETINGS.getMeetings(email);
+      if (!meetings) {
+        return;
+      }
       for (let i = 0; i < meetings.length; i++) {
-        const meetingName = (meetings[i][0]).substring(0, 21);
-
+        const name = meetings[i][0];
+        const meetingName = name.substring(0, Math.min(18, name.length));
         const meetingStart = meetings[i][1];
-        const startDate = new DateTime(meetings[i][1]);
-
+        const startDateTime = DateTime.fromISO(meetingStart);
         const meetingEnd = meetings[i][2];
-        const endDate = new DateTime(meetings[i][2]);
-        console.log(startDate.toLocaleString(startDate.TIME_24_SIMPLE));
-        console.log(endDate.toLocaleString(DateTime.TIME_24_SIMPLE));
-
-        option.options.push({
+        const endDateTime = DateTime.fromISO(meetingEnd);
+        const startTime = startDateTime.toLocaleString(DateTime.TIME_24_SIMPLE);
+        const endTime = endDateTime.toLocaleString(DateTime.TIME_24_SIMPLE);
+        const weekDay = TIME.getDayOfWeekFromInt(startDateTime.weekday);
+        const meetingDetails = meetingName +'|' + meetingStart + '|' + meetingEnd;
+        meetingOptions.options.push({
           text: {
-            type: plain_text,
-            text: meetingName + ' | ' + TIME.getDayOfWeekFromInt(startDate.weekday) +
-            ' ' + startDate.TIME_24_SIMPLE + ' - ' +
-             endDate.TIME_24_SIMPLE,
+            type: 'plain_text',
+            text: meetingName + ' | ' + weekDay + ' ' + startTime + ' - ' + endTime,
           },
-          value: meetingName +'|' + meetingStart + '|' + meetingEnd,
+          value: meetingDetails,
         });
       }
     }
   }
-  res.json(option);
+  res.json(meetingOptions);
 });
 
 /**
@@ -135,14 +140,7 @@ router.post('/actions/meeting_options', async function(req, res) {
  * @return {number} A list of meetings for the following week.
  */
 function decode(value) {
-  console.log('decoding');
   const meetingDetails = value.split('|');
-  const meetingName = meetingDetails[0];
-  const meetingStart = meetingDetails[1];
-  const meetingEnd = meetingDetails[2];
-  console.log(meetingName);
-  console.log(meetingStart);
-  console.log(meetingEnd);
   return meetingDetails;
 }
 
