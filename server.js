@@ -4,7 +4,7 @@ require('dotenv').config();
 const express = require('express');
 
 const DATABASE = require('./lib/database.js');
-const AUTOMATION = require('./lib/automation.js');
+// const AUTOMATION = require('./lib/automation.js');
 const CONFIG = require('./config.js');
 
 // Setup REST Server
@@ -12,7 +12,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // AUTOMATION consts
-const INTERVAL = 10e3;
+// const INTERVAL = 10e3;
 
 // Configure routes
 app.use(express.json());
