@@ -152,8 +152,8 @@ router.get('/reschedule', async function(req, res) {
     console.log('compareTime****************************\n');
     console.log(TIME.compareTime(events[0].start.dateTime, eventStartTime));
     console.log('GOOGLE *****************************\n');
-    console.log(DateTime.fromISO(events[0].start.dateTime, {zone: events[0].start.timeZone}).toISO());
-    console.log(DateTime.fromISO(eventStartTime, {zone: events[0].start.timeZone}).toISO());
+    console.log(DateTime.fromISO(events[0].start.dateTime, {zone: 'Europe/London'}).toISO());
+    console.log(DateTime.fromISO(eventStartTime, {zone: 'Europe/London'}).toISO());
 
     console.log('*****************************\n');
 
