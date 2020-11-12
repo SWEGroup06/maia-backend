@@ -1,5 +1,5 @@
 const {DateTime, Duration} = require('luxon');
-const {_schedule, getFreeSlots, oldGenerateConstraints, generateConstraints, _choose, getUserHistory, _chooseFromHistory} = require('../src/scheduler');
+const {_schedule, getFreeSlots, oldGenerateConstraints, generateConstraints, _choose, getUserHistory, _chooseFromHistory, merge} = require('../src/scheduler');
 
 // wednesday
 const DAY1 = DateTime.local(2020, 10, 14);
@@ -121,6 +121,13 @@ test('scheduler uses NEW constraints', () => {
   // const expectedSchedules = [getDt(DAY1, 18, 0, 1), getDt(DAY2, 9, 0, 1)];
   // const outputSchedules = _schedule([FREE_DATETIME1, FREE_DATETIME2], HOUR1, weekAvailability);
   expect(constraints).toEqual(expectedConstraints);
+});
+
+test('merge works on overlaps', () => {
+  // 5 - 8, 7 - 9 => 5 - 9
+  const inputs = [[5, 8], [7, 9], [8, 12], [13, 15]];
+  const expected = [[5, 12], [13, 15]];
+  expect(merge(inputs)).toEqual(expected);
 });
 
 test('chooses the shortest duration', () => {
