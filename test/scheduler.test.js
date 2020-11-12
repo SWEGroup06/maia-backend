@@ -116,8 +116,8 @@ test('scheduler uses NEW constraints', () => {
   const constraints = generateConstraints(weekAvailability, DAY1, DAY2);
   // console.log(constraints);
   const expectedConstraints = [[combine(DAY1, 17), combine(DAY1, 23)],
-    [combine(DAY2, 14), combine(DAY2, 16)],
-    [combine(DAY2, 5), combine(DAY2, 11, 59, 59)]];
+    [combine(DAY2, 5), combine(DAY2, 11, 59, 59)],
+    [combine(DAY2, 14), combine(DAY2, 16)]];
   // const expectedSchedules = [getDt(DAY1, 18, 0, 1), getDt(DAY2, 9, 0, 1)];
   // const outputSchedules = _schedule([FREE_DATETIME1, FREE_DATETIME2], HOUR1, weekAvailability);
   expect(constraints).toEqual(expectedConstraints);

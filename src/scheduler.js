@@ -81,14 +81,15 @@ const context = {
     const result = [];
     let last = null;
     ranges.forEach(function(r) {
-      if (!last) {
+      if (last) {
         if (r[0] > last[1]) {
           result.push(last = r);
         } else if (r[1] > last[1]) {
           last[1] = r[1];
         }
+      } else {
+        result.push(last = r);
       }
-      last = r;
     });
     return result;
   },
