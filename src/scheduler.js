@@ -162,28 +162,28 @@ const context = {
     for (const timeSlot of freeTimes) {
       let begin = timeSlot[0];
       const end = timeSlot[1];
-      if (isClustered) {
-        let v = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
-        if (bestTimeSlot === null || v > maxTimeSlotValue) {
-          maxTimeSlotValue = v;
-          bestTimeSlot = begin;
-        }
-        v = context.getTimeSlotValue(end, end.plus(duration), historyFreq);
+      // if (isClustered) {
+      //   let v = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
+      //   if (bestTimeSlot === null || v > maxTimeSlotValue) {
+      //     maxTimeSlotValue = v;
+      //     bestTimeSlot = begin;
+      //   }
+      //   v = context.getTimeSlotValue(end, end.plus(duration), historyFreq);
+      //   if (v > maxTimeSlotValue) {
+      //     maxTimeSlotValue = v;
+      //     bestTimeSlot = begin;
+      //   }
+      // } else {
+      while (begin <= end) {
+        const v = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
         if (v > maxTimeSlotValue) {
           maxTimeSlotValue = v;
-          bestTimeSlot = begin;
+          bestTimeSlot = new DateTime(begin);
         }
-      } else {
-        while (begin <= end) {
-          const v = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
-          if (v > maxTimeSlotValue) {
-            maxTimeSlotValue = v;
-            bestTimeSlot = new DateTime(begin);
-          }
-          begin = begin.plus(halfHour);
-        }
+        begin = begin.plus(halfHour);
       }
     }
+    // }
     return bestTimeSlot;
   },
 
@@ -262,13 +262,11 @@ const context = {
     }
     for (const lastMonthBusySchedule of lastMonthBusySchedules) {
       for (const timeSlot of lastMonthBusySchedule) {
-        let begin = DateTime.fromISO(timeSlot.start);
-        const end = DateTime.fromISO(timeSlot.end);
-        // console.log('begin: ', begin.weekday, ' end: ', end.weekday);
+        let begin = DateTime.fromISO(timeSlot[0]);
+        const end = DateTime.fromISO(timeSlot[1]);
         const startHour = begin.hour;
         const startHalf = begin.minute >= 30 ? 1 : 0;
         let i = startHour * 2 + startHalf;
-        // console.log('i: ', i);
         while (begin < end) {
           const day = begin.weekday - 1;
           frequencies[day][i]++;
@@ -280,9 +278,5 @@ const context = {
     return frequencies;
   },
 };
-
-// const weekdays = [1, 1, 1, 1, 1, 0, 0];
-// const timeslots = [{startTime: '2020-11-09T17:00:00.000Z', endTime: '2020-11-09T19:00:00.000Z'}];
-// const output = context.generateConstraints(weekdays, timeslots);
 
 module.exports = context;
