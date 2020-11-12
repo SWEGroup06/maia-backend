@@ -118,11 +118,16 @@ const context = {
     let day = start.weekday - 1;
     const res = [];
     while (start <= end) {
-      weekAvailability[day].forEach(function(timeSlot) {
-        if (timeSlot[0] !== '' && timeSlot[1] !== '') {
-          res.push([context.combine(start, timeSlot[0]), context.combine(start, timeSlot[1])]);
-        }
-      });
+      if (weekAvailability[day].length < 1) {
+        res.push([context.combine(start, DateTime.fromObject({hour: 0, minute: 0})),
+          context.combine(start, DateTime.fromObject({hour: 23, minute: 59}))]);
+      } else {
+        weekAvailability[day].forEach(function (timeSlot) {
+          if (timeSlot[0] !== '' && timeSlot[1] !== '') {
+            res.push([context.combine(start, timeSlot[0]), context.combine(start, timeSlot[1])]);
+          }
+        });
+      }
       day = (day + 1) % 7;
       start = start.plus({days: 1});
     }
@@ -145,9 +150,12 @@ const context = {
       !schedules.length ||
       !duration) return null;
 
+    console.log('schedules ', schedules.map((schedule)=> schedule.map((interval)=>[interval[0].toString(), interval[1].toString()])));
+    console.log('constraints ', constraints.map((person)=>person.map((interval)=>[interval[0].toString(), interval[1].toString()])));
     // include availability constraints
-    if (constraints != null) schedules = schedules.concat(constraints);
-
+    if (constraints != null && constraints.length > 0) schedules = schedules.concat(constraints);
+    // console.log(schedules[0][0][0].toString(), schedules[0][0][1].toString(), schedules[0][1][0].toString(), schedules[0][1][1].toString(), );
+    // console.log('schedules: ', schedules.map((schedule)=>{schedule.map((freeTime)=>[freeTime[0], freeTime[1]])}));
     let ans = schedules[0];
     schedules.forEach((schedule) => {
       const curr = [];
@@ -208,23 +216,11 @@ const context = {
    * @private
    */
   _chooseFromHistory: (freeTimes, historyFreq, duration, isClustered) => {
-    let maxTimeSlotValue = 0;
+    let maxTimeSlotValue = -1;
     let bestTimeSlot = null;
     for (const timeSlot of freeTimes) {
       let begin = timeSlot[0];
       const end = timeSlot[1];
-      // if (isClustered) {
-      //   let v = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
-      //   if (bestTimeSlot === null || v > maxTimeSlotValue) {
-      //     maxTimeSlotValue = v;
-      //     bestTimeSlot = begin;
-      //   }
-      //   v = context.getTimeSlotValue(end, end.plus(duration), historyFreq);
-      //   if (v > maxTimeSlotValue) {
-      //     maxTimeSlotValue = v;
-      //     bestTimeSlot = begin;
-      //   }
-      // } else {
       while (begin <= end) {
         const v = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
         if (v > maxTimeSlotValue) {
@@ -283,15 +279,20 @@ const context = {
     return freeSlots;
   },
 
-  findMeetingSlot(freeTimes, duration, constraints = null, lastMonthBusySchedules, isClustered=true) {
+  findMeetingSlot(freeTimes, duration, constraints = null, lastMonthBusySchedules, isClustered=false) {
     if (!freeTimes || freeTimes.length === 0) {
       return;
     }
     const timeSlots = context._schedule(freeTimes, duration, constraints);
+    console.log('timeslots ', timeSlots.map((interval) => [interval[0].toString(), interval[1].toString()]));
+    // console.log(lastMonthBusySchedules);
     const historyFreq = context.getUserHistory(lastMonthBusySchedules);
+    // console.log(historyFreq);
     const choice = context._chooseFromHistory(timeSlots, historyFreq, duration, isClustered);
+    // console.log(historyFreq);
     // const choice = context._choose(timeSlots);
     if (choice) {
+      console.log('choice: ', choice);
       return {
         start: new Date(choice.ts).toISOString(),
         end: new Date(choice.plus(duration).ts).toISOString(),
@@ -313,8 +314,8 @@ const context = {
     }
     for (const lastMonthBusySchedule of lastMonthBusySchedules) {
       for (const timeSlot of lastMonthBusySchedule) {
-        let begin = DateTime.fromISO(timeSlot.startTime);
-        const end = DateTime.fromISO(timeSlot.endTime);
+        let begin = DateTime.fromISO(timeSlot[0]);
+        const end = DateTime.fromISO(timeSlot[1]);
         const startHour = begin.hour;
         const startHalf = begin.minute >= 30 ? 1 : 0;
         let i = startHour * 2 + startHalf;
