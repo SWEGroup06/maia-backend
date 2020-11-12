@@ -16,7 +16,7 @@ const context = {
    */
   intersection: (slot1, slot2, duration) => {
     const newSlot = [DateTime.max(slot1[0], slot2[0]),
-                     DateTime.min(slot1[1], slot2[1])];
+      DateTime.min(slot1[1], slot2[1])];
     return newSlot[0].plus(duration) <= newSlot[1] ? newSlot : null;
   },
   /**
@@ -41,9 +41,7 @@ const context = {
    * available times are passed in the availableTimes array. The function will produce availablities
    * for a number of weeks, specified by the weeks parameter
    * @param { Array } weekdayAvailable array of boolean flags
-   * @param { Array } availableTimes [{startTime
-   * : x, endtime: y}], where startTime
-   *  < endtime
+   * @param { Array } availableTimes [{startTime: x, endtime: y}], where startTime < endtime
    * @param { Int } weeks number of weeks to produce availablity for
    * @return { Array } [[ dateTime, dateTime ], ...],
    */
@@ -58,6 +56,7 @@ const context = {
 
     let date = DateTime.fromISO(availableTimes[0].startTime);
     let weekday = date.weekday - 1;
+    console.log(availableTimes);
     availableTimes = availableTimes.map((x) => {
       const z = DateTime.fromISO(x.startTime);
       const y = DateTime.fromISO(x.endTime);
@@ -91,9 +90,9 @@ const context = {
    */
   _schedule: (schedules, duration, constraints = null) => {
     // bad input
-    if (!schedules
-      || !schedules.length
-      || !duration) return null;
+    if (!schedules ||
+      !schedules.length ||
+      !duration) return null;
 
     // include availability constraints
     if (constraints != null) schedules = schedules.concat(constraints);
@@ -101,7 +100,7 @@ const context = {
     let ans = schedules[0];
     schedules.forEach((schedule) => {
       const curr = [];
-      let i = 0, j = 0;
+      let i = 0; let j = 0;
       while (i < ans.length && j < schedule.length) {
         // find intersection
         const intersection = context.intersection(ans[i], schedule[j], duration);
@@ -233,12 +232,14 @@ const context = {
     return freeSlots;
   },
 
-  findMeetingSlot(freeTimes, duration, constraints = null) {
+  findMeetingSlot(freeTimes, duration, constraints = null, lastMonthBusySchedules, isClustered=true) {
     if (!freeTimes || freeTimes.length === 0) {
       return;
     }
     const timeSlots = context._schedule(freeTimes, duration, constraints);
-    const choice = context._choose(timeSlots);
+    const historyFreq = context.getUserHistory(lastMonthBusySchedules);
+    const choice = context._chooseFromHistory(timeSlots, historyFreq, duration, isClustered);
+    // const choice = context._choose(timeSlots);
     if (choice) {
       return {
         start: new Date(choice.ts).toISOString(),
@@ -250,28 +251,30 @@ const context = {
 
   /**
    *
-   * @param { Array } lastMonthBusySchedule [{startTime
+   * @param { Array } lastMonthBusySchedules [{startTime
    * : ISO String, endTime: ISO String}]
    * @return {[]}
    */
-  getUserHistory: (lastMonthBusySchedule) => {
+  getUserHistory: (lastMonthBusySchedules) => {
     const frequencies = [];
     for (let i = 0; i < days; i++) {
       frequencies[i] = Array(halfHoursInDay).fill(0);
     }
-    for (const timeSlot of lastMonthBusySchedule) {
-      let begin = DateTime.fromISO(timeSlot.start);
-      const end = DateTime.fromISO(timeSlot.end);
-      // console.log('begin: ', begin.weekday, ' end: ', end.weekday);
-      const startHour = begin.hour;
-      const startHalf = begin.minute >= 30 ? 1 : 0;
-      let i = startHour * 2 + startHalf;
-      // console.log('i: ', i);
-      while (begin < end) {
-        const day = begin.weekday - 1;
-        frequencies[day][i]++;
-        i = (i + 1) % halfHoursInDay;
-        begin = begin.plus(halfHour);
+    for (const lastMonthBusySchedule of lastMonthBusySchedules) {
+      for (const timeSlot of lastMonthBusySchedule) {
+        let begin = DateTime.fromISO(timeSlot.start);
+        const end = DateTime.fromISO(timeSlot.end);
+        // console.log('begin: ', begin.weekday, ' end: ', end.weekday);
+        const startHour = begin.hour;
+        const startHalf = begin.minute >= 30 ? 1 : 0;
+        let i = startHour * 2 + startHalf;
+        // console.log('i: ', i);
+        while (begin < end) {
+          const day = begin.weekday - 1;
+          frequencies[day][i]++;
+          i = (i + 1) % halfHoursInDay;
+          begin = begin.plus(halfHour);
+        }
       }
     }
     return frequencies;
