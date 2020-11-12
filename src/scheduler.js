@@ -49,28 +49,31 @@ const context = {
    */
   generateConstraints: (weekdayAvailable, availableTimes, weeks=1) => {
     // bad input
-    if (weekdayAvailable == null
-      || availableTimes == null
-      || availableTimes.length === 0
-      || weeks < 1)
-      return null
+    if (weekdayAvailable == null ||
+      availableTimes == null ||
+      availableTimes.length === 0 ||
+      weeks < 1) {
+      return null;
+    }
 
-    let date    = DateTime.fromISO(availableTimes[0].startTime)
-    let weekday = date.weekday - 1
-    availableTimes = availableTimes.map(x => { return {start: DateTime.fromISO(x.startTime),
-                                                       end:   DateTime.fromISO(x.endTime)} })
-    console.log(availableTimes)
+    let date = DateTime.fromISO(availableTimes[0].startTime);
+    let weekday = date.weekday - 1;
+    availableTimes = availableTimes.map((x) => ({
+      'start': DateTime.fromISO(x.startTime),
+      'end': DateTime.fromISO(x.endTime),
+    }));
+    console.log(availableTimes);
     const res = [];
     for (let days = 0; days < weeks * 7; days++) {
       // generate available times for only days of the weekday that are specified
       if (weekdayAvailable[weekday]) {
-        for (time in availableTimes) {
-          res.push([context.combine(date, time.start), context.combine(date, time.end)])
+        for (const time in availableTimes) {
+          res.push([context.combine(date, time.start), context.combine(date, time.end)]);
         }
       }
       // increment to the next day
-      weekday = (weekday + 1) % 7
-      date    = date.plus({days: 1})
+      weekday = (weekday + 1) % 7;
+      date = date.plus({days: 1});
     }
 
     return res;
@@ -274,5 +277,6 @@ const context = {
     return frequencies;
   },
 };
+
 
 module.exports = context;
