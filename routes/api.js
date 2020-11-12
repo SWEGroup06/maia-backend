@@ -22,13 +22,12 @@ router.get('/schedule', async function(req, res) {
 
     // TODO: Change to input
     const startDate = new Date().toISOString();
-    const endDate = new Date('6 nov 2020 23:30').toISOString();
+    const endDate = new Date('20 nov 2020 23:30').toISOString();
     const eventDuration = Duration.fromObject({hours: 1});
 
     const slackEmails = JSON.parse(decodeURIComponent(req.query.emails));
     const googleEmails = [];
     const tokens = [];
-
     const today = DateTime.local();
     const oneMonthAgo = today.minus(Duration.fromObject({days: 30}));
     for (const email of slackEmails) {
@@ -41,15 +40,15 @@ router.get('/schedule', async function(req, res) {
       // Get tokens from the database
       const token = JSON.parse(await DATABASE.getToken(email));
 
-      // Retrieve user constraints in format: [{startTime: ISO Date/Time String, endTime: ISO Date/Time String}],
-      const weekConstraints = await DATABASE.getConstraints(email);
-
-      // Generate constraints in format the scheduler takes in
-      const generatedConstraints = SCHEDULER.generateConstraints(weekConstraints, startDate, endDate);
-
-      if (generatedConstraints.length !== 0) {
-        constraints.push(generatedConstraints);
-      }
+      // // Retrieve user constraints in format: [{startTime: ISO Date/Time String, endTime: ISO Date/Time String}],
+      // const weekConstraints = await DATABASE.getConstraints(email);
+      //
+      // // Generate constraints in format the scheduler takes in
+      // const generatedConstraints = SCHEDULER.generateConstraints(weekConstraints, startDate, endDate);
+      //
+      // if (generatedConstraints.length !== 0) {
+      //   constraints.push(generatedConstraints);
+      // }
 
       tokens.push(token);
 
@@ -59,7 +58,6 @@ router.get('/schedule', async function(req, res) {
       // Format busy times before pushing to array
       const data = await GOOGLE.getBusySchedule(token, startDate, endDate);
       const lastMonthHist = await GOOGLE.getBusySchedule(token, oneMonthAgo.toISO(), today.toISO());
-
       if (data) busyTimes.push(data.map((e) => [e.start, e.end]));
       if (lastMonthHist) lastMonthHistories.push(lastMonthHist.map((e) => [e.start, e.end]));
     }
@@ -77,7 +75,7 @@ router.get('/schedule', async function(req, res) {
       return;
     }
     // create meeting event in calendars of team members
-    await GOOGLE.createMeeting(tokens[0], `Meeting: ${today.toDateString()}`, chosenSlot.start, chosenSlot.end, googleEmails);
+    await GOOGLE.createMeeting(tokens[0], `Meeting: ${today.toString()}`, chosenSlot.start, chosenSlot.end, googleEmails);
 
     res.json(chosenSlot);
   } catch (error) {
