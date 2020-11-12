@@ -56,15 +56,15 @@ router.get('/schedule', async function(req, res) {
       // Get tokens from the database
       const token = JSON.parse(await DATABASE.getToken(email));
 
-      // // Retrieve user constraints in format: [{startTime: ISO Date/Time String, endTime: ISO Date/Time String}],
-      // const weekConstraints = await DATABASE.getConstraints(email);
-      //
-      // // Generate constraints in format the scheduler takes in
-      // const generatedConstraints = SCHEDULER.generateConstraints(weekConstraints, startDate, endDate);
-      //
-      // if (generatedConstraints.length !== 0) {
-      //   constraints.push(generatedConstraints);
-      // }
+      // Retrieve user constraints in format: [{startTime: ISO Date/Time String, endTime: ISO Date/Time String}],
+      const weekConstraints = await DATABASE.getConstraints(email);
+
+      // Generate constraints in format the scheduler takes in
+      const generatedConstraints = SCHEDULER.generateConstraints(weekConstraints, startDate, endDate);
+
+      if (generatedConstraints.length !== 0) {
+        constraints.push(generatedConstraints);
+      }
 
       tokens.push(token);
 
@@ -184,14 +184,14 @@ router.get('/reschedule', async function(req, res) {
       const token = JSON.parse(await DATABASE.getToken(email));
 
       // Retrieve user constraints in format: [{startTime: ISO Date/Time String, endTime: ISO Date/Time String}],
-      // TODO: const weekConstraints = await DATABASE.getConstraints(email);
+      const weekConstraints = await DATABASE.getConstraints(email);
 
       // Generate constraints in format the scheduler takes in
-      // TODO: const generatedConstraints = SCHEDULER.generateConstraints(weekConstraints, startDate, endDate);
+      const generatedConstraints = SCHEDULER.generateConstraints(weekConstraints, startDate, endDate);
 
-      // TODO: if (generatedConstraints.length !== 0) {
-      // TODO:   constraints.push(generatedConstraints);
-      // }
+      if (generatedConstraints.length !== 0) {
+        constraints.push(generatedConstraints);
+      }
 
       // Format busy times before pushing to array
       const data = await GOOGLE.getBusySchedule(token, startDate, endDate);
