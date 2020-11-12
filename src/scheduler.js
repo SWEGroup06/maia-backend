@@ -49,9 +49,9 @@ const context = {
    */
   generateConstraints: (weekdayAvailable, availableTimes, weeks=1) => {
     // bad input
-    if (weekdayAvailable == null ||
-      availableTimes == null ||
-      availableTimes.length === 0 ||
+    if (!weekdayAvailable ||
+      !availableTimes ||
+      !availableTimes.length ||
       weeks < 1) {
       return null;
     }
@@ -63,7 +63,6 @@ const context = {
       const y = DateTime.fromISO(x.endTime);
       return {'start': z, 'end': y};
     });
-    console.log(availableTimes);
     const res = [];
     for (let days = 0; days < weeks * 7; days++) {
       // generate available times for only days of the weekday that are specified
