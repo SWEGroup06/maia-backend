@@ -5,6 +5,8 @@ const {Duration, DateTime} = require('luxon');
 
 const GOOGLE = require('../lib/google.js');
 const DATABASE = require('../lib/database');
+const MEETINGS = require('../lib/meetings.js');
+const TIME = require('../lib/time.js');
 
 const SCHEDULER = require('../src/scheduler');
 
@@ -15,19 +17,35 @@ router.get('/schedule', async function(req, res) {
     return;
   }
 
+  let startDate;
+  if (!req.query.startDateTimeOfRange) {
+    startDate = new Date().toISOString();
+  } else {
+    startDate = JSON.parse(decodeURIComponent(req.query.startDateTimeOfRange));
+  }
+
+  let endDate;
+  if (!req.query.endDateTimeOfRange) {
+    endDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDay() + 14).toISOString();
+  } else {
+    endDate = JSON.parse(decodeURIComponent(req.query.endDateTimeOfRange));
+  }
+
   try {
     const busyTimes = [];
     const constraints = [];
+    const lastMonthHistories = [];
 
     // TODO: Change to input
-    const startDate = new Date().toISOString();
-    const endDate = new Date('6 nov 2020 23:30').toISOString();
+    // const startDate = new Date().toISOString();
+    // const endDate = new Date('6 nov 2020 23:30').toISOString();
     const eventDuration = Duration.fromObject({hours: 1});
 
     const slackEmails = JSON.parse(decodeURIComponent(req.query.emails));
     const googleEmails = [];
     const tokens = [];
-
+    const today = DateTime.local();
+    const oneMonthAgo = today.minus(Duration.fromObject({days: 30}));
     for (const email of slackEmails) {
       // Check if a user with the provided details existing in the database
       if (!await DATABASE.userExists(email)) {
@@ -38,15 +56,15 @@ router.get('/schedule', async function(req, res) {
       // Get tokens from the database
       const token = JSON.parse(await DATABASE.getToken(email));
 
-      // Retrieve user constraints in format: [{startTime: ISO Date/Time String, endTime: ISO Date/Time String}],
-      const weekConstraints = await DATABASE.getConstraints(email);
-
-      // Generate constraints in format the scheduler takes in
-      const generatedConstraints = SCHEDULER.generateConstraints(weekConstraints, startDate, endDate);
-
-      if (generatedConstraints.length !== 0) {
-        constraints.push(generatedConstraints);
-      }
+      // // Retrieve user constraints in format: [{startTime: ISO Date/Time String, endTime: ISO Date/Time String}],
+      // const weekConstraints = await DATABASE.getConstraints(email);
+      //
+      // // Generate constraints in format the scheduler takes in
+      // const generatedConstraints = SCHEDULER.generateConstraints(weekConstraints, startDate, endDate);
+      //
+      // if (generatedConstraints.length !== 0) {
+      //   constraints.push(generatedConstraints);
+      // }
 
       tokens.push(token);
 
@@ -55,24 +73,22 @@ router.get('/schedule', async function(req, res) {
 
       // Format busy times before pushing to array
       const data = await GOOGLE.getBusySchedule(token, startDate, endDate);
+      const lastMonthHist = await GOOGLE.getBusySchedule(token, oneMonthAgo.toISO(), today.toISO());
       if (data) busyTimes.push(data.map((e) => [e.start, e.end]));
+      if (lastMonthHist) lastMonthHistories.push(lastMonthHist.map((e) => [e.start, e.end]));
     }
-
-    // console.log('BUSY TIMES:', busyTimes);
 
     // Get free slots from the provided busy times
     const freeTimes = busyTimes.map((timeSlot) => SCHEDULER.getFreeSlots(timeSlot, startDate, endDate));
-    // console.log('FREE TIMES:', freeTimes);
 
     // Using free times find a meeting slot and get the choice
-    const chosenSlot = SCHEDULER.findMeetingSlot(freeTimes, eventDuration, constraints);
+    const chosenSlot = SCHEDULER.findMeetingSlot(freeTimes, eventDuration, constraints, lastMonthHistories);
     if (!chosenSlot) {
       res.json({error: 'No meeting slot found'});
       return;
     }
     // create meeting event in calendars of team members
-    const today = new Date();
-    await GOOGLE.createMeeting(tokens[0], `Meeting: ${today.toDateString()}`, chosenSlot.start, chosenSlot.end, googleEmails);
+    await GOOGLE.createMeeting(tokens[0], `Meeting: ${today.toString()}`, chosenSlot.start, chosenSlot.end, googleEmails);
 
     res.json(chosenSlot);
   } catch (error) {
@@ -259,23 +275,10 @@ router.get('/constraint', async function(req, res) {
 
   try {
     const email = JSON.parse(decodeURIComponent(req.query.email));
-
-    // Check if a user with the provided details existing in the database
-    if (!await DATABASE.userExists(email)) {
-      res.json({error: `${email} is not signed in`});
-      return;
-    }
-
     const days = JSON.parse(decodeURIComponent(req.query.busyDays));
     const times = JSON.parse(decodeURIComponent(req.query.busyTimes));
 
-    for (let i = 0; i < 7; i++) {
-      if (days[i] === 1) {
-        for (let j = 0; j < times.length; j++) {
-          await DATABASE.setConstraint(email, times[j].startTime, times[j].endTime, i);
-        }
-      }
-    }
+    await MEETINGS.setContraints(email, days, times);
 
     res.send({success: true});
   } catch (error) {

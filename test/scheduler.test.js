@@ -1,5 +1,5 @@
 const {DateTime, Duration} = require('luxon');
-const {_schedule, getFreeSlots, generateConstraints, _choose, getUserHistory, _chooseFromHistory} = require('../src/scheduler');
+const {_schedule, getFreeSlots, oldGenerateConstraints, generateConstraints, _choose, getUserHistory, _chooseFromHistory, merge} = require('../src/scheduler');
 
 // wednesday
 const DAY1 = DateTime.local(2020, 10, 14);
@@ -18,7 +18,9 @@ getDt = (date, hour, minutes = 0, duration_hrs = 0, duration_mins = 0) => {
   return [start, end];
 };
 
+// 9-10, 12-13, 15-16, 18-19, 21-22 DAY 1
 const FREE_DATETIME1 = [0, 1, 2, 3, 4].map((x) => getDt(DAY1, 9 + 3 * x, 0, 1));
+// 9-10, 13-14, 17-18, 21-22 DAY 2
 const FREE_DATETIME2 = [0, 1, 2, 3].map((x) => getDt(DAY1, 9 + 4 * x, 0, 1));
 const FREE_DATETIME3 = [getDt(DAY1, 9, 0, 0, 30), getDt(DAY1, 15, 0, 6, 30)];
 
@@ -39,10 +41,10 @@ const FREE_DATETIME6 = FREE_DATETIME3.concat(
 const BUSY_DATETIME1 = [0, 1, 2, 3, 4].map(
     (x) => getDt(DAY1, 10 + 3 * x, 0, 2, 0));
 
-const WORKING_HOURS =
-    [0, 1, 2, 3, 4].map((x) =>
-      ({startTime: DateTime.fromObject({hour: 8, minute: 30}).toISO(),
-        endTime: DateTime.fromObject({hour: 19}).toISO()})).concat([[], []]);
+// const WORKING_HOURS =
+//     [0, 1, 2, 3, 4].map((x) =>
+//       ({startTime: DateTime.fromObject({hour: 8, minute: 30}).toISO(),
+//         endTime: DateTime.fromObject({hour: 19}).toISO()})).concat([[], []]);
 
 const WORKING_HOURS_FORMATTED = [getDt(DAY1, 8, 30, 10, 30),
   getDt(DAY2, 8, 30, 10, 30)];
@@ -75,15 +77,57 @@ test('transforms schedule of busy events to free times', () => {
 });
 
 test('transforms constraints to time slots', () => {
-  const expectedConstraints = WORKING_HOURS_FORMATTED;
-  const outputConstraints = generateConstraints(WORKING_HOURS, DAY1.toISO(), DAY2.toISO());
-  expect(outputConstraints).toEqual(expectedConstraints);
+  const weekdays = [1, 1, 1, 1, 1, 0, 0];
+  const timeslots = [{startTime: '2020-11-09T17:00:00.000Z', endTime: '2020-11-09T19:00:00.000Z'}];
+  const output = oldGenerateConstraints(weekdays, timeslots);
+  const expected = [];
+  for (let i = 0; i < 5; i++) {
+    const fst = DateTime.fromISO(timeslots[0].startTime).plus({days: i});
+    const snd = DateTime.fromISO(timeslots[0].endTime).plus({days: i});
+    expected.push([fst, snd]);
+  }
+  expect(output).toEqual(expected);
 });
 
-test('scheduler uses constraints', () => {
+test('scheduler uses OLD constraints', () => {
   const expectedSchedules = [getDt(DAY1, 9, 0, 0, 30)];
   const outputSchedules = _schedule([FREE_DATETIME1, FREE_DATETIME2], HALFHOUR, [WORKING_HOURS_FORMATTED]);
   expect(outputSchedules).toEqual(expectedSchedules);
+});
+
+test('scheduler uses NEW constraints', () => {
+  // ******* IMPORTANT *********
+  // changed to zone from +01:00 to Z
+  const weekAvailability = [
+    [], [],
+    [{'_id': '5fad8afc819c885cb6963e1c', 'startTime': '2020-11-12T17:00:00Z', 'endTime': '2020-11-12T23:00:00Z'}],
+    [{'_id': '5fad8c22f686a8323228bf99', 'startTime': '2020-11-13T14:00:00Z', 'endTime': '2020-11-13T16:00:00Z'},
+      {'_id': '5fad8cbab83fe75dada36143', 'startTime': '2020-11-13T05:00:00Z', 'endTime': '2020-11-13T11:59:59Z'},
+      {'_id': '5fad8cbb89967632aa047cc6', 'startTime': '2020-11-13T05:00:00Z', 'endTime': '2020-11-13T11:59:59Z'}],
+    [], [], []];
+  // free timeslots:
+  //  DAY 1 wed   -- 9-10, 12-13, 15-16, 18-19, 21-22
+  //  DAY 2 thurs -- 9-10, 13-14, 17-18, 21-22
+  // constraints:
+  //  wed -- 17-23
+  //  thurs -- 14-16, 5-11:59
+  // => wed 18-22
+  // => thurs 9-10
+  const constraints = generateConstraints(weekAvailability, DAY1, DAY2);
+  // console.log(constraints);
+  const expectedConstraints = [[combine(DAY1, 17), combine(DAY1, 23)],
+    [combine(DAY2, 5), combine(DAY2, 11, 59, 59)],
+    [combine(DAY2, 14), combine(DAY2, 16)]];
+  // const expectedSchedules = [getDt(DAY1, 18, 0, 1), getDt(DAY2, 9, 0, 1)];
+  // const outputSchedules = _schedule([FREE_DATETIME1, FREE_DATETIME2], HOUR1, weekAvailability);
+  expect(constraints).toEqual(expectedConstraints);
+});
+
+test('merge works on overlaps', () => {
+  // 5 - 8, 7 - 9 => 5 - 9
+  const inputs = [[5, 8], [7, 9], [8, 12], [13, 15]];
+  const expected = [[5, 12], [13, 15]];
+  expect(merge(inputs)).toEqual(expected);
 });
 
 test('chooses the shortest duration', () => {
@@ -98,8 +142,8 @@ test('chooses the shortest duration', () => {
  * of every day of the week saying how many times that slot has been `used`
  */
 test('gets busy times frequencies simple', () => {
-  const schedule = [{start: '2020-11-03T17:00:00.000Z',
-    end: '2020-11-03T19:00:00.000Z'},
+  const schedule = [{startTime: '2020-11-03T17:00:00.000Z',
+    endTime: '2020-11-03T19:00:00.000Z'},
   ];
   const halfHoursInDay = 24 * 2;
   const days = 7;
@@ -110,18 +154,18 @@ test('gets busy times frequencies simple', () => {
   for (let i = 34; i < 38; i++) {
     expectedFreqs[1][i]++;
   }
-  const frequencies = getUserHistory(schedule);
+  const frequencies = getUserHistory([schedule]);
   expect(frequencies).toEqual(expectedFreqs);
 });
 
 
 test('gets busy times frequencies', () => {
-  const schedule = [{start: '2020-11-03T17:14:00.000Z',
-    end: '2020-11-03T19:30:00.000Z'},
-  {start: '2020-11-04T17:14:00.000Z',
-    end: '2020-11-04T19:30:00.000Z'},
-  {start: '2020-11-05T17:14:00.000Z',
-    end: '2020-11-06T19:30:00.000Z'},
+  const schedule = [{startTime: '2020-11-03T17:14:00.000Z',
+    endTime: '2020-11-03T19:30:00.000Z'},
+  {startTime: '2020-11-04T17:14:00.000Z',
+    endTime: '2020-11-04T19:30:00.000Z'},
+  {startTime: '2020-11-05T17:14:00.000Z',
+    endTime: '2020-11-06T19:30:00.000Z'},
   ];
   const halfHoursInDay = 24 * 2;
   const days = 7;
@@ -140,10 +184,9 @@ test('gets busy times frequencies', () => {
   for (let i = 0; i < 39; i++) {
     expectedFreqs[4][i]++;
   }
-  const frequencies = getUserHistory(schedule);
+  const frequencies = getUserHistory([schedule]);
   expect(frequencies).toEqual(expectedFreqs);
 });
-
 
 test('choose from history simple', () => {
   // just busy from 17-19 on a Wednesday
@@ -156,8 +199,6 @@ test('choose from history simple', () => {
   for (let i = 34; i < 38; i++) {
     historyFreqs[2][i]++;
   }
-  //  const FREE_DATETIME1 = [0, 1, 2, 3, 4].map((x) => getDt(DAY1, 9 + 3 * x, 0, 1));
-  // free timeslots: 9-10, 12-13, 15-16, 18-19, 21-22
   const chosen = _chooseFromHistory(FREE_DATETIME1, historyFreqs, Duration.fromObject({hours: 1}), true);
   const expected = combine(DAY1, 18);
   expect(chosen.c).toEqual(expected.c);
