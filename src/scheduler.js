@@ -58,17 +58,18 @@ const context = {
 
     let date = DateTime.fromISO(availableTimes[0].startTime);
     let weekday = date.weekday - 1;
-    availableTimes = availableTimes.map((x) => ({
-      'start': DateTime.fromISO(x.startTime),
-      'end': DateTime.fromISO(x.endTime),
-    }));
+    availableTimes = availableTimes.map((x) => {
+      const z = DateTime.fromISO(x.startTime);
+      const y = DateTime.fromISO(x.endTime);
+      return {'start': z, 'end': y};
+    });
     console.log(availableTimes);
     const res = [];
     for (let days = 0; days < weeks * 7; days++) {
       // generate available times for only days of the weekday that are specified
       if (weekdayAvailable[weekday]) {
-        for (const time in availableTimes) {
-          res.push([context.combine(date, time.start), context.combine(date, time.end)]);
+        for (const time of availableTimes) {
+          res.push([context.combine(date, time.start.c), context.combine(date, time.end.c)]);
         }
       }
       // increment to the next day
@@ -278,5 +279,8 @@ const context = {
   },
 };
 
+// const weekdays = [1, 1, 1, 1, 1, 0, 0];
+// const timeslots = [{startTime: '2020-11-09T17:00:00.000Z', endTime: '2020-11-09T19:00:00.000Z'}];
+// const output = context.generateConstraints(weekdays, timeslots);
 
 module.exports = context;

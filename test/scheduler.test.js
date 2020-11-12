@@ -75,19 +75,14 @@ test('transforms schedule of busy events to free times', () => {
 });
 
 test('transforms constraints to time slots', () => {
-  const weekdays = [1, 1, 1, 1, 1, 0, 0]
-  const timeslots
-    = [{startTime: '2020-11-09T17:00:00.000Z',
-        endTime:   '2020-11-09T19:00:00.000Z'},
-      //  {start: '2020-11-09T15:00:00.000Z',
-      //   end:   '2020-11-09T17:00:00.000Z'},
-      ];
-  const output   = generateConstraints(weekdays, timeslots)
-  const expected = []
+  const weekdays = [1, 1, 1, 1, 1, 0, 0];
+  const timeslots = [{startTime: '2020-11-09T17:00:00.000Z', endTime: '2020-11-09T19:00:00.000Z'}];
+  const output = generateConstraints(weekdays, timeslots);
+  const expected = [];
   for (let i = 0; i < 5; i++) {
-    let fst = DateTime.fromISO(timeslots[0].startTime)
-    let snd = DateTime.fromISO(timeslots[0].endTime)
-    expected.push([fst, snd])
+    const fst = DateTime.fromISO(timeslots[0].startTime);
+    const snd = DateTime.fromISO(timeslots[0].endTime);
+    expected.push([fst, snd]);
   }
   expect(output).toEqual(expected);
 });
