@@ -18,7 +18,7 @@ const UserSchema = new Schema({
     required: true,
   },
   google: GoogleAccountSchema,
-  constraints: [{startTime: String, endTime: String}],
+  constraints: [[{startTime: String, endTime: String}]],
 });
 
 const User = mongoose.model('User', UserSchema);
