@@ -79,13 +79,16 @@ const context = {
   },
   merge: (ranges) => {
     const result = [];
-    let last;
+    let last = null;
     ranges.forEach(function(r) {
-      if (!last || r[0] > last[1]) {
-        result.push(last = r);
-      } else if (r[1] > last[1]) {
-        last[1] = r[1];
+      if (!last) {
+        if (r[0] > last[1]) {
+          result.push(last = r);
+        } else if (r[1] > last[1]) {
+          last[1] = r[1];
+        }
       }
+      last = r;
     });
     return result;
   },
@@ -110,9 +113,10 @@ const context = {
     }
     // merge overlapping intervals + sort
     weekAvailability = weekAvailability.map((dayAvailabilities) => {
+      dayAvailabilities = dayAvailabilities.map((a) =>
+        [DateTime.fromISO(a.startTime), DateTime.fromISO(a.endTime)]);
       return context.merge(dayAvailabilities.sort(function(a, b) {
-        return DateTime.fromISO(a.startTime) - DateTime.fromISO(b.startTime) ||
-            DateTime.fromISO(a.endTime) - DateTime.fromISO(b.endTime);
+        return a[0] - b[0] || a[1] - b[1];
       }));
     });
     console.log('*******AVAILABILITY*******');
@@ -124,9 +128,8 @@ const context = {
     const res = [];
     while (start <= end) {
       weekAvailability[day].forEach(function(timeSlot) {
-        if (timeSlot.startTime !== '' && timeSlot.endTime !== '') {
-          res.push([context.combine(start, DateTime.fromISO(timeSlot.startTime)),
-            context.combine(start, DateTime.fromISO(timeSlot.endTime))]);
+        if (timeSlot[0] !== '' && timeSlot[1] !== '') {
+          res.push([context.combine(start, timeSlot[0]), context.combine(start, timeSlot[1])]);
         }
       });
       day = (day + 1) % 7;
@@ -146,7 +149,6 @@ const context = {
       // }
       // i++;
     }
-    console.log(res)
     return res;
   },
   /**
