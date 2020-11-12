@@ -40,12 +40,13 @@ const context = {
    * Takes in days of the week to produce availablities for, indicated by weekdayAvailable array. The
    * available times are passed in the availableTimes array. The function will produce availablities
    * for a number of weeks, specified by the weeks parameter
-   * @param { Array } weekdayAvailable array of boolean flags
+   * @param { Array } weekdayAvailable array of boolean flags [1,0,1,0,0,0,0]
    * @param { Array } availableTimes [{startTime: x, endtime: y}], where startTime < endtime
    * @param { Int } weeks number of weeks to produce availablity for
    * @return { Array } [[ dateTime, dateTime ], ...],
+   * [[{startTime: X, endTime: Y},...],...]
    */
-  generateConstraints: (weekdayAvailable, availableTimes, weeks=1) => {
+  oldGenerateConstraints: (weekdayAvailable, availableTimes, weeks=1) => {
     // bad input
     if (!weekdayAvailable ||
       !availableTimes ||
@@ -56,7 +57,6 @@ const context = {
 
     let date = DateTime.fromISO(availableTimes[0].startTime);
     let weekday = date.weekday - 1;
-    console.log(availableTimes);
     availableTimes = availableTimes.map((x) => {
       const z = DateTime.fromISO(x.startTime);
       const y = DateTime.fromISO(x.endTime);
@@ -73,6 +73,55 @@ const context = {
       // increment to the next day
       weekday = (weekday + 1) % 7;
       date = date.plus({days: 1});
+    }
+
+    return res;
+  },
+  merge: (ranges) => {
+    const result = [];
+    let last;
+    ranges.forEach(function(r) {
+      if (!last || r[0] > last[1]) {
+        result.push(last = r);
+      } else if (r[1] > last[1]) {
+        last[1] = r[1];
+      }
+    });
+    return result;
+  },
+  /**
+   *
+   * @param {Array} weekAvailability [[{startTime: X, endTime: Y}],...]list of time constraints for every day of the week
+   * @param { string } _start ISO Date/Time format, represents start DateTime that event can occur
+   * @param { string } _end ISO Date/Time format, represents end DateTime
+   * @return { Array } [[ dateTime, dateTime ], ...]
+   */
+  generateConstraints: (weekAvailability, _start, _end) => {
+    if (weekAvailability == null || weekAvailability.length < 1) {
+      return [];
+    }
+    // merge overlapping intervals + sort
+    weekAvailability.map((dayAvailabilities) => merge(dayAvailabilities.sort(function(a, b) {
+      return DateTime.fromISO(a.startTime)-DateTime.fromISO(b.startTime) || DateTime.fromISO(a.endTime)-DateTime.fromISO(b.endTime);
+    })));
+    console.log('AVAILABILITY');
+    console.log(weekAvailability);
+    let start = DateTime.fromISO(_start);
+    const end = DateTime.fromISO(_end);
+    let day = start.weekday - 1;
+    const res = [];
+    while (start <= end) {
+      if (weekAvailability[day].startTime !== '' && weekAvailability[day].endTime !== '') {
+        res.push([context.combine(start, DateTime.fromISO(weekAvailability[day].startTime)),
+          context.combine(start, DateTime.fromISO(weekAvailability[day].endTime))]);
+      } else {
+        // console.log('start ', context.combine(start, DateTime.fromObject({hour: 0, minute: 0})).toISO());
+        // console.log('end ', context.combine(start, DateTime.min(DateTime.fromObject({hour: 23, minute: 59}), end)).toISO());
+        res.push([context.combine(start, DateTime.fromObject({hour: 0, minute: 0})),
+          context.combine(start, DateTime.fromObject({hour: 23, minute: 59}))]);
+      }
+      start = start.plus({days: 1});
+      day = (day + 1) % 7;
     }
 
     return res;

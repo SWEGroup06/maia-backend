@@ -1,5 +1,5 @@
 const {DateTime, Duration} = require('luxon');
-const {_schedule, getFreeSlots, generateConstraints, _choose, getUserHistory, _chooseFromHistory} = require('../src/scheduler');
+const {_schedule, getFreeSlots, oldGenerateConstraints, generateConstraints, _choose, getUserHistory, _chooseFromHistory} = require('../src/scheduler');
 
 // wednesday
 const DAY1 = DateTime.local(2020, 10, 14);
@@ -77,7 +77,7 @@ test('transforms schedule of busy events to free times', () => {
 test('transforms constraints to time slots', () => {
   const weekdays = [1, 1, 1, 1, 1, 0, 0];
   const timeslots = [{startTime: '2020-11-09T17:00:00.000Z', endTime: '2020-11-09T19:00:00.000Z'}];
-  const output = generateConstraints(weekdays, timeslots);
+  const output = oldGenerateConstraints(weekdays, timeslots);
   const expected = [];
   for (let i = 0; i < 5; i++) {
     const fst = DateTime.fromISO(timeslots[0].startTime).plus({days: i});
