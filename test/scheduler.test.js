@@ -80,8 +80,8 @@ test('transforms constraints to time slots', () => {
   const output = generateConstraints(weekdays, timeslots);
   const expected = [];
   for (let i = 0; i < 5; i++) {
-    const fst = DateTime.fromISO(timeslots[0].startTime);
-    const snd = DateTime.fromISO(timeslots[0].endTime);
+    const fst = DateTime.fromISO(timeslots[0].startTime).plus({days: i});
+    const snd = DateTime.fromISO(timeslots[0].endTime).plus({days: i});
     expected.push([fst, snd]);
   }
   expect(output).toEqual(expected);
