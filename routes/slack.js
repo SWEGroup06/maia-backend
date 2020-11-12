@@ -22,22 +22,36 @@ const submitResponse = async function(payload, obj) {
 };
 
 const actionHandlers = {
-  meeting_select: async function(payload, action) {
+  reschedule_button: async function(payload, action) {
     try {
-      const meetingDetails = decode(action.selected_option.value);
-      const meetingName = meetingDetails[0];
-      const meetingStart = meetingDetails[1];
-      const meetingEnd = meetingDetails[2];
-      const email = await DATABASE.getEmailFromID(payload.user.id);
-      const newSlot = await MEETINGS.reschedule(meetingStart, meetingEnd, email);
-      const startDateTime = DateTime.fromISO(newSlot.start);
-      const endDateTime = DateTime.fromISO(newSlot.end);
-      const startTime = startDateTime.toLocaleString(DateTime.TIME_24_SIMPLE);
-      const endTime = endDateTime.toLocaleString(DateTime.TIME_24_SIMPLE);
-      const weekDay = TIME.getDayOfWeekFromInt(startDateTime.weekday);
-      console.log(startDateTime.weekday);
-      await submitResponse(payload, {text: 'Okay, cool! :thumbsup::skin-tone-3: Rescheduled ' + meetingName + ' to ' + weekDay + ' from ' + startTime + ' to ' + endTime});
-
+      if (!payload.state) {
+        return 'Please select a meeting';
+      }
+      const rescheduleOptions = payload.state.values.reschedule_options;
+      console.log(rescheduleOptions);
+      if (rescheduleOptions.start_time.selected_time && rescheduleOptions.end_time.selected_time) {
+        console.log('times selected');
+        const newStartTime = new Date(`1 Jan 1970 ${ rescheduleOptions.start_time.selected_time}`).toISOString();
+        const newEndTime = new Date(`1 Jan 1970 ${ rescheduleOptions.end_time.selected_time}`).toISOString();
+        console.log(newStartTime);
+        console.log(newEndTime);
+      } else {
+        console.log('no times selected');
+        console.log(rescheduleOptions.meeting_select);
+        const meetingDetails = decode(rescheduleOptions.meeting_select.selected_option.value);
+        const meetingName = meetingDetails[0];
+        const meetingStart = meetingDetails[1];
+        const meetingEnd = meetingDetails[2];
+        const email = await DATABASE.getEmailFromID(payload.user.id);
+        const newSlot = await MEETINGS.reschedule(meetingStart, meetingEnd, null, null, email);
+        const startDateTime = DateTime.fromISO(newSlot.start);
+        const endDateTime = DateTime.fromISO(newSlot.end);
+        const startTime = startDateTime.toLocaleString(DateTime.TIME_24_SIMPLE);
+        const endTime = endDateTime.toLocaleString(DateTime.TIME_24_SIMPLE);
+        const weekDay = TIME.getDayOfWeekFromInt(startDateTime.weekday);
+        console.log(startDateTime.weekday);
+        await submitResponse(payload, {text: 'Okay, cool! :thumbsup::skin-tone-3: Rescheduled ' + meetingName + ' to ' + weekDay + ' from ' + startTime + ' to ' + endTime});
+      }
       return;
     } catch (error) {
       return error.toString();
@@ -152,8 +166,8 @@ router.post('/actions/meeting_options', async function(req, res) {
 });
 
 /**
- * @param {number} value The slack user email.
- * @return {number} A list of meetings for the following week.
+ * @param {number} value The string to be decoded
+ * @return {number} The decoded string split at '|' characters
  */
 function decode(value) {
   const meetingDetails = value.split('|');

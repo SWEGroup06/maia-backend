@@ -5,7 +5,9 @@ const {Duration, DateTime} = require('luxon');
 
 const GOOGLE = require('../lib/google.js');
 const DATABASE = require('../lib/database');
+const MEETINGS = require('../lib/meetings.js');
 const TIME = require('../lib/time.js');
+
 const SCHEDULER = require('../src/scheduler');
 
 // Schedule a new meeting
@@ -273,23 +275,10 @@ router.get('/constraint', async function(req, res) {
 
   try {
     const email = JSON.parse(decodeURIComponent(req.query.email));
-
-    // Check if a user with the provided details existing in the database
-    if (!await DATABASE.userExists(email)) {
-      res.json({error: `${email} is not signed in`});
-      return;
-    }
-
     const days = JSON.parse(decodeURIComponent(req.query.busyDays));
     const times = JSON.parse(decodeURIComponent(req.query.busyTimes));
 
-    for (let i = 0; i < 7; i++) {
-      if (days[i] === 1) {
-        for (let j = 0; j < times.length; j++) {
-          await DATABASE.setConstraint(email, times[j].startTime, times[j].endTime, i);
-        }
-      }
-    }
+    await MEETINGS.setContraints(email, days, times);
 
     res.send({success: true});
   } catch (error) {
