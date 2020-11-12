@@ -117,7 +117,7 @@ test('gets busy times frequencies simple', () => {
   for (let i = 34; i < 38; i++) {
     expectedFreqs[1][i]++;
   }
-  const frequencies = getUserHistory(schedule);
+  const frequencies = getUserHistory([schedule]);
   expect(frequencies).toEqual(expectedFreqs);
 });
 
@@ -147,7 +147,7 @@ test('gets busy times frequencies', () => {
   for (let i = 0; i < 39; i++) {
     expectedFreqs[4][i]++;
   }
-  const frequencies = getUserHistory(schedule);
+  const frequencies = getUserHistory([schedule]);
   expect(frequencies).toEqual(expectedFreqs);
 });
 
