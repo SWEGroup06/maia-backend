@@ -29,14 +29,14 @@ const actionHandlers = {
       }
       const rescheduleOptions = payload.state.values.reschedule_options;
       console.log(rescheduleOptions);
-      if (rescheduleOptions.start_time.selected_time && rescheduleOptions.end_time.selected_time) {
-        console.log('times selected');
-        const newStartTime = new Date(`1 Jan 1970 ${ rescheduleOptions.start_time.selected_time}`).toISOString();
-        const newEndTime = new Date(`1 Jan 1970 ${ rescheduleOptions.end_time.selected_time}`).toISOString();
-        console.log(newStartTime);
-        console.log(newEndTime);
+      if (rescheduleOptions.meeting_select.selected_date && rescheduleOptions.meeting_select.selected_time) {
+        console.log('dates selected');
+        const newStartDate = new Date(`1 Jan 1970 ${ rescheduleOptions.start_time.selected_time}`).toISOString();
+        const newEndDate = new Date(`1 Jan 1970 ${ rescheduleOptions.end_time.selected_time}`).toISOString();
+        console.log(newStartDate);
+        console.log(newEndDate);
       } else {
-        console.log('no times selected');
+        console.log('no dates selected');
         console.log(rescheduleOptions.meeting_select);
         const meetingDetails = decode(rescheduleOptions.meeting_select.selected_option.value);
         const meetingName = meetingDetails[0];
@@ -44,13 +44,16 @@ const actionHandlers = {
         const meetingEnd = meetingDetails[2];
         const email = await DATABASE.getEmailFromID(payload.user.id);
         const newSlot = await MEETINGS.reschedule(meetingStart, meetingEnd, null, null, email);
-        const startDateTime = DateTime.fromISO(newSlot.start);
-        const endDateTime = DateTime.fromISO(newSlot.end);
-        const startTime = startDateTime.toLocaleString(DateTime.TIME_24_SIMPLE);
-        const endTime = endDateTime.toLocaleString(DateTime.TIME_24_SIMPLE);
-        const weekDay = TIME.getDayOfWeekFromInt(startDateTime.weekday);
-        console.log(startDateTime.weekday);
-        await submitResponse(payload, {text: 'Okay, cool! :thumbsup::skin-tone-3: Rescheduled ' + meetingName + ' to ' + weekDay + ' from ' + startTime + ' to ' + endTime});
+        if (!newSlot) {
+          const startDateTime = DateTime.fromISO(newSlot.start);
+          const endDateTime = DateTime.fromISO(newSlot.end);
+          const date = startDateTime.toLocaleString(DateTime.DATE_SHORT);
+          const startTime = startDateTime.toLocaleString(DateTime.TIME_24_SIMPLE);
+          const endTime = endDateTime.toLocaleString(DateTime.TIME_24_SIMPLE);
+          // const weekDay = TIME.getDayOfWeekFromInt(startDateTime.weekday);
+          console.log(startDateTime.weekday);
+          await submitResponse(payload, {text: 'Okay, cool! :thumbsup::skin-tone-3: Rescheduled ' + meetingName + ' to ' + date + ' from ' + startTime + ' to ' + endTime});
+        }
       }
       return;
     } catch (error) {
