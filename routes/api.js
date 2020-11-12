@@ -132,13 +132,14 @@ router.get('/reschedule', async function(req, res) {
     const organiserSlackEmail = JSON.parse(decodeURIComponent(req.query.organiserSlackEmail));
 
     const today = DateTime.local();
-    const oneMonthAgo = today.minus(new Duration({days: 30}));
+    const oneMonthAgo = today.minus(Duration.fromObject({days: 30}));
+
     const lastMonthHistories = [];
 
     // check organiser of event (the person trying to reschedule it) is
     // signed in and check they are the organiser
     if (!await DATABASE.userExists(organiserSlackEmail)) {
-      res.json({error: 'Organiser is not signed in'});
+      res.json({error: `${organiserSlackEmail} is not signed in`});
       return;
     }
     // Get organiser's token from the database
@@ -181,14 +182,14 @@ router.get('/reschedule', async function(req, res) {
       const token = JSON.parse(await DATABASE.getToken(email));
 
       // Retrieve user constraints in format: [{startTime: ISO Date/Time String, endTime: ISO Date/Time String}],
-      const weekConstraints = await DATABASE.getConstraints(email);
+      // TODO: const weekConstraints = await DATABASE.getConstraints(email);
 
       // Generate constraints in format the scheduler takes in
-      const generatedConstraints = SCHEDULER.generateConstraints(weekConstraints, startDate, endDate);
+      // TODO: const generatedConstraints = SCHEDULER.generateConstraints(weekConstraints, startDate, endDate);
 
-      if (generatedConstraints.length !== 0) {
-        constraints.push(generatedConstraints);
-      }
+      // TODO: if (generatedConstraints.length !== 0) {
+      // TODO:   constraints.push(generatedConstraints);
+      // }
 
       // Format busy times before pushing to array
       const data = await GOOGLE.getBusySchedule(token, startDate, endDate);
@@ -229,7 +230,7 @@ router.get('/meetings', async function(req, res) {
 
     // Check if a user with the provided details existing in the database
     if (!await DATABASE.userExists(email)) {
-      res.json({error: email + ' is not signed in'});
+      res.json({error: `${email} is not signed in`});
       return;
     }
 
@@ -272,6 +273,13 @@ router.get('/constraint', async function(req, res) {
 
   try {
     const email = JSON.parse(decodeURIComponent(req.query.email));
+
+    // Check if a user with the provided details existing in the database
+    if (!await DATABASE.userExists(email)) {
+      res.json({error: `${email} is not signed in`});
+      return;
+    }
+
     const days = JSON.parse(decodeURIComponent(req.query.busyDays));
     const times = JSON.parse(decodeURIComponent(req.query.busyTimes));
 
