@@ -35,7 +35,6 @@ const context = {
       minute: time.minute,
     });
   },
-
   /**
    * Takes in days of the week to produce availablities for, indicated by weekdayAvailable array. The
    * available times are passed in the availableTimes array. The function will produce availablities
@@ -100,32 +99,23 @@ const context = {
    * @param { string } _end ISO Date/Time format, represents end DateTime
    * @return { Array } [[ dateTime, dateTime ], ...]
    */
-  // [{'_id': '5fad690bbf222c0017c0eb8d', 'startTime': '', 'endTime': ''}, {},{}],
-  // [{'_id': '5fad690bbf222c0017c0eb8e', 'startTime': '', 'endTime': ''}],
-  // [{'_id': '5fad690bbf222c0017c0eb8f', 'startTime': '', 'endTime': ''}],
-  // [{'_id': '5fad690bbf222c0017c0eb90', 'startTime': '', 'endTime': ''}],
-  // [{'_id': '5fad690bbf222c0017c0eb91', 'startTime': '', 'endTime': ''}],
-  // [{'_id': '5fad690bbf222c0017c0eb92', 'startTime': '', 'endTime': ''}],
-  // [{'_id': '5fad690bbf222c0017c0eb93', 'startTime': '', 'endTime': ''}]];
-
   generateConstraints: (weekAvailability, _start, _end) => {
-    if (weekAvailability == null || weekAvailability.length < 1) {
+    if (weekAvailability == null ||
+        weekAvailability.length < 1) {
       return [];
     }
     // merge overlapping intervals + sort
     weekAvailability = weekAvailability.map((dayAvailabilities) => {
-      dayAvailabilities = dayAvailabilities.map((a) =>
-        [DateTime.fromISO(a.startTime), DateTime.fromISO(a.endTime)]);
-      return context.merge(dayAvailabilities.sort(function(a, b) {
-        return a[0] - b[0] || a[1] - b[1];
-      }));
+      return context.merge(dayAvailabilities
+          .map((a) => [DateTime.fromISO(a.startTime), DateTime.fromISO(a.endTime)])
+          .sort(function(a, b) {
+            return a[0] - b[0] || a[1] - b[1];
+          }));
     });
-    console.log('*******AVAILABILITY*******');
-    console.log(weekAvailability);
+
     let start = DateTime.fromISO(_start);
     const end = DateTime.fromISO(_end);
     let day = start.weekday - 1;
-    // let i = 0;
     const res = [];
     while (start <= end) {
       weekAvailability[day].forEach(function(timeSlot) {
@@ -135,20 +125,6 @@ const context = {
       });
       day = (day + 1) % 7;
       start = start.plus({days: 1});
-      // if (i >= weekAvailability[day].length) {
-      //   day = (day + 1) % 7;
-      //   start = start.plus({days: 1});
-      //   i = 0;
-      // } else if (weekAvailability[day][i].startTime !== '' && weekAvailability[day][i].endTime !== '') {
-      //   res.push([context.combine(start, DateTime.fromISO(weekAvailability[day][i].startTime)),
-      //     context.combine(start, DateTime.fromISO(weekAvailability[day][i].endTime))]);
-      // } else {
-      //   // console.log('start ', context.combine(start, DateTime.fromObject({hour: 0, minute: 0})).toISO());
-      //   // console.log('end ', context.combine(start, DateTime.min(DateTime.fromObject({hour: 23, minute: 59}), end)).toISO());
-      //   res.push([context.combine(start, DateTime.fromObject({hour: 0, minute: 0})),
-      //     context.combine(start, DateTime.fromObject({hour: 23, minute: 59}))]);
-      // }
-      // i++;
     }
     return res;
   },
