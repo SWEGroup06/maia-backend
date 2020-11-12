@@ -71,6 +71,22 @@ const actionHandlers = {
       return error.toString();
     }
   },
+  logout: async function(payload, action) {
+    try {
+      const email = JSON.parse(action.action_id);
+      if (await DATABASE.userExists(email)) {
+        await DATABASE.deleteUser(email);
+        await submitResponse(payload, {text: `*Sign out with ${email} was successful*`});
+      } else {
+        const text = `*Account with email ${email} does not exist.*`;
+        console.log(text);
+        await submitResponse(payload, {text});
+      }
+      return;
+    } catch (error) {
+      return error.toString();
+    }
+  },
 };
 
 // Handles Block-kit UI actions

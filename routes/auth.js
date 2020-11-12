@@ -24,7 +24,7 @@ router.get('/login', async function(req, res) {
 
     // Check if a user with the provided details existing in the database
     if (await DATABASE.userExists(email)) {
-      res.json({exists: true});
+      res.json({exists: true, email});
       return;
     }
 
@@ -70,21 +70,6 @@ router.get('/callback', async function(req, res) {
   }
 });
 
-// Logout
-router.get('/logout', async function(req, res) {
-  try {
-    const email = JSON.parse(decodeURIComponent(req.query.email));
-    if (await DATABASE.userExists(email)) {
-      await DATABASE.deleteUser(email);
-      res.send({message: 'Successfully deleted account associated with email: ' + email});
-    } else {
-      console.log('Account with email ' + email + 'does not exist.');
-      res.send({message: 'Account with email ' + email + ' does not exist.'});
-    }
-  } catch (error) {
-    console.error(error);
-    res.send({error: error.toString()});
-  }
-});
+// Logout (handled in slack.js)
 
 module.exports = router;
