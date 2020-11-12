@@ -96,12 +96,14 @@ test('scheduler uses OLD constraints', () => {
 });
 
 test('scheduler uses NEW constraints', () => {
+  // ******* IMPORTANT *********
+  // changed to zone from +01:00 to Z
   const weekAvailability = [
     [], [],
-    [{'_id': '5fad8afc819c885cb6963e1c', 'startTime': '2020-11-12T17:00:00+01:00', 'endTime': '2020-11-12T23:00:00+01:00'}],
-    [{'_id': '5fad8c22f686a8323228bf99', 'startTime': '2020-11-13T14:00:00+01:00', 'endTime': '2020-11-13T16:00:00+01:00'},
-      {'_id': '5fad8cbab83fe75dada36143', 'startTime': '2020-11-13T05:00:00+01:00', 'endTime': '2020-11-13T11:59:59+01:00'},
-      {'_id': '5fad8cbb89967632aa047cc6', 'startTime': '2020-11-13T05:00:00+01:00', 'endTime': '2020-11-13T11:59:59+01:00'}],
+    [{'_id': '5fad8afc819c885cb6963e1c', 'startTime': '2020-11-12T17:00:00Z', 'endTime': '2020-11-12T23:00:00Z'}],
+    [{'_id': '5fad8c22f686a8323228bf99', 'startTime': '2020-11-13T14:00:00Z', 'endTime': '2020-11-13T16:00:00Z'},
+      {'_id': '5fad8cbab83fe75dada36143', 'startTime': '2020-11-13T05:00:00Z', 'endTime': '2020-11-13T11:59:59Z'},
+      {'_id': '5fad8cbb89967632aa047cc6', 'startTime': '2020-11-13T05:00:00Z', 'endTime': '2020-11-13T11:59:59Z'}],
     [], [], []];
   // free timeslots:
   //  DAY 1 wed   -- 9-10, 12-13, 15-16, 18-19, 21-22
@@ -133,8 +135,8 @@ test('chooses the shortest duration', () => {
  * of every day of the week saying how many times that slot has been `used`
  */
 test('gets busy times frequencies simple', () => {
-  const schedule = [{start: '2020-11-03T17:00:00.000Z',
-    end: '2020-11-03T19:00:00.000Z'},
+  const schedule = [{startTime: '2020-11-03T17:00:00.000Z',
+    endTime: '2020-11-03T19:00:00.000Z'},
   ];
   const halfHoursInDay = 24 * 2;
   const days = 7;
@@ -151,12 +153,12 @@ test('gets busy times frequencies simple', () => {
 
 
 test('gets busy times frequencies', () => {
-  const schedule = [{start: '2020-11-03T17:14:00.000Z',
-    end: '2020-11-03T19:30:00.000Z'},
-  {start: '2020-11-04T17:14:00.000Z',
-    end: '2020-11-04T19:30:00.000Z'},
-  {start: '2020-11-05T17:14:00.000Z',
-    end: '2020-11-06T19:30:00.000Z'},
+  const schedule = [{startTime: '2020-11-03T17:14:00.000Z',
+    endTime: '2020-11-03T19:30:00.000Z'},
+  {startTime: '2020-11-04T17:14:00.000Z',
+    endTime: '2020-11-04T19:30:00.000Z'},
+  {startTime: '2020-11-05T17:14:00.000Z',
+    endTime: '2020-11-06T19:30:00.000Z'},
   ];
   const halfHoursInDay = 24 * 2;
   const days = 7;

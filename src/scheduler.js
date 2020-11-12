@@ -109,33 +109,44 @@ const context = {
       return [];
     }
     // merge overlapping intervals + sort
-    weekAvailability.map((dayAvailabilities) => context.merge(dayAvailabilities.sort(function(a, b) {
-      return DateTime.fromISO(a.startTime)-DateTime.fromISO(b.startTime) || DateTime.fromISO(a.endTime)-DateTime.fromISO(b.endTime);
-    })));
+    weekAvailability = weekAvailability.map((dayAvailabilities) => {
+      return context.merge(dayAvailabilities.sort(function(a, b) {
+        return DateTime.fromISO(a.startTime) - DateTime.fromISO(b.startTime) ||
+            DateTime.fromISO(a.endTime) - DateTime.fromISO(b.endTime);
+      }));
+    });
     console.log('*******AVAILABILITY*******');
     console.log(weekAvailability);
     let start = DateTime.fromISO(_start);
     const end = DateTime.fromISO(_end);
     let day = start.weekday - 1;
-    let i = 0;
+    // let i = 0;
     const res = [];
     while (start <= end) {
-      if (i >= weekAvailability[day].length) {
-        day = (day + 1) % 7;
-        start = start.plus({days: 1});
-        i = 0;
-      } else if (weekAvailability[day][i].startTime !== '' && weekAvailability[day][i].endTime !== '') {
-        res.push([context.combine(start, DateTime.fromISO(weekAvailability[day][i].startTime)),
-          context.combine(start, DateTime.fromISO(weekAvailability[day][i].endTime))]);
-      } else {
-        // console.log('start ', context.combine(start, DateTime.fromObject({hour: 0, minute: 0})).toISO());
-        // console.log('end ', context.combine(start, DateTime.min(DateTime.fromObject({hour: 23, minute: 59}), end)).toISO());
-        res.push([context.combine(start, DateTime.fromObject({hour: 0, minute: 0})),
-          context.combine(start, DateTime.fromObject({hour: 23, minute: 59}))]);
-      }
-      i++;
+      weekAvailability[day].forEach(function(timeSlot) {
+        if (timeSlot.startTime !== '' && timeSlot.endTime !== '') {
+          res.push([context.combine(start, DateTime.fromISO(timeSlot.startTime)),
+            context.combine(start, DateTime.fromISO(timeSlot.endTime))]);
+        }
+      });
+      day = (day + 1) % 7;
+      start = start.plus({days: 1});
+      // if (i >= weekAvailability[day].length) {
+      //   day = (day + 1) % 7;
+      //   start = start.plus({days: 1});
+      //   i = 0;
+      // } else if (weekAvailability[day][i].startTime !== '' && weekAvailability[day][i].endTime !== '') {
+      //   res.push([context.combine(start, DateTime.fromISO(weekAvailability[day][i].startTime)),
+      //     context.combine(start, DateTime.fromISO(weekAvailability[day][i].endTime))]);
+      // } else {
+      //   // console.log('start ', context.combine(start, DateTime.fromObject({hour: 0, minute: 0})).toISO());
+      //   // console.log('end ', context.combine(start, DateTime.min(DateTime.fromObject({hour: 23, minute: 59}), end)).toISO());
+      //   res.push([context.combine(start, DateTime.fromObject({hour: 0, minute: 0})),
+      //     context.combine(start, DateTime.fromObject({hour: 23, minute: 59}))]);
+      // }
+      // i++;
     }
-
+    console.log(res)
     return res;
   },
   /**
@@ -323,8 +334,8 @@ const context = {
     }
     for (const lastMonthBusySchedule of lastMonthBusySchedules) {
       for (const timeSlot of lastMonthBusySchedule) {
-        let begin = DateTime.fromISO(timeSlot[0]);
-        const end = DateTime.fromISO(timeSlot[1]);
+        let begin = DateTime.fromISO(timeSlot.startTime);
+        const end = DateTime.fromISO(timeSlot.endTime);
         const startHour = begin.hour;
         const startHalf = begin.minute >= 30 ? 1 : 0;
         let i = startHour * 2 + startHalf;
