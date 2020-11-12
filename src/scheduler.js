@@ -122,7 +122,7 @@ const context = {
         res.push([context.combine(start, DateTime.fromObject({hour: 0, minute: 0})),
           context.combine(start, DateTime.fromObject({hour: 23, minute: 59}))]);
       } else {
-        weekAvailability[day].forEach(function (timeSlot) {
+        weekAvailability[day].forEach(function(timeSlot) {
           if (timeSlot[0] !== '' && timeSlot[1] !== '') {
             res.push([context.combine(start, timeSlot[0]), context.combine(start, timeSlot[1])]);
           }
