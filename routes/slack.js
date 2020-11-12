@@ -29,12 +29,12 @@ const actionHandlers = {
       }
       const rescheduleOptions = payload.state.values.reschedule_options;
       console.log(rescheduleOptions);
-      if (rescheduleOptions.start_time.selected_time != null && rescheduleOptions.end_time.selected_time != null) {
+      if (rescheduleOptions.start_time.selected_time && rescheduleOptions.end_time.selected_time) {
         console.log('times selected');
-        // const newStartTime = new Date(`1 Jan 1970 ${ rescheduleOptions.start_time.selected_time}`).toISOString();
-        // const newEndTime = new Date(`1 Jan 1970 ${ rescheduleOptions.end_time.selected_time}`).toISOString();
-        // console.log(newStartTime);
-        // console.log(newEndTime);
+        const newStartTime = new Date(`1 Jan 1970 ${ rescheduleOptions.start_time.selected_time}`).toISOString();
+        const newEndTime = new Date(`1 Jan 1970 ${ rescheduleOptions.end_time.selected_time}`).toISOString();
+        console.log(newStartTime);
+        console.log(newEndTime);
       } else {
         console.log('no times selected');
         console.log(rescheduleOptions.meeting_select);
@@ -44,12 +44,12 @@ const actionHandlers = {
         const meetingEnd = meetingDetails[2];
         const email = await DATABASE.getEmailFromID(payload.user.id);
         const newSlot = await MEETINGS.reschedule(meetingStart, meetingEnd, null, null, email);
-        // const startDateTime = DateTime.fromISO(newSlot.start);
-        // const endDateTime = DateTime.fromISO(newSlot.end);
-        // const startTime = startDateTime.toLocaleString(DateTime.TIME_24_SIMPLE);
-        // const endTime = endDateTime.toLocaleString(DateTime.TIME_24_SIMPLE);
-        // const weekDay = TIME.getDayOfWeekFromInt(startDateTime.weekday);
-        // console.log(startDateTime.weekday);
+        const startDateTime = DateTime.fromISO(newSlot.start);
+        const endDateTime = DateTime.fromISO(newSlot.end);
+        const startTime = startDateTime.toLocaleString(DateTime.TIME_24_SIMPLE);
+        const endTime = endDateTime.toLocaleString(DateTime.TIME_24_SIMPLE);
+        const weekDay = TIME.getDayOfWeekFromInt(startDateTime.weekday);
+        console.log(startDateTime.weekday);
         await submitResponse(payload, {text: 'Okay, cool! :thumbsup::skin-tone-3: Rescheduled ' + meetingName + ' to ' + weekDay + ' from ' + startTime + ' to ' + endTime});
       }
       return;
