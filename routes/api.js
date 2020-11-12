@@ -32,6 +32,7 @@ router.get('/schedule', async function(req, res) {
   try {
     const busyTimes = [];
     const constraints = [];
+    const lastMonthHistories = [];
 
     // TODO: Change to input
     // const startDate = new Date().toISOString();
@@ -41,7 +42,8 @@ router.get('/schedule', async function(req, res) {
     const slackEmails = JSON.parse(decodeURIComponent(req.query.emails));
     const googleEmails = [];
     const tokens = [];
-
+    const today = DateTime.local();
+    const oneMonthAgo = today.minus(Duration.fromObject({days: 30}));
     for (const email of slackEmails) {
       // Check if a user with the provided details existing in the database
       if (!await DATABASE.userExists(email)) {
@@ -52,15 +54,15 @@ router.get('/schedule', async function(req, res) {
       // Get tokens from the database
       const token = JSON.parse(await DATABASE.getToken(email));
 
-      // Retrieve user constraints in format: [{startTime: ISO Date/Time String, endTime: ISO Date/Time String}],
-      const weekConstraints = await DATABASE.getConstraints(email);
-
-      // Generate constraints in format the scheduler takes in
-      const generatedConstraints = SCHEDULER.generateConstraints(weekConstraints, startDate, endDate);
-
-      if (generatedConstraints.length !== 0) {
-        constraints.push(generatedConstraints);
-      }
+      // // Retrieve user constraints in format: [{startTime: ISO Date/Time String, endTime: ISO Date/Time String}],
+      // const weekConstraints = await DATABASE.getConstraints(email);
+      //
+      // // Generate constraints in format the scheduler takes in
+      // const generatedConstraints = SCHEDULER.generateConstraints(weekConstraints, startDate, endDate);
+      //
+      // if (generatedConstraints.length !== 0) {
+      //   constraints.push(generatedConstraints);
+      // }
 
       tokens.push(token);
 
@@ -69,21 +71,22 @@ router.get('/schedule', async function(req, res) {
 
       // Format busy times before pushing to array
       const data = await GOOGLE.getBusySchedule(token, startDate, endDate);
+      const lastMonthHist = await GOOGLE.getBusySchedule(token, oneMonthAgo.toISO(), today.toISO());
       if (data) busyTimes.push(data.map((e) => [e.start, e.end]));
+      if (lastMonthHist) lastMonthHistories.push(lastMonthHist.map((e) => [e.start, e.end]));
     }
 
     // Get free slots from the provided busy times
     const freeTimes = busyTimes.map((timeSlot) => SCHEDULER.getFreeSlots(timeSlot, startDate, endDate));
 
     // Using free times find a meeting slot and get the choice
-    const chosenSlot = SCHEDULER.findMeetingSlot(freeTimes, eventDuration, constraints);
+    const chosenSlot = SCHEDULER.findMeetingSlot(freeTimes, eventDuration, constraints, lastMonthHistories);
     if (!chosenSlot) {
       res.json({error: 'No meeting slot found'});
       return;
     }
     // create meeting event in calendars of team members
-    const today = new Date();
-    await GOOGLE.createMeeting(tokens[0], `Meeting: ${today.toDateString()}`, chosenSlot.start, chosenSlot.end, googleEmails);
+    await GOOGLE.createMeeting(tokens[0], `Meeting: ${today.toString()}`, chosenSlot.start, chosenSlot.end, googleEmails);
 
     res.json(chosenSlot);
   } catch (error) {
@@ -127,6 +130,10 @@ router.get('/reschedule', async function(req, res) {
     const constraints = [];
     const eventStartTime = DateTime.fromISO(JSON.parse(decodeURIComponent(req.query.eventStartTime))).setZone('Europe/Paris').toISO();
     const organiserSlackEmail = JSON.parse(decodeURIComponent(req.query.organiserSlackEmail));
+
+    const today = DateTime.local();
+    const oneMonthAgo = today.minus(new Duration({days: 30}));
+    const lastMonthHistories = [];
 
     // check organiser of event (the person trying to reschedule it) is
     // signed in and check they are the organiser
@@ -185,13 +192,16 @@ router.get('/reschedule', async function(req, res) {
 
       // Format busy times before pushing to array
       const data = await GOOGLE.getBusySchedule(token, startDate, endDate);
+      const lastMonthHist = await GOOGLE.getBusySchedule(token, oneMonthAgo.toISO(), today.toISO());
+
       if (data) busyTimes.push(data.map((e) => [e.start, e.end]));
+      if (lastMonthHist) lastMonthHistories.push(lastMonthHist.map((e) => [e.start, e.end]));
     }
 
     // Get free slots from the provided busy times
     const freeTimes = busyTimes.map((timeSlot) => SCHEDULER.getFreeSlots(timeSlot, startDate, endDate));
     // Using free times find a meeting slot and get the choice
-    const chosenSlot = SCHEDULER.findMeetingSlot(freeTimes, eventDuration, constraints);
+    const chosenSlot = SCHEDULER.findMeetingSlot(freeTimes, eventDuration, constraints, lastMonthHistories);
 
     if (!chosenSlot) {
       await res.json({error: 'No meeting slot found'});

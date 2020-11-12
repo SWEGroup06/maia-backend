@@ -14,3 +14,4 @@ package-lock.json
 
 # Misc
 creds.json
+venv
