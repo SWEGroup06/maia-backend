@@ -16,7 +16,7 @@ const context = {
    */
   intersection: (slot1, slot2, duration) => {
     const newSlot = [DateTime.max(slot1[0], slot2[0]),
-      DateTime.min(slot1[1], slot2[1])];
+                     DateTime.min(slot1[1], slot2[1])];
     return newSlot[0].plus(duration) <= newSlot[1] ? newSlot : null;
   },
   /**
@@ -41,7 +41,9 @@ const context = {
    * available times are passed in the availableTimes array. The function will produce availablities
    * for a number of weeks, specified by the weeks parameter
    * @param { Array } weekdayAvailable array of boolean flags
-   * @param { Array } availableTimes [{starttime: x, endtime: y}], where starttime < endtime
+   * @param { Array } availableTimes [{startTime
+   * : x, endtime: y}], where startTime
+   *  < endtime
    * @param { Int } weeks number of weeks to produce availablity for
    * @return { Array } [[ dateTime, dateTime ], ...],
    */
@@ -53,12 +55,13 @@ const context = {
       || weeks < 1)
       return null
 
-    let date    = DataTime.fromISO(availableTimes[0].starttime)
+    let date    = DateTime.fromISO(availableTimes[0].startTime)
     let weekday = date.weekday - 1
     availableTimes = availableTimes.map(x => { return {start: DateTime.fromISO(x.startTime),
-                                                       end:   DataTime.fromIso(x.endTime)} })
+                                                       end:   DateTime.fromISO(x.endTime)} })
+    console.log(availableTimes)
     const res = [];
-    for (let days = weeks * 7; days >= 0; days--) {
+    for (let days = 0; days < weeks * 7; days++) {
       // generate available times for only days of the weekday that are specified
       if (weekdayAvailable[weekday]) {
         for (time in availableTimes) {
@@ -75,10 +78,13 @@ const context = {
   /**
    * Takes in a team's schedules, the duration of the event and any other constraints, and will
    * return all possible times that the event can take place.
-   * @param { Array } schedules array of array of array of 2 datetimes [[[starttime, endtime], ...]]
+   * @param { Array } schedules array of array of array of 2 datetimes [[[startTime
+   * , endtime], ...]]
    * @param { Duration } duration duration of the event
-   * @param { Array } constraints array of array of two datetimes, [[starttime, endtime]]
-   * @return { Array } array of array of two datetimes, [[starttime, endtime]]
+   * @param { Array } constraints array of array of two datetimes, [[startTime
+   * , endtime]]
+   * @return { Array } array of array of two datetimes, [[startTime
+   * , endtime]]
    */
   _schedule: (schedules, duration, constraints = null) => {
     // bad input
@@ -241,7 +247,8 @@ const context = {
 
   /**
    *
-   * @param { Array } lastMonthBusySchedule [{startTime: ISO String, endTime: ISO String}]
+   * @param { Array } lastMonthBusySchedule [{startTime
+   * : ISO String, endTime: ISO String}]
    * @return {[]}
    */
   getUserHistory: (lastMonthBusySchedule) => {
