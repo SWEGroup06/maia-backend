@@ -39,10 +39,10 @@ const FREE_DATETIME6 = FREE_DATETIME3.concat(
 const BUSY_DATETIME1 = [0, 1, 2, 3, 4].map(
     (x) => getDt(DAY1, 10 + 3 * x, 0, 2, 0));
 
-const WORKING_HOURS =
-    [0, 1, 2, 3, 4].map((x) =>
-      ({startTime: DateTime.fromObject({hour: 8, minute: 30}).toISO(),
-        endTime: DateTime.fromObject({hour: 19}).toISO()})).concat([[], []]);
+// const WORKING_HOURS =
+//     [0, 1, 2, 3, 4].map((x) =>
+//       ({startTime: DateTime.fromObject({hour: 8, minute: 30}).toISO(),
+//         endTime: DateTime.fromObject({hour: 19}).toISO()})).concat([[], []]);
 
 const WORKING_HOURS_FORMATTED = [getDt(DAY1, 8, 30, 10, 30),
   getDt(DAY2, 8, 30, 10, 30)];

@@ -5,7 +5,7 @@ const {Duration, DateTime} = require('luxon');
 
 const GOOGLE = require('../lib/google.js');
 const DATABASE = require('../lib/database');
-
+const TIME = require('../lib/time.js');
 const SCHEDULER = require('../src/scheduler');
 
 // Schedule a new meeting
@@ -15,14 +15,28 @@ router.get('/schedule', async function(req, res) {
     return;
   }
 
+  let startDate;
+  if (!req.query.startDateTimeOfRange) {
+    startDate = new Date().toISOString();
+  } else {
+    startDate = JSON.parse(decodeURIComponent(req.query.startDateTimeOfRange));
+  }
+
+  let endDate;
+  if (!req.query.endDateTimeOfRange) {
+    endDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDay() + 14).toISOString();
+  } else {
+    endDate = JSON.parse(decodeURIComponent(req.query.endDateTimeOfRange));
+  }
+
   try {
     const busyTimes = [];
     const constraints = [];
     const lastMonthHistories = [];
 
     // TODO: Change to input
-    const startDate = new Date().toISOString();
-    const endDate = new Date('20 nov 2020 23:30').toISOString();
+    // const startDate = new Date().toISOString();
+    // const endDate = new Date('6 nov 2020 23:30').toISOString();
     const eventDuration = Duration.fromObject({hours: 1});
 
     const slackEmails = JSON.parse(decodeURIComponent(req.query.emails));
@@ -62,11 +76,8 @@ router.get('/schedule', async function(req, res) {
       if (lastMonthHist) lastMonthHistories.push(lastMonthHist.map((e) => [e.start, e.end]));
     }
 
-    // console.log('BUSY TIMES:', busyTimes);
-
     // Get free slots from the provided busy times
     const freeTimes = busyTimes.map((timeSlot) => SCHEDULER.getFreeSlots(timeSlot, startDate, endDate));
-    // console.log('FREE TIMES:', freeTimes);
 
     // Using free times find a meeting slot and get the choice
     const chosenSlot = SCHEDULER.findMeetingSlot(freeTimes, eventDuration, constraints, lastMonthHistories);
@@ -87,6 +98,11 @@ router.get('/schedule', async function(req, res) {
 
 // Reschedule an existing meeting
 router.get('/reschedule', async function(req, res) {
+  if (!req.query.organiserSlackEmail) {
+    res.json({error: 'Organiser\'s slack email not found'});
+    return;
+  }
+
   // check if event to be reschedule has been specified
   if (!req.query.eventStartTime) {
     res.json({error: 'No event start time specified for rescheduling'});
@@ -96,15 +112,23 @@ router.get('/reschedule', async function(req, res) {
     res.json({error: 'No event end time specified for rescheduling'});
   }
 
-  if (!req.query.organiserSlackEmail) {
-    res.json({error: 'Organiser\'s slack email not found'});
-    return;
+  let startOfRangeToRescheduleTo;
+  if (!req.query.newStartDateTime) {
+    startOfRangeToRescheduleTo = DateTime.local();
+  } else {
+    startOfRangeToRescheduleTo = JSON.parse(decodeURIComponent(req.query.newStartDateTime));
+  }
+
+  let endOfRangeToRescheduleTo;
+  if (!req.query.newEndDateTime) {
+    endOfRangeToRescheduleTo = DateTime.local(startOfRangeToRescheduleTo.getFullYear(), startOfRangeToRescheduleTo.getMonth(), startOfRangeToRescheduleTo.getDay() + 14).toISOString();
+  } else {
+    endOfRangeToRescheduleTo = JSON.parse(decodeURIComponent(req.query.newEndDateTime));
   }
 
   try {
     const constraints = [];
-    const eventStartTime = new Date(JSON.parse(decodeURIComponent(req.query.eventStartTime))).toISOString();
-    const eventEndTime = new Date(JSON.parse(decodeURIComponent(req.query.eventEndTime))).toISOString();
+    const eventStartTime = DateTime.fromISO(JSON.parse(decodeURIComponent(req.query.eventStartTime))).setZone('Europe/Paris').toISO();
     const organiserSlackEmail = JSON.parse(decodeURIComponent(req.query.organiserSlackEmail));
 
     const today = DateTime.local();
@@ -120,14 +144,16 @@ router.get('/reschedule', async function(req, res) {
     // Get organiser's token from the database
     const organiserToken = JSON.parse(await DATABASE.getToken(organiserSlackEmail));
     // get attendee emails from event
-    const events = await GOOGLE.getEvents(organiserToken, eventStartTime, eventEndTime);
+    const events = await GOOGLE.getEvents(organiserToken, eventStartTime);
 
-    if (!events || events.length === 0) {
+    if (!events || events.length === 0 || !TIME.compareTime(events[0].start.dateTime, eventStartTime)) {
       res.json({error: 'No event found to reschedule with given details'});
       return;
     }
 
     const originalEvent = events[0];
+    const eventEndTime = new Date(events[0].end.dateTime).toISOString();
+
     let attendeeEmails = [];
     if (originalEvent.attendees) {
       attendeeEmails = originalEvent.attendees.map((person) => person.email);
@@ -135,10 +161,10 @@ router.get('/reschedule', async function(req, res) {
 
     // find new time for event using scheduler
     const busyTimes = [];
-    const eventDuration = DateTime.fromISO(eventEndTime).diff(DateTime.fromISO(eventStartTime));
+    const eventDuration = DateTime.fromISO(eventEndTime).diff(DateTime.fromISO(new Date(events[0].start.dateTime).toISOString()));
 
-    const startDate = new Date().toISOString();
-    const endDate = new Date('6 nov 2020 23:30').toISOString();
+    const startDate = startOfRangeToRescheduleTo;
+    const endDate = endOfRangeToRescheduleTo;
 
     const organiserEmail = await GOOGLE.getEmail(organiserToken);
     // remove organiser from attendees to avoid adding twice
@@ -223,6 +249,41 @@ router.get('/meetings', async function(req, res) {
     events.map((event) => [event.summary, event.start.date, event.end.date]);
 
     res.json(eventDict);
+  } catch (error) {
+    console.error(error);
+    res.send({error: error.toString()});
+  }
+});
+
+// Add constraints
+router.get('/constraint', async function(req, res) {
+  if (!req.query.email) {
+    res.json({error: 'No email found'});
+  }
+
+  if (!req.query.busyTimes) {
+    res.json({error: 'Busy times not found'});
+  }
+
+  if (!req.query.busyDays) {
+    res.json({error: 'Busy days not found'});
+    return;
+  }
+
+  try {
+    const email = JSON.parse(decodeURIComponent(req.query.email));
+    const days = JSON.parse(decodeURIComponent(req.query.busyDays));
+    const times = JSON.parse(decodeURIComponent(req.query.busyTimes));
+
+    for (let i = 0; i < 7; i++) {
+      if (days[i] === 1) {
+        for (let j = 0; j < times.length; j++) {
+          await DATABASE.setConstraint(email, times[j].startTime, times[j].endTime, i);
+        }
+      }
+    }
+
+    res.send({success: true});
   } catch (error) {
     console.error(error);
     res.send({error: error.toString()});
