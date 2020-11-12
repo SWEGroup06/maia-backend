@@ -131,6 +131,7 @@ router.post('/actions', async function(req, res) {
   }
 });
 
+// Post request for getting all meetings
 router.post('/actions/meeting_options', async function(req, res) {
   const payload = JSON.parse(req.body.payload);
   const meetingOptions = {options: []};
@@ -151,11 +152,11 @@ router.post('/actions/meeting_options', async function(req, res) {
         const startTime = startDateTime.toLocaleString(DateTime.TIME_24_SIMPLE);
         const endTime = endDateTime.toLocaleString(DateTime.TIME_24_SIMPLE);
         const weekDay = TIME.getDayOfWeekFromInt(startDateTime.weekday);
-        const meetingDetails = meetingName +'|' + meetingStart + '|' + meetingEnd;
+        const meetingDetails = `${meetingName}|${meetingStart}|${meetingEnd}`;
         meetingOptions.options.push({
           text: {
             type: 'plain_text',
-            text: meetingName + ' | ' + weekDay + ' ' + startTime + ' - ' + endTime,
+            text: `${meetingName} | ${weekDay} ${startTime} - ${endTime}`,
           },
           value: meetingDetails,
         });
