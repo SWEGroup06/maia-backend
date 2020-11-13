@@ -25,6 +25,42 @@ app.get('/', function(_, res) {
   res.send('This is the REST API for Maia AI calendar assistant');
 });
 
+//Routes for accepting and rejecting automatic reschedule suggestions
+const GOOGLE = require('./lib/google.js');
+const PARSER = require('body-parser');
+app.use(PARSER.urlencoded({ extended: true }));
+app.use(PARSER.json());
+
+app.route('/automatic/reschedule/accept')
+    .get(async function(req, res) {
+        /*
+        // Get the event
+        const email = req.query.email;
+        const fromStartDate = req.query.fromStart;
+        const fromEndDate = req.query.fromEnd;
+
+        const token = await DATABASE.getToken(email);
+        const event = await GOOGLE.getEvents(token, fromStartDate, fromEndDate);
+
+        // Reschedule the event
+        const toStartTime = req.query.toStart;
+        const toEndTime = req.query.toEnd;
+        await GOOGLE.updateMeeting(token, event[0], toStartTime, toEndTime);*/
+        res.send('reschedule acceptance page');
+        console.log('reschedule acceptance page');
+        //console.log(req.query.email);
+        //console.log(req.query.fromStart);
+        //console.log(req.query.fromEnd);
+        //console.log(req.query.toStart);
+        //console.log(req.query.toEnd);
+    })
+app.route('/automatic/reschedule/reject')
+    .get(async function(req, res) {
+        // Display rejection page
+        res.send('reschedule rejection page');
+        console.log("reschedule rejection page")
+    })
+
 // Establish database connection
 DATABASE.getDatabaseConnection().then(() => {
   // Start REST Server
