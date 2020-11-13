@@ -110,109 +110,23 @@ router.get('/reschedule', async function(req, res) {
     res.json({error: 'No event start time specified for rescheduling'});
   }
 
-  if (!req.query.eventEndTime) {
-    res.json({error: 'No event end time specified for rescheduling'});
-  }
-
-  let startOfRangeToRescheduleTo;
-  if (!req.query.newStartDateTime) {
-    startOfRangeToRescheduleTo = DateTime.local();
-  } else {
-    startOfRangeToRescheduleTo = JSON.parse(decodeURIComponent(req.query.newStartDateTime));
-  }
-
-  let endOfRangeToRescheduleTo;
-  if (!req.query.newEndDateTime) {
-    endOfRangeToRescheduleTo = DateTime.local(startOfRangeToRescheduleTo.getFullYear(), startOfRangeToRescheduleTo.getMonth(), startOfRangeToRescheduleTo.getDay() + 14).toISOString();
-  } else {
-    endOfRangeToRescheduleTo = JSON.parse(decodeURIComponent(req.query.newEndDateTime));
-  }
-
   try {
-    const constraints = [];
-    const eventStartTime = DateTime.fromISO(JSON.parse(decodeURIComponent(req.query.eventStartTime))).setZone('Europe/Paris').toISO();
-    const organiserSlackEmail = JSON.parse(decodeURIComponent(req.query.organiserSlackEmail));
-
-    const today = DateTime.local();
-    const oneMonthAgo = today.minus(Duration.fromObject({days: 30}));
-
-    const lastMonthHistories = [];
-
-    // check organiser of event (the person trying to reschedule it) is
-    // signed in and check they are the organiser
-    if (!await DATABASE.userExists(organiserSlackEmail)) {
-      res.json({error: `${organiserSlackEmail} is not signed in`});
-      return;
-    }
-    // Get organiser's token from the database
-    const organiserToken = JSON.parse(await DATABASE.getToken(organiserSlackEmail));
-    // get attendee emails from event
-    const events = await GOOGLE.getEvents(organiserToken, eventStartTime);
-
-    if (!events || events.length === 0 || !TIME.compareTime(events[0].start.dateTime, eventStartTime)) {
-      res.json({error: 'No event found to reschedule with given details'});
-      return;
+    let startOfRangeToRescheduleTo;
+    if (!req.query.newStartDateTime) {
+      startOfRangeToRescheduleTo = DateTime.local();
+    } else {
+      startOfRangeToRescheduleTo = JSON.parse(decodeURIComponent(req.query.newStartDateTime));
     }
 
-    const originalEvent = events[0];
-    const eventEndTime = new Date(events[0].end.dateTime).toISOString();
-
-    let attendeeEmails = [];
-    if (originalEvent.attendees) {
-      attendeeEmails = originalEvent.attendees.map((person) => person.email);
+    let endOfRangeToRescheduleTo;
+    if (!req.query.newEndDateTime) {
+      endOfRangeToRescheduleTo = DateTime.local(startOfRangeToRescheduleTo.getFullYear(), startOfRangeToRescheduleTo.getMonth(), startOfRangeToRescheduleTo.getDay() + 14).toISOString();
+    } else {
+      endOfRangeToRescheduleTo = JSON.parse(decodeURIComponent(req.query.newEndDateTime));
     }
 
-    // find new time for event using scheduler
-    const busyTimes = [];
-    const eventDuration = DateTime.fromISO(eventEndTime).diff(DateTime.fromISO(new Date(events[0].start.dateTime).toISOString()));
+    chosenSlot = await MEETINGS.reschedule(eventStartTime, organiserSlackEmail, startOfRangeToRescheduleTo, endOfRangeToRescheduleTo);
 
-    const startDate = startOfRangeToRescheduleTo;
-    const endDate = endOfRangeToRescheduleTo;
-
-    const organiserEmail = await GOOGLE.getEmail(organiserToken);
-    // remove organiser from attendees to avoid adding twice
-    attendeeEmails.pop();
-    attendeeEmails.push(organiserEmail);
-    // populate busyTimes array with all attendees' schedules
-    for (const email of attendeeEmails) {
-      // Check if a user with the provided details existing in the database
-      if (!await DATABASE.userExists(email)) {
-        res.json({error: ' ' + email + ' is not signed into Maia'});
-        return;
-      }
-      // Get tokens from the database
-      const token = JSON.parse(await DATABASE.getToken(email));
-
-      // Retrieve user constraints in format: [{startTime: ISO Date/Time String, endTime: ISO Date/Time String}],
-      const weekConstraints = await DATABASE.getConstraints(email);
-
-      // Generate constraints in format the scheduler takes in
-      const generatedConstraints = SCHEDULER.generateConstraints(weekConstraints, startDate, endDate);
-
-      if (generatedConstraints.length !== 0) {
-        constraints.push(generatedConstraints);
-      }
-
-      // Format busy times before pushing to array
-      const data = await GOOGLE.getBusySchedule(token, startDate, endDate);
-      const lastMonthHist = await GOOGLE.getBusySchedule(token, oneMonthAgo.toISO(), today.toISO());
-
-      if (data) busyTimes.push(data.map((e) => [e.start, e.end]));
-      if (lastMonthHist) lastMonthHistories.push(lastMonthHist.map((e) => [e.start, e.end]));
-    }
-
-    // Get free slots from the provided busy times
-    const freeTimes = busyTimes.map((timeSlot) => SCHEDULER.getFreeSlots(timeSlot, startDate, endDate));
-    // Using free times find a meeting slot and get the choice
-    const chosenSlot = SCHEDULER.findMeetingSlot(freeTimes, eventDuration, constraints, lastMonthHistories);
-
-    if (!chosenSlot) {
-      await res.json({error: 'No meeting slot found'});
-      return;
-    }
-
-    // reschedule meeting to this new time
-    await GOOGLE.updateMeeting(organiserToken, originalEvent, chosenSlot.start, chosenSlot.end);
     res.json(chosenSlot);
   } catch (error) {
     console.error(error);
