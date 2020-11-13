@@ -8,6 +8,7 @@
   },
   "scripts": {
     "start": "node server.js --dev",
+    "auto": "node server.js --dev --auto",
     "prod": "node server.js",
     "test": "jest",
     "lint": "eslint .",

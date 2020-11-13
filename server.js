@@ -33,9 +33,11 @@ DATABASE.getDatabaseConnection().then(() => {
     console.log(`REST API Server hosted on: ${CONFIG.serverURL}`);
   });
 
-  // Start AUTOMATION
-  console.log(`AUTOMATION started`);
-  AUTOMATION.start(INTERVAL);
+  if (CONFIG.AUTO) {
+    // Start AUTOMATION
+    console.log(`AUTOMATION started`);
+    AUTOMATION.start(INTERVAL);
+  }
 }).catch((err) => { // mongoose connection error will be handled here
   console.error('App starting error:', err.stack);
 });
