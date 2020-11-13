@@ -17,7 +17,7 @@ const INTERVAL = 10e3;
 // Configure routes
 app.use(express.json());
 
-const routes = ['auth', 'api', 'slack', 'nlp'];
+const routes = ['auth', 'api', 'slack', 'nlp', 'mail'];
 routes.forEach((name) => app.use(`/${name}`, require(`./routes/${name}.js`)));
 
 // ROOT PATH
@@ -25,11 +25,12 @@ app.get('/', function(_, res) {
   res.send('This is the REST API for Maia AI calendar assistant');
 });
 
+
 // Establish database connection
 DATABASE.getDatabaseConnection().then(() => {
   // Start REST Server
   app.listen(PORT, () => {
-    console.log(`REST API Server hosted on: ${CONFIG.serverURL}${CONFIG.DEBUG ? `:${PORT}` : ''}`);
+    console.log(`REST API Server hosted on: ${CONFIG.serverURL}`);
   });
 
   // Start AUTOMATION
