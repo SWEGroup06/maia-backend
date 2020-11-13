@@ -17,7 +17,7 @@ const INTERVAL = 10e3;
 // Configure routes
 app.use(express.json());
 
-const routes = ['auth', 'api', 'slack', 'nlp', 'mail'];
+const routes = ['auth', 'api', 'slack', 'nlp', 'auto'];
 routes.forEach((name) => app.use(`/${name}`, require(`./routes/${name}.js`)));
 
 // ROOT PATH
