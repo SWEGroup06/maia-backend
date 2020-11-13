@@ -32,22 +32,16 @@ const actionHandlers = {
       const meetingDetails = decode(rescheduleOptions.meeting_select.selected_option.value);
       const meetingName = meetingDetails[0];
       const meetingStart = meetingDetails[1];
-      console.log(meetingStart);
-      const meetingEnd = meetingDetails[2];
       const email = await DATABASE.getEmailFromID(payload.user.id);
       let newSlot;
       if (rescheduleOptions.startDate.selected_date && rescheduleOptions.endDate.selected_date) {
-        console.log('dates selected');
         const newStartDate = new Date(rescheduleOptions.startDate.selected_date).toISOString();
         const newEndDate = new Date(rescheduleOptions.endDate.selected_date).toISOString();
         console.log(newStartDate);
         console.log(newEndDate);
         newSlot = await MEETINGS.reschedule(meetingStart, email, newStartDate, newEndDate, email);
-        console.log(newSlot);
       } else {
-        console.log('no dates selected');
         newSlot = await MEETINGS.reschedule(meetingStart, email, null, null);
-        console.log(newSlot);
       }
       if (newSlot) {
         const startDateTime = DateTime.fromISO(newSlot.start);
