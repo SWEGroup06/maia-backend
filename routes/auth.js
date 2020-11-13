@@ -55,7 +55,7 @@ router.get('/callback', async function(req, res) {
     await DATABASE.createNewUser(state.userID, state.email, googleEmail, JSON.stringify(tokens));
 
     // Redirect to success page
-    res.redirect('success');
+    res.redirect('success/login.html');
 
     console.log('**********');
     console.log(state);

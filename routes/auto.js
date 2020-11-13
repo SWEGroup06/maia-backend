@@ -40,7 +40,7 @@ router.get('/accept', async function(req, res) {
     await GOOGLE.updateMeeting(token, events[0], meetingData.to.start, meetingData.to.end);
 
     // Redirect to success page
-    res.redirect('success');
+    res.redirect('success/reschedule.html');
   } catch (error) {
     console.log(error);
     res.send({error: error.toString()});
