@@ -150,8 +150,8 @@ const context = {
       !schedules.length ||
       !duration) return null;
 
-    console.log('schedules ', schedules.map((schedule)=> schedule.map((interval)=>[interval[0].toString(), interval[1].toString()])));
-    console.log('constraints ', constraints.map((person)=>person.map((interval)=>[interval[0].toString(), interval[1].toString()])));
+    // console.log('schedules ', schedules.map((schedule)=> schedule.map((interval)=>[interval[0].toString(), interval[1].toString()])));
+    // console.log('constraints ', constraints.map((person)=>person.map((interval)=>[interval[0].toString(), interval[1].toString()])));
     // include availability constraints
     if (constraints != null && constraints.length > 0) schedules = schedules.concat(constraints);
     // console.log(schedules[0][0][0].toString(), schedules[0][0][1].toString(), schedules[0][1][0].toString(), schedules[0][1][1].toString(), );
@@ -284,7 +284,7 @@ const context = {
       return;
     }
     const timeSlots = context._schedule(freeTimes, duration, constraints);
-    console.log('timeslots ', timeSlots.map((interval) => [interval[0].toString(), interval[1].toString()]));
+    // console.log('timeslots ', timeSlots.map((interval) => [interval[0].toString(), interval[1].toString()]));
     // console.log(lastMonthBusySchedules);
     const historyFreq = context.getUserHistory(lastMonthBusySchedules);
     // console.log(historyFreq);
@@ -292,7 +292,7 @@ const context = {
     // console.log(historyFreq);
     // const choice = context._choose(timeSlots);
     if (choice) {
-      console.log('choice: ', choice);
+      // console.log('choice: ', choice);
       return {
         start: new Date(choice.ts).toISOString(),
         end: new Date(choice.plus(duration).ts).toISOString(),

@@ -1,14 +1,11 @@
 const express = require('express');
 const router = express.Router();
 
-const {Duration, DateTime} = require('luxon');
+const {DateTime} = require('luxon');
 
 const GOOGLE = require('../lib/google.js');
 const DATABASE = require('../lib/database');
 const MEETINGS = require('../lib/meetings.js');
-const TIME = require('../lib/time.js');
-
-const SCHEDULER = require('../src/scheduler');
 
 // Schedule a new meeting
 router.get('/schedule', async function(req, res) {
@@ -31,71 +28,15 @@ router.get('/schedule', async function(req, res) {
     endDate = JSON.parse(decodeURIComponent(req.query.endDateTimeOfRange));
   }
 
+  const slackEmails = JSON.parse(decodeURIComponent(req.query.emails));
+
   try {
-    const busyTimes = [];
-    const constraints = [];
-    const lastMonthHistories = [];
-
-    // TODO: Change to input
-    // const startDate = new Date().toISOString();
-    // const endDate = new Date('6 nov 2020 23:30').toISOString();
-    const eventDuration = Duration.fromObject({hours: 1});
-
-    const slackEmails = JSON.parse(decodeURIComponent(req.query.emails));
-    const googleEmails = [];
-    const tokens = [];
-    const today = DateTime.local();
-    const oneMonthAgo = today.minus(Duration.fromObject({days: 30}));
-    for (const email of slackEmails) {
-      // Check if a user with the provided details existing in the database
-      if (!await DATABASE.userExists(email)) {
-        res.json({error: email + ' is not signed in'});
-        return;
-      }
-
-      // Get tokens from the database
-      const token = JSON.parse(await DATABASE.getToken(email));
-
-      // Retrieve user constraints in format: [{startTime: ISO Date/Time String, endTime: ISO Date/Time String}],
-      const weekConstraints = await DATABASE.getConstraints(email);
-
-      // Generate constraints in format the scheduler takes in
-      const generatedConstraints = SCHEDULER.generateConstraints(weekConstraints, startDate, endDate);
-
-      if (generatedConstraints.length !== 0) {
-        constraints.push(generatedConstraints);
-      }
-
-      tokens.push(token);
-
-      // Get Google email for creating meeting later
-      googleEmails.push(await GOOGLE.getEmail(token));
-
-      // Format busy times before pushing to array
-      const data = await GOOGLE.getBusySchedule(token, startDate, endDate);
-      const lastMonthHist = await GOOGLE.getBusySchedule(token, oneMonthAgo.toISO(), today.toISO());
-      if (data) busyTimes.push(data.map((e) => [e.start, e.end]));
-      if (lastMonthHist) lastMonthHistories.push(lastMonthHist.map((e) => [e.start, e.end]));
-    }
-
-    // Get free slots from the provided busy times
-    const freeTimes = busyTimes.map((timeSlot) => SCHEDULER.getFreeSlots(timeSlot, startDate, endDate));
-
-    // Using free times find a meeting slot and get the choice
-    const chosenSlot = SCHEDULER.findMeetingSlot(freeTimes, eventDuration, constraints, lastMonthHistories);
-    if (!chosenSlot) {
-      res.json({error: 'No meeting slot found'});
-      return;
-    }
-    // create meeting event in calendars of team members
-    await GOOGLE.createMeeting(tokens[0], `Meeting: ${today.toString()}`, chosenSlot.start, chosenSlot.end, googleEmails);
-
+    const chosenSlot = await MEETINGS.schedule(slackEmails, startDate, endDate);
     res.json(chosenSlot);
   } catch (error) {
     console.error(error);
     res.send({error: error.toString()});
   }
-  // res.json({TODO: 'NotImplementedYet'});
 });
 
 // Reschedule an existing meeting
@@ -110,21 +51,21 @@ router.get('/reschedule', async function(req, res) {
     res.json({error: 'No event start time specified for rescheduling'});
   }
 
+  let startOfRangeToRescheduleTo;
+  if (!req.query.newStartDateTime) {
+    startOfRangeToRescheduleTo = DateTime.local();
+  } else {
+    startOfRangeToRescheduleTo = JSON.parse(decodeURIComponent(req.query.newStartDateTime));
+  }
+
+  let endOfRangeToRescheduleTo;
+  if (!req.query.newEndDateTime) {
+    endOfRangeToRescheduleTo = DateTime.local(startOfRangeToRescheduleTo.getFullYear(), startOfRangeToRescheduleTo.getMonth(), startOfRangeToRescheduleTo.getDay() + 14).toISOString();
+  } else {
+    endOfRangeToRescheduleTo = JSON.parse(decodeURIComponent(req.query.newEndDateTime));
+  }
+
   try {
-    let startOfRangeToRescheduleTo;
-    if (!req.query.newStartDateTime) {
-      startOfRangeToRescheduleTo = DateTime.local();
-    } else {
-      startOfRangeToRescheduleTo = JSON.parse(decodeURIComponent(req.query.newStartDateTime));
-    }
-
-    let endOfRangeToRescheduleTo;
-    if (!req.query.newEndDateTime) {
-      endOfRangeToRescheduleTo = DateTime.local(startOfRangeToRescheduleTo.getFullYear(), startOfRangeToRescheduleTo.getMonth(), startOfRangeToRescheduleTo.getDay() + 14).toISOString();
-    } else {
-      endOfRangeToRescheduleTo = JSON.parse(decodeURIComponent(req.query.newEndDateTime));
-    }
-
     chosenSlot = await MEETINGS.reschedule(eventStartTime, organiserSlackEmail, startOfRangeToRescheduleTo, endOfRangeToRescheduleTo);
 
     res.json(chosenSlot);
