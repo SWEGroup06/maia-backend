@@ -57,16 +57,20 @@ router.get('/reschedule', async function(req, res) {
   } else {
     startOfRangeToRescheduleTo = JSON.parse(decodeURIComponent(req.query.newStartDateTime));
   }
-
-  let endOfRangeToRescheduleTo;
-  if (!req.query.newEndDateTime) {
-    endOfRangeToRescheduleTo = DateTime.local(startOfRangeToRescheduleTo.getFullYear(), startOfRangeToRescheduleTo.getMonth(), startOfRangeToRescheduleTo.getDay() + 14).toISOString();
-  } else {
-    endOfRangeToRescheduleTo = JSON.parse(decodeURIComponent(req.query.newEndDateTime));
-  }
-
   try {
-    chosenSlot = await MEETINGS.reschedule(eventStartTime, organiserSlackEmail, startOfRangeToRescheduleTo, endOfRangeToRescheduleTo);
+    let endOfRangeToRescheduleTo;
+    if (!req.query.newEndDateTime) {
+      endOfRangeToRescheduleTo = DateTime.local(startOfRangeToRescheduleTo.getFullYear(),
+          startOfRangeToRescheduleTo.getMonth(),
+          startOfRangeToRescheduleTo.getDay() + 14).toISOString();
+    } else {
+      endOfRangeToRescheduleTo = JSON.parse(decodeURIComponent(req.query.newEndDateTime));
+    }
+
+    const startTime = JSON.parse(decodeURIComponent(req.query.eventStartTime));
+    const email = JSON.parse(decodeURIComponent(req.query.organiserSlackEmail));
+
+    const chosenSlot = await MEETINGS.reschedule(startTime, email, startOfRangeToRescheduleTo, endOfRangeToRescheduleTo);
 
     res.json(chosenSlot);
   } catch (error) {
