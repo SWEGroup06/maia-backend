@@ -6,7 +6,6 @@ const {Duration, DateTime} = require('luxon');
 const GOOGLE = require('../lib/google.js');
 const DATABASE = require('../lib/database');
 const MEETINGS = require('../lib/meetings.js');
-const TIME = require('../lib/time.js');
 
 const SCHEDULER = require('../src/scheduler');
 
