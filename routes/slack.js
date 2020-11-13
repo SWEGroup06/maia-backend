@@ -42,11 +42,11 @@ const actionHandlers = {
         const newEndDate = new Date(rescheduleOptions.endDate.selected_date).toISOString();
         console.log(newStartDate);
         console.log(newEndDate);
-        newSlot = await MEETINGS.reschedule(meetingStart, meetingEnd, newStartDate, newEndDate, email);
+        newSlot = await MEETINGS.reschedule(meetingStart, email, newStartDate, newEndDate, email);
         console.log(newSlot);
       } else {
         console.log('no dates selected');
-        newSlot = await MEETINGS.reschedule(meetingStart, meetingEnd, null, null, email);
+        newSlot = await MEETINGS.reschedule(meetingStart, email, null, null);
         console.log(newSlot);
       }
       if (newSlot) {
