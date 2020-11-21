@@ -18,27 +18,29 @@ router.get('/schedule', async function(req, res) {
   console.log(req.query);
   console.log('***************');
 
-  const title = JSON.parse(decodeURIComponent(req.query.title));
+  let title = JSON.parse(decodeURIComponent(req.query.title));
+  title = title.substring(1, title.length - 1);
+
   const flexible = JSON.parse(decodeURIComponent(req.query.flexible)) === 'true';
 
-  let startDate;
+  let startDateTimeOfRange;
   if (!req.query.startDateTimeOfRange) {
-    startDate = new Date().toISOString();
+    startDateTimeOfRange = new Date().toISOString();
   } else {
-    startDate = JSON.parse(decodeURIComponent(req.query.startDateTimeOfRange));
+    startDateTimeOfRange = JSON.parse(decodeURIComponent(req.query.startDateTimeOfRange));
   }
 
-  let endDate;
+  let endDateTimeOfRange;
   if (!req.query.endDateTimeOfRange) {
-    endDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDay() + 14).toISOString();
+    endDateTimeOfRange = new Date(startDateTimeOfRange.getFullYear(), startDateTimeOfRange.getMonth(), startDateTimeOfRange.getDay() + 14).toISOString();
   } else {
-    endDate = JSON.parse(decodeURIComponent(req.query.endDateTimeOfRange));
+    endDateTimeOfRange = JSON.parse(decodeURIComponent(req.query.endDateTimeOfRange));
   }
 
   const slackEmails = JSON.parse(decodeURIComponent(req.query.emails));
 
   try {
-    const chosenSlot = await MEETINGS.schedule(title, slackEmails, startDate, endDate, flexible);
+    const chosenSlot = await MEETINGS.schedule(title, slackEmails, startDateTimeOfRange, endDateTimeOfRange, flexible);
     res.json(chosenSlot);
   } catch (error) {
     console.error(error);
