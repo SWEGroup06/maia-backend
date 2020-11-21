@@ -18,7 +18,8 @@ router.get('/schedule', async function(req, res) {
   console.log(req.query);
   console.log('***************');
 
-  const flexible = JSON.parse(decodeURIComponent(req.query.flexible)) ? 'true' : false;
+  const title = JSON.parse(decodeURIComponent(req.query.title));
+  const flexible = JSON.parse(decodeURIComponent(req.query.flexible)) === 'true';
 
   let startDate;
   if (!req.query.startDateTimeOfRange) {
@@ -37,7 +38,7 @@ router.get('/schedule', async function(req, res) {
   const slackEmails = JSON.parse(decodeURIComponent(req.query.emails));
 
   try {
-    const chosenSlot = await MEETINGS.schedule(slackEmails, startDate, endDate, flexible);
+    const chosenSlot = await MEETINGS.schedule(title, slackEmails, startDate, endDate, flexible);
     res.json(chosenSlot);
   } catch (error) {
     console.error(error);
