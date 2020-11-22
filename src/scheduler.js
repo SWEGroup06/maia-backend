@@ -193,7 +193,7 @@ const context = {
     return choices[0][0];
   },
   getTimeSlotValue: (begin, end, historyFreq) => {
-    let val = 0;
+    let val = Number.NEGATIVE_INFINITY;
     const startHour = begin.hour;
     const startHalf = begin.minute >= 30 ? 1 : 0;
     let i = startHour * 2 + startHalf;
@@ -211,11 +211,10 @@ const context = {
    * @param {Array} freeTimes -- array returned by _schedule [[start1, start2]]
    * @param {Array} historyFreq -- array returned by userHistory()
    * @param {Duration} duration -- event's duration
-   * @param {Boolean} isClustered -- attempts to maximise clustering if this is true
    * @return {DateTime} -- best start date time for event
    * @private
    */
-  _chooseFromHistory: (freeTimes, historyFreq, duration, isClustered) => {
+  _chooseFromHistory: (freeTimes, historyFreq, duration) => {
     let maxTimeSlotValue = -1;
     let bestTimeSlot = null;
     for (const timeSlot of freeTimes) {
@@ -279,16 +278,16 @@ const context = {
     return freeSlots;
   },
 
-  findMeetingSlot(freeTimes, duration, constraints = null, lastMonthBusySchedules, isClustered=false) {
+  findMeetingSlot(freeTimes, duration, constraints = null, lastMonthBusySchedules, category) {
     if (!freeTimes || freeTimes.length === 0) {
       return;
     }
     const timeSlots = context._schedule(freeTimes, duration, constraints);
     // console.log('timeslots ', timeSlots.map((interval) => [interval[0].toString(), interval[1].toString()]));
     // console.log(lastMonthBusySchedules);
-    const historyFreq = context.getUserHistory(lastMonthBusySchedules);
+    const historyFreq = context.getUserHistory(lastMonthBusySchedules, category);
     // console.log(historyFreq);
-    const choice = context._chooseFromHistory(timeSlots, historyFreq, duration, isClustered);
+    const choice = context._chooseFromHistory(timeSlots, historyFreq, duration);
     // console.log(historyFreq);
     // const choice = context._choose(timeSlots);
     if (choice) {
@@ -307,13 +306,17 @@ const context = {
    * : ISO String, endTime: ISO String}]
    * @return {[]}
    */
-  getUserHistory: (lastMonthBusySchedules) => {
+  getUserHistory: (lastMonthBusySchedules, category) => {
     const frequencies = [];
     for (let i = 0; i < days; i++) {
       frequencies[i] = Array(halfHoursInDay).fill(0);
     }
     for (const lastMonthBusySchedule of lastMonthBusySchedules) {
       for (const timeSlot of lastMonthBusySchedule) {
+        let sign = 1;
+        if (getCategory(timeSlot[2]) != category) {
+          sign = -1;
+        }
         let begin = DateTime.fromISO(timeSlot[0]);
         const end = DateTime.fromISO(timeSlot[1]);
         const startHour = begin.hour;
@@ -321,7 +324,7 @@ const context = {
         let i = startHour * 2 + startHalf;
         while (begin < end) {
           const day = begin.weekday - 1;
-          frequencies[day][i]++;
+          frequencies[day][i] = frequencies[day][i] + sign;
           i = (i + 1) % halfHoursInDay;
           begin = begin.plus(halfHour);
         }
