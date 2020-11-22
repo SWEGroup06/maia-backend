@@ -25,6 +25,13 @@ app.get('/', function(_, res) {
   res.send('This is the REST API for Maia AI calendar assistant');
 });
 
+const DIALOGFLOW= require('./lib/dialogflow.js');
+app.get('/cat', async function(req, res) {
+  res.send({
+    category: await DIALOGFLOW.getCategory('book a conference for tomorrow'),
+  });
+});
+
 
 // Establish database connection
 DATABASE.getDatabaseConnection().then(() => {
