@@ -1,4 +1,5 @@
 const {DateTime, Duration} = require('luxon');
+const DIALOGFLOW = require('../lib/dialogflow');
 
 /* CONSTANTS */
 const halfHoursInDay = 24 * 2;
@@ -314,7 +315,7 @@ const context = {
     for (const lastMonthBusySchedule of lastMonthBusySchedules) {
       for (const timeSlot of lastMonthBusySchedule) {
         let sign = 1;
-        if (getCategory(timeSlot[2]) != category) {
+        if (DIALOGFLOW.getCategory(timeSlot[2]) != category) {
           sign = -1;
         }
         let begin = DateTime.fromISO(timeSlot[0]);
