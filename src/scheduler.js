@@ -1,5 +1,4 @@
 const {DateTime, Duration} = require('luxon');
-const DIALOGFLOW = require('../lib/dialogflow');
 
 const DIALOGFLOW = require('../lib/dialogflow.js');
 
@@ -303,6 +302,7 @@ const context = {
     return null;
   },
 
+  // eslint-disable-next-line valid-jsdoc
   /**
    *
    * @param { Array } lastMonthBusySchedules [{startTime
