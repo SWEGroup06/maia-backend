@@ -6,6 +6,16 @@ const DIALOGFLOW = require('../lib/dialogflow.js');
 const halfHoursInDay = 24 * 2;
 const days = 7;
 const halfHour = Duration.fromObject({minutes: 30});
+const dictHourToDefaultFreq = {};
+for (let i = 0; i < 7; i++) {
+  dictHourToDefaultFreq[i] = -15 + 2*i;
+}
+for (let i = 7; i < 23; i++) {
+  dictHourToDefaultFreq[i] = 0;
+}
+for (let i = 23; i <= 24; i++) {
+  dictHourToDefaultFreq[i] = -1;
+}
 
 const context = {
   /**
@@ -195,9 +205,9 @@ const context = {
     return choices[0][0];
   },
   getTimeSlotValue: (begin, end, historyFreq) => {
-    let val = Number.NEGATIVE_INFINITY;
     const startHour = begin.hour;
     const startHalf = begin.minute >= 30 ? 1 : 0;
+    let val = dictHourToDefaultFreq[startHour];
     let i = startHour * 2 + startHalf;
     while (begin < end) {
       const day = begin.weekday - 1;
@@ -217,13 +227,14 @@ const context = {
    * @private
    */
   _chooseFromHistory: (freeTimes, historyFreq, duration) => {
-    let maxTimeSlotValue = -1;
+    let maxTimeSlotValue = -10000;
     let bestTimeSlot = null;
     for (const timeSlot of freeTimes) {
       let begin = timeSlot[0];
       const end = timeSlot[1];
       while (begin <= end) {
         const v = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
+        console.log('v', v);
         if (v > maxTimeSlotValue) {
           maxTimeSlotValue = v;
           bestTimeSlot = new DateTime(begin);
@@ -286,11 +297,8 @@ const context = {
     }
     const timeSlots = context._schedule(freeTimes, duration, constraints);
     // console.log('timeslots ', timeSlots.map((interval) => [interval[0].toString(), interval[1].toString()]));
-    // console.log(lastMonthBusySchedules);
     const historyFreq = context.getUserHistory(lastMonthBusySchedules, category);
-    // console.log(historyFreq);
     const choice = context._chooseFromHistory(timeSlots, historyFreq, duration);
-    // console.log(historyFreq);
     // const choice = context._choose(timeSlots);
     if (choice) {
       // console.log('choice: ', choice);
@@ -317,9 +325,9 @@ const context = {
     for (const lastMonthBusySchedule of lastMonthBusySchedules) {
       for (const timeSlot of lastMonthBusySchedule) {
         let sign = 1;
-        if (DIALOGFLOW.getCategory(timeSlot[2]) != category) {
-          sign = -1;
-        }
+        // if (DIALOGFLOW.getCategory(timeSlot[2]) != category) {
+        //   sign = -1;
+        // }
         let begin = DateTime.fromISO(timeSlot[0]);
         const end = DateTime.fromISO(timeSlot[1]);
         const startHour = begin.hour;
