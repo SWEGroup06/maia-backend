@@ -55,7 +55,8 @@ router.get('/reschedule', async function(req, res) {
   console.log(req.query);
   console.log('*********************');
 
-  const meetingTitle = req.query.meetingTitle;
+  // TODO: This is an unbelievable clapped way to do this I am so sorry, I will change it later - Ali
+  const meetingTitle = req.query.meetingTitle.substring(3, req.query.meetingTitle.length - 3);
 
   if (!req.query.organiserSlackEmail) {
     res.json({error: 'Organiser\'s slack email not found'});
