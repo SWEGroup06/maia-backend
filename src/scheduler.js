@@ -1,4 +1,5 @@
 const {DateTime, Duration} = require('luxon');
+const DIALOGFLOW = require('../lib/dialogflow');
 
 const DIALOGFLOW = require('../lib/dialogflow.js');
 
