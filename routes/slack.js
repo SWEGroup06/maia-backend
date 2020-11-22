@@ -39,9 +39,9 @@ const actionHandlers = {
         const newEndDate = new Date(rescheduleOptions.endDate.selected_date).toISOString();
         console.log(newStartDate);
         console.log(newEndDate);
-        newSlot = await MEETINGS.reschedule(meetingStart, email, newStartDate, newEndDate, email);
+        newSlot = await MEETINGS.reschedule(meetingStart, null, email, newStartDate, newEndDate);
       } else {
-        newSlot = await MEETINGS.reschedule(meetingStart, email, null, null);
+        newSlot = await MEETINGS.reschedule(meetingStart, null, email, null, null);
       }
       if (newSlot) {
         const startDateTime = DateTime.fromISO(newSlot.start);
