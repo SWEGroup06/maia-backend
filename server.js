@@ -12,7 +12,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // AUTOMATION consts
-const INTERVAL = 10e3;
+const INTERVAL = 20e3;
 
 // Configure routes
 app.use(express.json());
@@ -24,7 +24,6 @@ routes.forEach((name) => app.use(`/${name}`, require(`./routes/${name}.js`)));
 app.get('/', function(_, res) {
   res.send('This is the REST API for Maia AI calendar assistant');
 });
-
 
 // Establish database connection
 DATABASE.getDatabaseConnection().then(() => {
