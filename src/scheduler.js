@@ -234,7 +234,6 @@ const context = {
       const end = timeSlot[1];
       while (begin <= end) {
         const v = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
-        console.log('v', v);
         if (v > maxTimeSlotValue) {
           maxTimeSlotValue = v;
           bestTimeSlot = new DateTime(begin);
@@ -242,7 +241,6 @@ const context = {
         begin = begin.plus(halfHour);
       }
     }
-    // }
     return bestTimeSlot;
   },
 
@@ -301,7 +299,6 @@ const context = {
     const choice = context._chooseFromHistory(timeSlots, historyFreq, duration);
     // const choice = context._choose(timeSlots);
     if (choice) {
-      // console.log('choice: ', choice);
       return {
         start: new Date(choice.ts).toISOString(),
         end: new Date(choice.plus(duration).ts).toISOString(),
@@ -318,6 +315,7 @@ const context = {
    * @return {[]}
    */
   getUserHistory: (lastMonthBusySchedules, category) => {
+    console.log(category);
     const frequencies = [];
     for (let i = 0; i < days; i++) {
       frequencies[i] = Array(halfHoursInDay).fill(0);
@@ -325,9 +323,9 @@ const context = {
     for (const lastMonthBusySchedule of lastMonthBusySchedules) {
       for (const timeSlot of lastMonthBusySchedule) {
         let sign = 1;
-        // if (DIALOGFLOW.getCategory(timeSlot[2]) != category) {
-        //   sign = -1;
-        // }
+        if (DIALOGFLOW.getCategory(timeSlot[2]) !== category) {
+          sign = -1;
+        }
         let begin = DateTime.fromISO(timeSlot[0]);
         const end = DateTime.fromISO(timeSlot[1]);
         const startHour = begin.hour;
