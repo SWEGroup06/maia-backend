@@ -14,24 +14,33 @@ router.get('/schedule', async function(req, res) {
     return;
   }
 
-  let startDate;
+  console.log('REQ************');
+  console.log(req.query);
+  console.log('***************');
+
+  let title = JSON.parse(decodeURIComponent(req.query.title));
+  title = title.substring(1, title.length - 1);
+
+  const flexible = JSON.parse(decodeURIComponent(req.query.flexible)) === 'true';
+
+  let startDateTimeOfRange;
   if (!req.query.startDateTimeOfRange) {
-    startDate = new Date().toISOString();
+    startDateTimeOfRange = new Date().toISOString();
   } else {
-    startDate = JSON.parse(decodeURIComponent(req.query.startDateTimeOfRange));
+    startDateTimeOfRange = JSON.parse(decodeURIComponent(req.query.startDateTimeOfRange));
   }
 
-  let endDate;
+  let endDateTimeOfRange;
   if (!req.query.endDateTimeOfRange) {
-    endDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDay() + 14).toISOString();
+    endDateTimeOfRange = new Date(startDateTimeOfRange.getFullYear(), startDateTimeOfRange.getMonth(), startDateTimeOfRange.getDay() + 14).toISOString();
   } else {
-    endDate = JSON.parse(decodeURIComponent(req.query.endDateTimeOfRange));
+    endDateTimeOfRange = JSON.parse(decodeURIComponent(req.query.endDateTimeOfRange));
   }
 
   const slackEmails = JSON.parse(decodeURIComponent(req.query.emails));
 
   try {
-    const chosenSlot = await MEETINGS.schedule(slackEmails, startDate, endDate);
+    const chosenSlot = await MEETINGS.schedule(title, slackEmails, startDateTimeOfRange, endDateTimeOfRange, flexible);
     res.json(chosenSlot);
   } catch (error) {
     console.error(error);
@@ -41,6 +50,14 @@ router.get('/schedule', async function(req, res) {
 
 // Reschedule an existing meeting
 router.get('/reschedule', async function(req, res) {
+  // TODO: Delete these
+  console.log('REQ.QUERY************');
+  console.log(req.query);
+  console.log('*********************');
+
+  // TODO: This is an unbelievable clapped way to do this I am so sorry, I will change it later - Ali
+  const meetingTitle = req.query.meetingTitle.substring(3, req.query.meetingTitle.length - 3);
+
   if (!req.query.organiserSlackEmail) {
     res.json({error: 'Organiser\'s slack email not found'});
     return;
@@ -57,9 +74,11 @@ router.get('/reschedule', async function(req, res) {
   } else {
     startOfRangeToRescheduleTo = JSON.parse(decodeURIComponent(req.query.newStartDateTime));
   }
+
   try {
     let endOfRangeToRescheduleTo;
     if (!req.query.newEndDateTime) {
+      // If no end date is specified, set a default range of two weeks from the given start range date
       endOfRangeToRescheduleTo = DateTime.local(startOfRangeToRescheduleTo.getFullYear(),
           startOfRangeToRescheduleTo.getMonth(),
           startOfRangeToRescheduleTo.getDay() + 14).toISOString();
@@ -70,7 +89,16 @@ router.get('/reschedule', async function(req, res) {
     const startTime = JSON.parse(decodeURIComponent(req.query.eventStartTime));
     const email = JSON.parse(decodeURIComponent(req.query.organiserSlackEmail));
 
-    const chosenSlot = await MEETINGS.reschedule(startTime, email, startOfRangeToRescheduleTo, endOfRangeToRescheduleTo);
+    // TODO: Delete these
+    console.log('PARAMETERS FOR MEETINGS.RESCHEDULE****');
+    console.log(meetingTitle);
+    console.log(startTime);
+    console.log(email);
+    console.log(startOfRangeToRescheduleTo);
+    console.log(endOfRangeToRescheduleTo);
+    console.log('**************************************');
+
+    const chosenSlot = await MEETINGS.reschedule(startTime, meetingTitle, email, startOfRangeToRescheduleTo, endOfRangeToRescheduleTo);
 
     res.json(chosenSlot);
   } catch (error) {
