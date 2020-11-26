@@ -168,6 +168,7 @@ const context = {
     if (constraints != null && constraints.length > 0) schedules = schedules.concat(constraints);
     // console.log(schedules[0][0][0].toString(), schedules[0][0][1].toString(), schedules[0][1][0].toString(), schedules[0][1][1].toString(), );
     // console.log('schedules: ', schedules.map((schedule)=>{schedule.map((freeTime)=>[freeTime[0], freeTime[1]])}));
+
     let ans = schedules[0];
     schedules.forEach((schedule) => {
       const curr = [];
@@ -207,11 +208,11 @@ const context = {
   getTimeSlotValue: (begin, end, historyFreq) => {
     const startHour = begin.hour;
     const startHalf = begin.minute >= 30 ? 1 : 0;
-    let val = dictHourToDefaultFreq[startHour];
+    let val = 0;
     let i = startHour * 2 + startHalf;
     while (begin < end) {
       const day = begin.weekday - 1;
-      val += historyFreq[day][i] ** 2;
+      val += historyFreq[day][i] > 0 ? historyFreq[day][i] ** 2 : -1 * (historyFreq[day][i] ** 2);
       i = (i + 1) % halfHoursInDay;
       begin = begin.plus(halfHour);
     }
@@ -221,22 +222,50 @@ const context = {
    * chooses the best time slot out of list of free times considering the user's history of most
    * common busy times
    * @param {Array} freeTimes -- array returned by _schedule [[start1, start2]]
-   * @param {Array} historyFreq -- array returned by userHistory()
+   * @param {Array} historyFreqs -- array of arrays returned by userHistory()
    * @param {Duration} duration -- event's duration
    * @return {DateTime} -- best start date time for event
    * @private
    */
-  _chooseFromHistory: (freeTimes, historyFreq, duration) => {
+  _chooseFromHistory: (freeTimes, historyFreqs, duration) => {
+    // sum history freqs together to make one for everyone
+    if (historyFreqs.length < 1) {
+      console.log('error in _chooseFromHistory: no history freqs given');
+      return null;
+    }
+    const historyFreq = historyFreqs[0];
+    if (historyFreqs.length > 1) {
+      for (let i = 0; i < 24*2*7; i++) {
+        for (const h of historyFreqs) {
+          historyFreq[i] += h[i];
+        }
+      }
+    }
+    // let choices = freeTimes.map((xs) => [xs[0], xs[1].diff(xs[0])]);
+    // choices.sort((a, b) => a[1] - b[1]);
+    // choices = choices.map((timeSlot) => [timeSlot[0], timeSlot[1], timeSlot[1].diff(timeSlot[0]).minutes]);
+    // console.log(choices);
     let maxTimeSlotValue = -10000;
     let bestTimeSlot = null;
+    let bestClusterVal = 1000000;
     for (const timeSlot of freeTimes) {
       let begin = timeSlot[0];
       const end = timeSlot[1];
+      // clusterval represents how well clustered this event is -- wanna minimise this value
+      let clusterVal = end.diff(begin, ['minutes', 'hours']);
+      // console.log('begin: ', begin.toString(), '\t\tend: ', end.toString(), '\t\tclusterval: ', clusterVal.values.hours * 60 + clusterVal.values.minutes);
+      clusterVal = clusterVal.values.hours * 60 + clusterVal.values.minutes;
       while (begin <= end) {
         const v = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
         if (v > maxTimeSlotValue) {
           maxTimeSlotValue = v;
           bestTimeSlot = new DateTime(begin);
+          bestClusterVal = clusterVal;
+        } else if (v === maxTimeSlotValue) {
+          if (clusterVal < bestClusterVal) {
+            bestClusterVal = clusterVal;
+            bestTimeSlot = new DateTime(begin);
+          }
         }
         begin = begin.plus(halfHour);
       }
@@ -289,19 +318,18 @@ const context = {
     return freeSlots;
   },
 
-  findMeetingSlot(freeTimes, duration, constraints = null, lastMonthBusySchedules, category) {
+  findMeetingSlot(freeTimes, duration, constraints = null, historyFreqs) {
     if (!freeTimes || freeTimes.length === 0) {
       return;
     }
     const timeSlots = context._schedule(freeTimes, duration, constraints);
     // console.log('timeslots ', timeSlots.map((interval) => [interval[0].toString(), interval[1].toString()]));
-    const historyFreq = context.getUserHistory(lastMonthBusySchedules, category);
-    const choice = context._chooseFromHistory(timeSlots, historyFreq, duration);
-    // const choice = context._choose(timeSlots);
+
+    const choice = context._chooseFromHistory(timeSlots, historyFreqs, duration);
     if (choice) {
       return {
-        start: new Date(choice.ts).toISOString(),
-        end: new Date(choice.plus(duration).ts).toISOString(),
+        start: choice.toISO(),
+        end: choice.plus(duration).toISO(),
       };
     }
     return null;
@@ -310,33 +338,47 @@ const context = {
   // eslint-disable-next-line valid-jsdoc
   /**
    *
-   * @param { Array } lastMonthBusySchedules [{startTime
-   * : ISO String, endTime: ISO String}]
-   * @return {[]}
+   * @param { Array } lastMonthBusySchedule [{startTime: ISO String, endTime: ISO String}]
+   * @return {[]} array of frequencies for each half hour time slot for this user
    */
-  getUserHistory: (lastMonthBusySchedules, category) => {
-    console.log(category);
+  async getUserHistory(lastMonthBusySchedule, category) {
+    console.log('getUserHistory');
+    console.log('cat', category);
+    console.log(lastMonthBusySchedule);
     const frequencies = [];
     for (let i = 0; i < days; i++) {
-      frequencies[i] = Array(halfHoursInDay).fill(0);
+      const vals = Array(halfHoursInDay).fill(0);
+      for (let j = 0; j < halfHoursInDay; j++) {
+        vals[j] = dictHourToDefaultFreq[Math.floor(j/2)];
+      }
+      frequencies[i] = vals;
     }
-    for (const lastMonthBusySchedule of lastMonthBusySchedules) {
-      for (const timeSlot of lastMonthBusySchedule) {
-        let sign = 1;
-        if (DIALOGFLOW.getCategory(timeSlot[2]) !== category) {
-          sign = -1;
-        }
-        let begin = DateTime.fromISO(timeSlot[0]);
-        const end = DateTime.fromISO(timeSlot[1]);
-        const startHour = begin.hour;
-        const startHalf = begin.minute >= 30 ? 1 : 0;
-        let i = startHour * 2 + startHalf;
-        while (begin < end) {
-          const day = begin.weekday - 1;
-          frequencies[day][i] = frequencies[day][i] + sign;
-          i = (i + 1) % halfHoursInDay;
-          begin = begin.plus(halfHour);
-        }
+    // let q = 0;
+    // const signs = [-1,-1,-1,-1,-1,-1,-1,-1,-1,0,
+    //   1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1,0,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1];
+    // for (const lastMonthBusySchedule of lastMonthBusySchedules) {
+    for (const timeSlot of lastMonthBusySchedule) {
+      // const sign = signs[q];
+      // q++;
+      const c = await DIALOGFLOW.getCategory(timeSlot[2]);
+      let sign = 1;
+      if (c === -1) {
+        // don't weight against un-categorised events
+        sign = 0;
+      } else if (c !== category) {
+        sign = -1;
+      }
+      console.log('event: ', timeSlot[2], '\t\tc: ', category, '\t\tsign', sign);
+      let begin = DateTime.fromISO(timeSlot[0]);
+      const end = DateTime.fromISO(timeSlot[1]);
+      const startHour = begin.hour;
+      const startHalf = begin.minute >= 30 ? 1 : 0;
+      let i = startHour * 2 + startHalf;
+      while (begin < end) {
+        const day = begin.weekday - 1;
+        frequencies[day][i] = frequencies[day][i] + sign;
+        i = (i + 1) % halfHoursInDay;
+        begin = begin.plus(halfHour);
       }
     }
     return frequencies;
