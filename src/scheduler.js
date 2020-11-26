@@ -241,10 +241,10 @@ const context = {
         }
       }
     }
-    let choices = freeTimes.map((xs) => [xs[0], xs[1].diff(xs[0])]);
+    // let choices = freeTimes.map((xs) => [xs[0], xs[1].diff(xs[0])]);
     // choices.sort((a, b) => a[1] - b[1]);
-    choices = choices.map((timeSlot) => [timeSlot[0], timeSlot[1], timeSlot[1].diff(timeSlot[0]).minutes]);
-    console.log(choices);
+    // choices = choices.map((timeSlot) => [timeSlot[0], timeSlot[1], timeSlot[1].diff(timeSlot[0]).minutes]);
+    // console.log(choices);
     let maxTimeSlotValue = -10000;
     let bestTimeSlot = null;
     for (const timeSlot of freeTimes) {
