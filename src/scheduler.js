@@ -324,7 +324,6 @@ const context = {
     }
     const timeSlots = context._schedule(freeTimes, duration, constraints);
     // console.log('timeslots ', timeSlots.map((interval) => [interval[0].toString(), interval[1].toString()]));
-
     const choice = context._chooseFromHistory(timeSlots, historyFreqs, duration);
     if (choice) {
       return {
@@ -334,7 +333,6 @@ const context = {
     }
     return null;
   },
-
   // eslint-disable-next-line valid-jsdoc
   /**
    *
@@ -368,7 +366,6 @@ const context = {
       } else if (c !== category) {
         sign = -1;
       }
-      console.log('event: ', timeSlot[2], '\t\tc: ', category, '\t\tsign', sign);
       let begin = DateTime.fromISO(timeSlot[0]);
       const end = DateTime.fromISO(timeSlot[1]);
       const startHour = begin.hour;
