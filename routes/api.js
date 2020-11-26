@@ -21,7 +21,7 @@ router.get('/schedule', async function(req, res) {
   let title = JSON.parse(decodeURIComponent(req.query.title));
   title = title.substring(1, title.length - 1);
 
-  const flexible = JSON.parse(decodeURIComponent(req.query.flexible)) === 'true';
+  const flexible = JSON.parse(decodeURIComponent(req.query.flexible));
 
   let startDateTimeOfRange;
   if (!req.query.startDateTimeOfRange) {
