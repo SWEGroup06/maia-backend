@@ -247,15 +247,25 @@ const context = {
     // console.log(choices);
     let maxTimeSlotValue = -10000;
     let bestTimeSlot = null;
+    let bestClusterVal = 1000000;
     for (const timeSlot of freeTimes) {
       let begin = timeSlot[0];
       const end = timeSlot[1];
-      // const clusterVal = end.diff(begin);
+      // clusterval represents how well clustered this event is -- wanna minimise this value
+      let clusterVal = end.diff(begin, ['minutes', 'hours']);
+      // console.log('begin: ', begin.toString(), '\t\tend: ', end.toString(), '\t\tclusterval: ', clusterVal.values.hours * 60 + clusterVal.values.minutes);
+      clusterVal = clusterVal.values.hours * 60 + clusterVal.values.minutes;
       while (begin <= end) {
         const v = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
         if (v > maxTimeSlotValue) {
           maxTimeSlotValue = v;
           bestTimeSlot = new DateTime(begin);
+          bestClusterVal = clusterVal;
+        } else if (v === maxTimeSlotValue) {
+          if (clusterVal < bestClusterVal) {
+            bestClusterVal = clusterVal;
+            bestTimeSlot = new DateTime(begin);
+          }
         }
         begin = begin.plus(halfHour);
       }
@@ -308,19 +318,14 @@ const context = {
     return freeSlots;
   },
 
-  findMeetingSlot(freeTimes, duration, constraints = null, historyFreqs, cluster=false) {
+  findMeetingSlot(freeTimes, duration, constraints = null, historyFreqs) {
     if (!freeTimes || freeTimes.length === 0) {
       return;
     }
     const timeSlots = context._schedule(freeTimes, duration, constraints);
     // console.log('timeslots ', timeSlots.map((interval) => [interval[0].toString(), interval[1].toString()]));
 
-    let choice;
-    if (cluster) {
-      choice = context._choose(timeSlots);
-    } else {
-      choice = context._chooseFromHistory(timeSlots, historyFreqs, duration);
-    }
+    const choice = context._chooseFromHistory(timeSlots, historyFreqs, duration);
     if (choice) {
       return {
         start: choice.toISO(),
@@ -358,7 +363,7 @@ const context = {
       const c = await DIALOGFLOW.getCategory(timeSlot[2]);
       let sign = 1;
       if (c === -1) {
-        // don't weight against uncategorised events
+        // don't weight against un-categorised events
         sign = 0;
       } else if (c !== category) {
         sign = -1;
