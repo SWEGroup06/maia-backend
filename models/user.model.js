@@ -19,7 +19,7 @@ const UserSchema = new Schema({
   },
   google: GoogleAccountSchema,
   constraints: [[{startTime: String, endTime: String}]],
-  frequencies: [[[Number]]],
+  frequencies: [{histFreq: [[Number]], timestamp: String}],
 });
 
 const User = mongoose.model('User', UserSchema);
