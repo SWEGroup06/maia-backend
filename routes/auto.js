@@ -47,4 +47,17 @@ router.get('/accept', async function(req, res) {
   }
 });
 
+router.post('/webhook', async function(req, res) {
+  const parts = req.headers['x-goog-resource-uri'].split('/');
+  const email = parts[parts.length - 2];
+  const data = {
+    email,
+    id: req.headers['x-goog-channel-id'],
+    resourceId: req.headers['x-goog-resource-id'],
+    timestamp: Date.now(),
+  };
+  console.log('WEBHOOK DATA', data);
+  res.sendStatus(200);
+});
+
 module.exports = router;
