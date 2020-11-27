@@ -11,10 +11,10 @@ for (let i = 0; i < 7; i++) {
   dictHourToDefaultFreq[i] = -15 + 2*i;
 }
 for (let i = 7; i < 23; i++) {
-  dictHourToDefaultFreq[i] = 0;
+  dictHourToDefaultFreq[i] = -1;
 }
 for (let i = 23; i <= 24; i++) {
-  dictHourToDefaultFreq[i] = -1;
+  dictHourToDefaultFreq[i] = -3;
 }
 
 const context = {
@@ -235,12 +235,15 @@ const context = {
     }
     const historyFreq = historyFreqs[0];
     if (historyFreqs.length > 1) {
-      for (let i = 0; i < 24*2*7; i++) {
-        for (const h of historyFreqs) {
-          historyFreq[i] += h[i];
+      for (let i = 0; i < 7; i++) {
+        for (let j = 0; j < 24*2; j++) {
+          for (const h of historyFreqs) {
+            historyFreq[i][j] += h[i][j];
+          }
         }
       }
     }
+    // console.log('combined', historyFreq);
     // let choices = freeTimes.map((xs) => [xs[0], xs[1].diff(xs[0])]);
     // choices.sort((a, b) => a[1] - b[1]);
     // choices = choices.map((timeSlot) => [timeSlot[0], timeSlot[1], timeSlot[1].diff(timeSlot[0]).minutes]);
@@ -342,7 +345,7 @@ const context = {
   async getUserHistory(lastMonthBusySchedule, category) {
     console.log('getUserHistory');
     console.log('cat', category);
-    console.log(lastMonthBusySchedule);
+    // console.log(lastMonthBusySchedule);
     const frequencies = [];
     for (let i = 0; i < days; i++) {
       const vals = Array(halfHoursInDay).fill(0);
