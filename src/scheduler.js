@@ -266,7 +266,7 @@ const context = {
       const end = timeSlot[1];
       // clusterval represents how well clustered this event is -- wanna minimise this value
       let clusterVal = end.diff(begin, ['minutes', 'hours']);
-      console.log('begin: ', begin.toString(), '\t\tend: ', end.toString(), '\t\tclusterval: ', clusterVal.values.hours * 60 + clusterVal.values.minutes);
+      // console.log('begin: ', begin.toString(), '\t\tend: ', end.toString(), '\t\tclusterval: ', clusterVal.values.hours * 60 + clusterVal.values.minutes);
       clusterVal = clusterVal.values.hours * 60 + clusterVal.values.minutes;
       while (begin <= end) {
         const v = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
