@@ -19,8 +19,8 @@ for (let i = 23; i <= 24; i++) {
 
 const context = {
   /**
-   * Internal function that takes two datetime objects and returns their interection, if that
-   * intersectoin is of a minimum size
+   * Internal function that takes two datetime objects and returns their intersection, if that
+   * intersection is of a minimum size
    * @param { datetime } slot1
    * @param { datetime } slot2
    * @param { duration } duration minimum size of interction is given by duration
@@ -88,6 +88,11 @@ const context = {
 
     return res;
   },
+  /**
+   *
+   * @param { Array } ranges
+   * @return { Array }
+   */
   merge: (ranges) => {
     const result = [];
     let last = null;
@@ -132,7 +137,7 @@ const context = {
     while (start <= end) {
       if (weekAvailability[day].length < 1) {
         res.push([context.combine(start, DateTime.fromObject({hour: 0, minute: 0})),
-          context.combine(start, DateTime.fromObject({hour: 23, minute: 59}))]);
+          context.combine(start, DateTime.fromObject({hour: 23, minute: 59, second: 59, millisecond: 999}))]);
       } else {
         weekAvailability[day].forEach(function(timeSlot) {
           if (timeSlot[0] !== '' && timeSlot[1] !== '') {
@@ -157,7 +162,7 @@ const context = {
    * , endtime]]
    */
   _schedule: (schedules, duration, constraints = null) => {
-    // bad input
+    // handle invalid input
     if (!schedules ||
       !schedules.length ||
       !duration) return null;
@@ -169,6 +174,7 @@ const context = {
     // console.log(schedules[0][0][0].toString(), schedules[0][0][1].toString(), schedules[0][1][0].toString(), schedules[0][1][1].toString(), );
     // console.log('schedules: ', schedules.map((schedule)=>{schedule.map((freeTime)=>[freeTime[0], freeTime[1]])}));
 
+    // find intersection of all the given schedules
     let ans = schedules[0];
     schedules.forEach((schedule) => {
       const curr = [];
@@ -199,8 +205,10 @@ const context = {
    */
   _choose: (freeTimes) => {
     const choices = freeTimes.map((xs) => [xs[0], xs[1].diff(xs[0])]);
+    console.log('choices: ', choices);
     choices.sort((a, b) => a[1] - b[1]);
     if (choices.length === 0) {
+      console.log('here');
       return null;
     }
     return choices[0][0];
@@ -229,6 +237,8 @@ const context = {
    */
   _chooseFromHistory: (freeTimes, historyFreqs, duration) => {
     // sum history freqs together to make one for everyone
+    console.log('---_chooseFromHistory---');
+    // console.log('freetimes: ', freeTimes[0]);
     if (historyFreqs.length < 1) {
       console.log('error in _chooseFromHistory: no history freqs given');
       return null;
@@ -256,7 +266,7 @@ const context = {
       const end = timeSlot[1];
       // clusterval represents how well clustered this event is -- wanna minimise this value
       let clusterVal = end.diff(begin, ['minutes', 'hours']);
-      // console.log('begin: ', begin.toString(), '\t\tend: ', end.toString(), '\t\tclusterval: ', clusterVal.values.hours * 60 + clusterVal.values.minutes);
+      console.log('begin: ', begin.toString(), '\t\tend: ', end.toString(), '\t\tclusterval: ', clusterVal.values.hours * 60 + clusterVal.values.minutes);
       clusterVal = clusterVal.values.hours * 60 + clusterVal.values.minutes;
       while (begin <= end) {
         const v = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
@@ -275,7 +285,6 @@ const context = {
     }
     return bestTimeSlot;
   },
-
   /* [
     [start, end]
     .
@@ -300,13 +309,13 @@ const context = {
     }
 
     // If start time is within a slot move start time to end of slot
-    if (begin > busySlots[0][0] && begin < busySlots[0][1]) {
+    if (begin >= busySlots[0][0] && begin < busySlots[0][1]) {
       begin = busySlots[0][1];
     }
-
     const freeSlots = [];
     for (let i = 0; i < busySlots.length; i++) {
       const busyTimeSlot = busySlots[i];
+      console.log('busytimeslot[', i, ']', ' ', busyTimeSlot[0].toISO(), busyTimeSlot[1].toISO(), freeSlots.length);
       if (busyTimeSlot[1] > end) {
         break;
       }
@@ -315,15 +324,26 @@ const context = {
         begin = busyTimeSlot[1];
       }
     }
-    if (begin < end) {
+    if (end - begin > Duration.fromObject({seconds: 5})) {
       freeSlots.push([begin, end]);
     }
+    console.log('xxx');
+    freeSlots.forEach((x) => console.log('abc', x[0].c, x[1].c));
     return freeSlots;
   },
-
+  /**
+   *
+   * @param { Array } freeTimes
+   * @param { Duration } duration
+   * @param { Array } constraints
+   * @param { Array } historyFreqs
+   * @return {null|{start: string, end: string}}
+   */
   findMeetingSlot(freeTimes, duration, constraints = null, historyFreqs) {
+    // TODO: Change this to return something even if it clashes! Maybe try reschedule other things!
     if (!freeTimes || freeTimes.length === 0) {
-      return;
+      // no free time slot found
+      return null;
     }
     const timeSlots = context._schedule(freeTimes, duration, constraints);
     // console.log('timeslots ', timeSlots.map((interval) => [interval[0].toString(), interval[1].toString()]));
@@ -336,17 +356,17 @@ const context = {
     }
     return null;
   },
-  // eslint-disable-next-line valid-jsdoc
   /**
    *
    * @param { Array } lastMonthBusySchedule [{startTime: ISO String, endTime: ISO String}]
+   * @param { Integer } category
    * @return {[]} array of frequencies for each half hour time slot for this user
    */
   async getUserHistory(lastMonthBusySchedule, category) {
-    console.log('getUserHistory');
-    console.log('cat', category);
-    // console.log(lastMonthBusySchedule);
+    console.log('---getUserHistory---');
+    console.log('category: ', category);
     const frequencies = [];
+    // initialise history frequencies to default
     for (let i = 0; i < days; i++) {
       const vals = Array(halfHoursInDay).fill(0);
       for (let j = 0; j < halfHoursInDay; j++) {
@@ -354,13 +374,7 @@ const context = {
       }
       frequencies[i] = vals;
     }
-    // let q = 0;
-    // const signs = [-1,-1,-1,-1,-1,-1,-1,-1,-1,0,
-    //   1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1,0,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1];
-    // for (const lastMonthBusySchedule of lastMonthBusySchedules) {
     for (const timeSlot of lastMonthBusySchedule) {
-      // const sign = signs[q];
-      // q++;
       const c = await DIALOGFLOW.getCategory(timeSlot[2]);
       let sign = 1;
       if (c === -1) {
