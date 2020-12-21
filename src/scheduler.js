@@ -327,8 +327,8 @@ const context = {
     if (end - begin > Duration.fromObject({seconds: 5})) {
       freeSlots.push([begin, end]);
     }
-    console.log('xxx');
-    freeSlots.forEach((x) => console.log('abc', x[0].c, x[1].c));
+    // console.log('xxx');
+    // freeSlots.forEach((x) => console.log('abc', x[0].c, x[1].c));
     return freeSlots;
   },
   /**
