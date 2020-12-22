@@ -4,7 +4,6 @@ const DIALOGFLOW = require('../lib/dialogflow.js');
 
 /* CONSTANTS */
 const halfHoursInDay = 24 * 2;
-const days = 7;
 const halfHour = Duration.fromObject({minutes: 30});
 const LEISURE = 0;
 const UNKNOWN = -1;
@@ -391,7 +390,7 @@ const context = {
       }
     }
     // default work hist freq:
-    if (category === WORK) {
+    if (category === WORK || category === UNKNOWN) {
       // weekend days are LESS popular
       for (let i = 5; i < 7; i++) {
         const vals = Array(halfHoursInDay).fill(0);
@@ -433,7 +432,7 @@ const context = {
       let sign = 1;
       if (c === -1) {
         // don't weight against un-categorised events
-        sign = 0;
+        continue;
       } else if (c !== category) {
         sign = -1;
       }
