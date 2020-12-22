@@ -100,6 +100,10 @@ router.get('/reschedule', async function(req, res) {
 
     const chosenSlot = await MEETINGS.reschedule(startTime, meetingTitle, email, startOfRangeToRescheduleTo, endOfRangeToRescheduleTo);
 
+    /*
+     TODO: If there is more than one meeting with given name, ask which one you wanna reschedule.
+     */
+
     res.json(chosenSlot);
   } catch (error) {
     console.error(error);
@@ -165,7 +169,7 @@ router.get('/constraint', async function(req, res) {
     const days = JSON.parse(decodeURIComponent(req.query.busyDays));
     const times = JSON.parse(decodeURIComponent(req.query.busyTimes));
 
-    await MEETINGS.setContraints(email, days, times);
+    await MEETINGS.setConstraints(email, days, times);
 
     res.send({success: true});
   } catch (error) {
