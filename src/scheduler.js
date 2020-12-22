@@ -362,68 +362,31 @@ const context = {
   initialiseHistFreqs(category) {
     const frequencies = Array(7);
     // // initialise history frequencies to default for this category
-    // for (let i = 0; i < days; i++) {
-    //   const vals = Array(halfHoursInDay).fill(0);
-    //   for (let j = 0; j < halfHoursInDay; j++) {
-    //     vals[j] = dictHourToDefaultFreq[Math.floor(j/2)];
-    //   }
-    //   frequencies[i] = vals;
-    // }
     // default leisure hist freq:
     if (category === LEISURE) {
       // workdays are less popular
       for (let i = 0; i < 5; i++) {
         const vals = Array(halfHoursInDay).fill(0);
-        for (let i = 0; i <= 8; i++) {
-          vals[i] = -5;
-        }
-        for (let i = 9; i <= 18; i++) {
-          vals[i] = -8.2+0.4*i;
-        }
-        for (let i = 19; i < 24; i++) {
-          vals[i] = -1;
-        }
-        for (let i = 24; i < 28; i++) {
-          vals[i] = -2;
-        }
-        for (let i = 28; i <= 34; i++) {
-          vals[i] = -1;
-        }
-        for (let i = 35; i <= 36; i++) {
-          vals[i] = -35 + i;
-        }
-        for (let i = 37; i <= 42; i++) {
-          vals[i] = 1;
-        }
-        for (let i = 43; i < 48; i++) {
-          vals[i] = 43-i;
-        }
+        for (let i = 0; i <= 8; i++) vals[i] = -5;
+        for (let i = 9; i <= 18; i++) vals[i] = -8.2+0.4*i;
+        for (let i = 19; i < 24; i++) vals[i] = -1;
+        for (let i = 24; i < 28; i++) vals[i] = -2;
+        for (let i = 28; i <= 34; i++) vals[i] = -1;
+        for (let i = 35; i <= 36; i++) vals[i] = -35 + i;
+        for (let i = 37; i <= 42; i++) vals[i] = 1;
+        for (let i = 43; i < 48; i++) vals[i] = 43-i;
         frequencies[i]=vals;
       }
       // weekend days are more popular
       for (let i = 5; i < 7; i++) {
         const vals = Array(halfHoursInDay).fill(0);
-        for (let i = 0; i <= 8; i++) {
-          vals[i] = -5;
-        }
-        for (let i = 9; i <= 16; i++) {
-          vals[i] = -10 + 0.625*i;
-        }
-        for (let i = 17; i <= 21; i++) {
-          vals[i] = 0;
-        }
-        for (let i = 22; i <= 23; i++) {
-          vals[i] = 1;
-        }
-        for (let i = 24; i <= 27; i++) {
-          vals[i] = -1;
-        }
-        for (let i = 28; i <= 40; i++) {
-          vals[i] = 1;
-        }
-        for (let i = 41; i < 48; i++) {
-          vals[i] = 31 - 3/4 * i;
-        }
+        for (let i = 0; i <= 8; i++) vals[i] = -5;
+        for (let i = 9; i <= 16; i++) vals[i] = -10 + 0.625*i;
+        for (let i = 17; i <= 21; i++) vals[i] = 0;
+        for (let i = 22; i <= 23; i++) vals[i] = 1;
+        for (let i = 24; i <= 27; i++) vals[i] = -1;
+        for (let i = 28; i <= 40; i++) vals[i] = 1;
+        for (let i = 41; i < 48; i++) vals[i] = 31 - 3/4 * i;
         frequencies[i]=vals;
       }
     }
@@ -432,50 +395,24 @@ const context = {
       // weekend days are LESS popular
       for (let i = 5; i < 7; i++) {
         const vals = Array(halfHoursInDay).fill(0);
-        for (let i = 0; i <= 8; i++) {
-          vals[i] = -5;
-        }
-        for (let i = 9; i <= 20; i++) {
-          vals[i] = -5 - 8/3 + 1/3*i;
-        }
-        for (let i = 21; i < 24; i++) {
-          vals[i] = -1;
-        }
-        for (let i = 24; i < 28; i++) {
-          vals[i] = -2;
-        }
-        for (let i = 28; i <= 38; i++) {
-          vals[i] = -1;
-        }
-        for (let i = 39; i < 48; i++) {
-          vals[i] = 14.2-0.4*i;
-        }
+        for (let i = 0; i <= 8; i++) vals[i] = -5;
+        for (let i = 9; i <= 20; i++) vals[i] = -5 - 8/3 + 1/3*i;
+        for (let i = 21; i < 24; i++) vals[i] = -1;
+        for (let i = 24; i < 28; i++) vals[i] = -2;
+        for (let i = 28; i <= 38; i++) vals[i] = -1;
+        for (let i = 39; i < 48; i++) vals[i] = 14.2-0.4*i;
         frequencies[i]=vals;
       }
       // week days are MORE popular
       for (let i = 0; i < 5; i++) {
         const vals = Array(halfHoursInDay).fill(0);
-        for (let i = 0; i <= 8; i++) {
-          vals[i] = -5;
-        }
-        for (let i = 9; i < 18; i++) {
-          vals[i] = -9.8 + 0.6*i;
-        }
-        for (let i = 18; i < 24; i++) {
-          vals[i] = 1;
-        }
-        for (let i = 24; i <= 27; i++) {
-          vals[i] = -1;
-        }
-        for (let i = 28; i <= 34; i++) {
-          vals[i] = 1;
-        }
-        for (let i = 35; i <= 42; i++) {
-          vals[i] = 0;
-        }
-        for (let i = 43; i < 48; i++) {
-          vals[i] = 35-5/6*i;
-        }
+        for (let i = 0; i <= 8; i++) vals[i] = -5;
+        for (let i = 9; i < 18; i++) vals[i] = -9.8 + 0.6*i;
+        for (let i = 18; i < 24; i++) vals[i] = 1;
+        for (let i = 24; i <= 27; i++) vals[i] = -1;
+        for (let i = 28; i <= 34; i++) vals[i] = 1;
+        for (let i = 35; i <= 42; i++) vals[i] = 0;
+        for (let i = 43; i < 48; i++) vals[i] = 35-5/6*i;
         frequencies[i]=vals;
       }
     }
