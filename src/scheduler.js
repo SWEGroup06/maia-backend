@@ -412,33 +412,42 @@ const context = {
         for (let i = 9; i <= 20; i++) {
           vals[i] = -5 - 8/3 + 1/3*i;
         }
-        for (let i = 21; i <= 24; i++) {
+        for (let i = 21; i < 24; i++) {
           vals[i] = -1;
         }
-        for (let i = 25; i <= 28; i++) {
+        for (let i = 24; i < 28; i++) {
           vals[i] = -2;
         }
-        for (let i = 29; i <= 38; i++) {
+        for (let i = 28; i <= 38; i++) {
           vals[i] = -1;
         }
-        for (let i = 39; i <= 48; i++) {
+        for (let i = 39; i < 48; i++) {
           vals[i] = 14.2-0.4*i;
         }
       }
-      // 8: -5
-      // 20: -1
-      // -
       // week days are MORE popular
       for (let i = 0; i < 5; i++) {
         const vals = Array(halfHoursInDay).fill(0);
-        for (let i = 0; i < 20; i++) {
-          vals[i] = -40 + 2 * i;
+        for (let i = 0; i <= 8; i++) {
+          vals[i] = -5;
         }
-        for (let i = 20; i < 18 * 2; i++) {
+        for (let i = 9; i < 18; i++) {
+          vals[i] = -9.8 + 0.6*i;
+        }
+        for (let i = 18; i < 24; i++) {
+          vals[i] = 1;
+        }
+        for (let i = 24; i <= 27; i++) {
           vals[i] = -1;
         }
-        for (let i = 18 * 2; i <= 48; i++) {
-          vals[i] = -i/36;
+        for (let i = 28; i <= 34; i++) {
+          vals[i] = 1;
+        }
+        for (let i = 35; i <= 42; i++) {
+          vals[i] = 0;
+        }
+        for (let i = 43; i < 48; i++) {
+          vals[i] = 35-5/6*i;
         }
       }
     }
