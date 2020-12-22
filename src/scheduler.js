@@ -6,6 +6,9 @@ const DIALOGFLOW = require('../lib/dialogflow.js');
 const halfHoursInDay = 24 * 2;
 const days = 7;
 const halfHour = Duration.fromObject({minutes: 30});
+const LEISURE = 0;
+const UNKNOWN = -1;
+const WORK = 1;
 const dictHourToDefaultFreq = {};
 for (let i = 0; i < 7; i++) {
   dictHourToDefaultFreq[i] = -15 + 2*i;
@@ -356,6 +359,91 @@ const context = {
     }
     return null;
   },
+  initialiseHistFreqs(category) {
+    const frequencies = Array(7);
+    // // initialise history frequencies to default for this category
+    // for (let i = 0; i < days; i++) {
+    //   const vals = Array(halfHoursInDay).fill(0);
+    //   for (let j = 0; j < halfHoursInDay; j++) {
+    //     vals[j] = dictHourToDefaultFreq[Math.floor(j/2)];
+    //   }
+    //   frequencies[i] = vals;
+    // }
+    // default leisure hist freq:
+    if (category === LEISURE) {
+      // week days are less popular
+      for (let i = 0; i < 5; i++) {
+        const vals = Array(halfHoursInDay).fill(0);
+
+        for (let i = 0; i < 14; i++) {
+          vals[i] = -15 + 2 * i;
+        }
+        for (let i = 14; i < 18 * 2; i++) {
+          vals[i] = -1;
+        }
+        // after work is fine
+        for (let i = 18 * 2; i <= 48; i++) {
+          vals[i] = (48-i) / i;
+        }
+        frequencies[i] = vals;
+      }
+      // weekend days are more popular
+      for (let i = 5; i < 7; i++) {
+        const vals = Array(halfHoursInDay).fill(0);
+        for (let i = 0; i < 22; i++) {
+          vals[i] = -15 + 2 * i;
+        }
+        for (let i = 22; i < 21 * 2; i++) {
+          vals[i] = 0;
+        }
+        for (let i = 21 * 2; i <= 48; i++) {
+          vals[i] = 0 - (i - 42) / 4;
+        }
+      }
+    }
+    // default work hist freq:
+    if (category === WORK) {
+      // weekend days are LESS popular
+      for (let i = 5; i < 7; i++) {
+        const vals = Array(halfHoursInDay).fill(0);
+        for (let i = 0; i <= 8; i++) {
+          vals[i] = -5;
+        }
+        for (let i = 9; i <= 20; i++) {
+          vals[i] = -5 - 8/3 + 1/3*i;
+        }
+        for (let i = 21; i <= 24; i++) {
+          vals[i] = -1;
+        }
+        for (let i = 25; i <= 28; i++) {
+          vals[i] = -2;
+        }
+        for (let i = 29; i <= 38; i++) {
+          vals[i] = -1;
+        }
+        for (let i = 39; i <= 48; i++) {
+          vals[i] = 14.2-0.4*i;
+        }
+      }
+      // 8: -5
+      // 20: -1
+      // -
+      // week days are MORE popular
+      for (let i = 0; i < 5; i++) {
+        const vals = Array(halfHoursInDay).fill(0);
+        for (let i = 0; i < 20; i++) {
+          vals[i] = -40 + 2 * i;
+        }
+        for (let i = 20; i < 18 * 2; i++) {
+          vals[i] = -1;
+        }
+        for (let i = 18 * 2; i <= 48; i++) {
+          vals[i] = -i/36;
+        }
+      }
+    }
+    return frequencies;
+  },
   /**
    *
    * @param { Array } lastMonthBusySchedule [{startTime: ISO String, endTime: ISO String}]
@@ -365,15 +453,7 @@ const context = {
   async getUserHistory(lastMonthBusySchedule, category) {
     console.log('---getUserHistory---');
     console.log('category: ', category);
-    const frequencies = [];
-    // initialise history frequencies to default
-    for (let i = 0; i < days; i++) {
-      const vals = Array(halfHoursInDay).fill(0);
-      for (let j = 0; j < halfHoursInDay; j++) {
-        vals[j] = dictHourToDefaultFreq[Math.floor(j/2)];
-      }
-      frequencies[i] = vals;
-    }
+    const frequencies = this.initialiseHistFreqs(category);
     for (const timeSlot of lastMonthBusySchedule) {
       const c = await DIALOGFLOW.getCategory(timeSlot[2]);
       let sign = 1;
