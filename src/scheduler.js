@@ -371,34 +371,60 @@ const context = {
     // }
     // default leisure hist freq:
     if (category === LEISURE) {
-      // week days are less popular
+      // workdays are less popular
       for (let i = 0; i < 5; i++) {
         const vals = Array(halfHoursInDay).fill(0);
-
-        for (let i = 0; i < 14; i++) {
-          vals[i] = -15 + 2 * i;
+        for (let i = 0; i <= 8; i++) {
+          vals[i] = -5;
         }
-        for (let i = 14; i < 18 * 2; i++) {
+        for (let i = 9; i <= 18; i++) {
+          vals[i] = -8.2+0.4*i;
+        }
+        for (let i = 19; i < 24; i++) {
           vals[i] = -1;
         }
-        // after work is fine
-        for (let i = 18 * 2; i <= 48; i++) {
-          vals[i] = (48-i) / i;
+        for (let i = 24; i < 28; i++) {
+          vals[i] = -2;
         }
-        frequencies[i] = vals;
+        for (let i = 28; i <= 34; i++) {
+          vals[i] = -1;
+        }
+        for (let i = 35; i <= 36; i++) {
+          vals[i] = -35 + i;
+        }
+        for (let i = 37; i <= 42; i++) {
+          vals[i] = 1;
+        }
+        for (let i = 43; i < 48; i++) {
+          vals[i] = 43-i;
+        }
+        frequencies[i]=vals;
       }
       // weekend days are more popular
       for (let i = 5; i < 7; i++) {
         const vals = Array(halfHoursInDay).fill(0);
-        for (let i = 0; i < 22; i++) {
-          vals[i] = -15 + 2 * i;
+        for (let i = 0; i <= 8; i++) {
+          vals[i] = -5;
         }
-        for (let i = 22; i < 21 * 2; i++) {
+        for (let i = 9; i <= 16; i++) {
+          vals[i] = -10 + 0.625*i;
+        }
+        for (let i = 17; i <= 21; i++) {
           vals[i] = 0;
         }
-        for (let i = 21 * 2; i <= 48; i++) {
-          vals[i] = 0 - (i - 42) / 4;
+        for (let i = 22; i <= 23; i++) {
+          vals[i] = 1;
         }
+        for (let i = 24; i <= 27; i++) {
+          vals[i] = -1;
+        }
+        for (let i = 28; i <= 40; i++) {
+          vals[i] = 1;
+        }
+        for (let i = 41; i < 48; i++) {
+          vals[i] = 31 - 3/4 * i;
+        }
+        frequencies[i]=vals;
       }
     }
     // default work hist freq:
@@ -424,6 +450,7 @@ const context = {
         for (let i = 39; i < 48; i++) {
           vals[i] = 14.2-0.4*i;
         }
+        frequencies[i]=vals;
       }
       // week days are MORE popular
       for (let i = 0; i < 5; i++) {
@@ -449,6 +476,7 @@ const context = {
         for (let i = 43; i < 48; i++) {
           vals[i] = 35-5/6*i;
         }
+        frequencies[i]=vals;
       }
     }
     return frequencies;
