@@ -9,16 +9,6 @@ const halfHour = Duration.fromObject({minutes: 30});
 const LEISURE = 0;
 const UNKNOWN = -1;
 const WORK = 1;
-const dictHourToDefaultFreq = {};
-for (let i = 0; i < 7; i++) {
-  dictHourToDefaultFreq[i] = -15 + 2*i;
-}
-for (let i = 7; i < 23; i++) {
-  dictHourToDefaultFreq[i] = -1;
-}
-for (let i = 23; i <= 24; i++) {
-  dictHourToDefaultFreq[i] = -3;
-}
 
 const context = {
   /**
