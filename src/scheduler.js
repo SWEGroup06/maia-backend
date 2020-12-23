@@ -1,6 +1,7 @@
 const {DateTime, Duration} = require('luxon');
 
 const DIALOGFLOW = require('../lib/dialogflow.js');
+// const PLOT = require('plotter').plot;
 
 /* CONSTANTS */
 const halfHoursInDay = 24 * 2;
@@ -347,6 +348,13 @@ const context = {
       // no free time slot found
       return null;
     }
+    // for (let i = 0; i < 7; i++) {
+    //   PLOT({
+    //     data: historyFreqs[0][i],
+    //     filename: `output_${i}.svg`,
+    //     format: 'svg',
+    //   });
+    // }
     const timeSlots = context._schedule(freeTimes, duration, constraints);
     // console.log('timeslots ', timeSlots.map((interval) => [interval[0].toString(), interval[1].toString()]));
     const choice = context._chooseFromHistory(timeSlots, historyFreqs, duration);
