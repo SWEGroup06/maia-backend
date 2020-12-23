@@ -7,6 +7,25 @@ const GOOGLE = require('../lib/google.js');
 const DATABASE = require('../lib/database');
 const MEETINGS = require('../lib/meetings.js');
 
+/**
+ * If the user specifies the event to be 'before' or 'after' a specific range, we must change the start
+ * and end time of the range.
+ * @param {String} beforeAfterKey - either "before" or "after"
+ * @param {DateTime} endDateTimeOfRange
+ * @param {DateTime} startDateTimeOfRange
+ * @return {{startDateTimeOfRange: DateTime, endDateTimeOfRange: (DateTime|Duration|*)}}
+ */
+function getStartEndTimeUsingBeforeAfterKey(beforeAfterKey, endDateTimeOfRange, startDateTimeOfRange) {
+  if (beforeAfterKey === '\"before\"') {
+    endDateTimeOfRange = startDateTimeOfRange;
+    startDateTimeOfRange = DateTime.local().plus({hours: 1}); // TODO: try to round to nearest half hour
+  } else if (beforeAfterKey === '\"after\"') {
+    startDateTimeOfRange = endDateTimeOfRange;
+    endDateTimeOfRange = startDateTimeOfRange.plus({days: 14});
+  }
+  return {endDateTimeOfRange, startDateTimeOfRange};
+}
+
 // Schedule a new meeting
 router.get('/schedule', async function(req, res) {
   if (!req.query.emails) {
@@ -23,24 +42,36 @@ router.get('/schedule', async function(req, res) {
 
   const flexible = JSON.parse(decodeURIComponent(req.query.flexible));
 
+  const beforeAfterKey = req.query.beforeAfterKey;
+
   let startDateTimeOfRange;
   if (!req.query.startDateTimeOfRange) {
-    startDateTimeOfRange = new Date().toISOString();
+    startDateTimeOfRange = DateTime.local();
   } else {
-    startDateTimeOfRange = JSON.parse(decodeURIComponent(req.query.startDateTimeOfRange));
+    startDateTimeOfRange = DateTime.fromISO(JSON.parse(decodeURIComponent(req.query.startDateTimeOfRange)));
   }
 
   let endDateTimeOfRange;
   if (!req.query.endDateTimeOfRange) {
-    endDateTimeOfRange = new Date(startDateTimeOfRange.getFullYear(), startDateTimeOfRange.getMonth(), startDateTimeOfRange.getDay() + 14).toISOString();
+    endDateTimeOfRange = startDateTimeOfRange.plus({days: 14});
   } else {
-    endDateTimeOfRange = JSON.parse(decodeURIComponent(req.query.endDateTimeOfRange));
+    endDateTimeOfRange = DateTime.fromISO(JSON.parse(decodeURIComponent(req.query.endDateTimeOfRange)));
+  }
+
+  if (beforeAfterKey) {
+    const startEndTimes = getStartEndTimeUsingBeforeAfterKey(beforeAfterKey, endDateTimeOfRange, startDateTimeOfRange);
+    endDateTimeOfRange = startEndTimes.endDateTimeOfRange;
+    startDateTimeOfRange = startEndTimes.startDateTimeOfRange;
   }
 
   const slackEmails = JSON.parse(decodeURIComponent(req.query.emails));
 
   try {
-    const chosenSlot = await MEETINGS.schedule(title, slackEmails, startDateTimeOfRange, endDateTimeOfRange, flexible);
+    const chosenSlot = await MEETINGS.schedule(title,
+        slackEmails,
+        startDateTimeOfRange.toISO(),
+        endDateTimeOfRange.toISO(),
+        flexible);
     res.json(chosenSlot);
   } catch (error) {
     console.error(error);
