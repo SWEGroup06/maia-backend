@@ -69,10 +69,12 @@ router.get('/reschedule', async function(req, res) {
   }
 
   let startOfRangeToRescheduleTo;
+  let specificTimeGiven = false;
   if (!req.query.newStartDateTime) {
     startOfRangeToRescheduleTo = DateTime.local();
   } else {
     startOfRangeToRescheduleTo = JSON.parse(decodeURIComponent(req.query.newStartDateTime));
+    specificTimeGiven = true;
   }
 
   try {
@@ -98,7 +100,14 @@ router.get('/reschedule', async function(req, res) {
     console.log(endOfRangeToRescheduleTo);
     console.log('**************************************');
 
-    const chosenSlot = await MEETINGS.reschedule(startTime, meetingTitle, email, startOfRangeToRescheduleTo, endOfRangeToRescheduleTo);
+    const chosenSlot = await MEETINGS.reschedule(
+        startTime,
+        meetingTitle,
+        email,
+        startOfRangeToRescheduleTo,
+        endOfRangeToRescheduleTo,
+        specificTimeGiven,
+    );
 
     res.json(chosenSlot);
   } catch (error) {
