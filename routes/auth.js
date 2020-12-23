@@ -41,7 +41,7 @@ router.get('/login', async function(req, res) {
 });
 
 // eslint-disable-next-line require-jsdoc
-async function generateHistFreq(tokens) {
+async function generateHistFreq(tokens, slackEmail) {
   const today = DateTime.local();
   const oneMonthAgo = today.minus(Duration.fromObject({days: 30}));
 
@@ -53,7 +53,7 @@ async function generateHistFreq(tokens) {
 
   for (let category=0; category < NUM_CATEGORIES; category++) {
     histFreq = await SCHEDULER.getUserHistory(lastMonthHist, category);
-    await DATABASE.setFrequenciesByCategory(state.email, category, histFreq);
+    await DATABASE.setFrequenciesByCategory(slackEmail, category, histFreq);
   }
   console.log('---history frequencies completed---');
 }
@@ -76,7 +76,7 @@ router.get('/callback', async function(req, res) {
     const googleEmail = await GOOGLE.getEmail(tokens);
     await DATABASE.createNewUser(state.userID, state.email, googleEmail, JSON.stringify(tokens));
 
-    setTimeout(() => generateHistFreq(tokens), 0);
+    setTimeout(() => generateHistFreq(tokens, state.email), 0);
 
     // Redirect to success page
     res.redirect('success/login.html');
