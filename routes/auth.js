@@ -40,6 +40,24 @@ router.get('/login', async function(req, res) {
   }
 });
 
+// eslint-disable-next-line require-jsdoc
+async function generateHistFreq() {
+  const today = DateTime.local();
+  const oneMonthAgo = today.minus(Duration.fromObject({days: 30}));
+
+  // TODO: add some form of loading screen here
+  let lastMonthHist = await GOOGLE.getMeetings(tokens, oneMonthAgo.toISO(), today.toISO());
+  lastMonthHist = lastMonthHist.map((e) => [e.start.dateTime, e.end.dateTime, e.summary]);
+  let histFreq;
+  console.log('---generating history frequencies---');
+
+  for (let category=0; category < NUM_CATEGORIES; category++) {
+    histFreq = await SCHEDULER.getUserHistory(lastMonthHist, category);
+    await DATABASE.setFrequenciesByCategory(state.email, category, histFreq);
+  }
+  console.log('---history frequencies completed---');
+}
+
 // Google OAuth2 callback
 router.get('/callback', async function(req, res) {
   if (!req.query.code) {
@@ -52,25 +70,13 @@ router.get('/callback', async function(req, res) {
   }
 
   try {
-    const today = DateTime.local();
-    const oneMonthAgo = today.minus(Duration.fromObject({days: 30}));
-
     const state = JSON.parse(decodeURIComponent(req.query.state));
 
     const tokens = await GOOGLE.getTokens(req.query.code);
     const googleEmail = await GOOGLE.getEmail(tokens);
     await DATABASE.createNewUser(state.userID, state.email, googleEmail, JSON.stringify(tokens));
 
-    // TODO: add some form of loading screen here
-    let lastMonthHist = await GOOGLE.getMeetings(tokens, oneMonthAgo.toISO(), today.toISO());
-    lastMonthHist = lastMonthHist.map((e) => [e.start.dateTime, e.end.dateTime, e.summary]);
-    let histFreq;
-    console.log('---generating history frequencies---');
-    for (let category=0; category < NUM_CATEGORIES; category++) {
-      histFreq = await SCHEDULER.getUserHistory(lastMonthHist, category);
-      await DATABASE.setFrequenciesByCategory(state.email, category, histFreq);
-    }
-    console.log('---history frequencies completed---');
+    setTimeout(generateHistFreq, 0);
 
     // Redirect to success page
     res.redirect('success/login.html');
