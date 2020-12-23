@@ -7,6 +7,25 @@ const GOOGLE = require('../lib/google.js');
 const DATABASE = require('../lib/database');
 const MEETINGS = require('../lib/meetings.js');
 
+/**
+ * If the user specifies the event to be 'before' or 'after' a specific range, we must change the start
+ * and end time of the range.
+ * @param {String} beforeAfterKey - either "before" or "after"
+ * @param {DateTime} startDateTimeOfRange
+ * @param {DateTime} endDateTimeOfRange
+ * @return {{startDateTimeOfRange: DateTime, endDateTimeOfRange: (DateTime|Duration|*)}}
+ */
+function getStartEndTimesWithBeforeAfterKey(beforeAfterKey, startDateTimeOfRange, endDateTimeOfRange) {
+  if (beforeAfterKey === '\"before\"') {
+    endDateTimeOfRange = startDateTimeOfRange;
+    startDateTimeOfRange = DateTime.local().plus({hours: 1}); // TODO: try to round to nearest half hour
+  } else if (beforeAfterKey === '\"after\"') {
+    startDateTimeOfRange = endDateTimeOfRange;
+    endDateTimeOfRange = startDateTimeOfRange.plus({days: 14});
+  }
+  return {endDateTimeOfRange, startDateTimeOfRange};
+}
+
 // Schedule a new meeting
 router.get('/schedule', async function(req, res) {
   if (!req.query.emails) {
@@ -23,24 +42,36 @@ router.get('/schedule', async function(req, res) {
 
   const flexible = JSON.parse(decodeURIComponent(req.query.flexible));
 
+  const beforeAfterKey = req.query.beforeAfterKey;
+
   let startDateTimeOfRange;
   if (!req.query.startDateTimeOfRange) {
-    startDateTimeOfRange = new Date().toISOString();
+    startDateTimeOfRange = DateTime.local();
   } else {
-    startDateTimeOfRange = JSON.parse(decodeURIComponent(req.query.startDateTimeOfRange));
+    startDateTimeOfRange = DateTime.fromISO(JSON.parse(decodeURIComponent(req.query.startDateTimeOfRange)));
   }
 
   let endDateTimeOfRange;
   if (!req.query.endDateTimeOfRange) {
-    endDateTimeOfRange = new Date(startDateTimeOfRange.getFullYear(), startDateTimeOfRange.getMonth(), startDateTimeOfRange.getDay() + 14).toISOString();
+    endDateTimeOfRange = startDateTimeOfRange.plus({days: 14});
   } else {
-    endDateTimeOfRange = JSON.parse(decodeURIComponent(req.query.endDateTimeOfRange));
+    endDateTimeOfRange = DateTime.fromISO(JSON.parse(decodeURIComponent(req.query.endDateTimeOfRange)));
+  }
+
+  if (beforeAfterKey) {
+    const startEndTimes = getStartEndTimesWithBeforeAfterKey(beforeAfterKey, startDateTimeOfRange, endDateTimeOfRange);
+    startDateTimeOfRange = startEndTimes.startDateTimeOfRange;
+    endDateTimeOfRange = startEndTimes.endDateTimeOfRange;
   }
 
   const slackEmails = JSON.parse(decodeURIComponent(req.query.emails));
 
   try {
-    const chosenSlot = await MEETINGS.schedule(title, slackEmails, startDateTimeOfRange, endDateTimeOfRange, flexible);
+    const chosenSlot = await MEETINGS.schedule(title,
+        slackEmails,
+        startDateTimeOfRange.toISO(),
+        endDateTimeOfRange.toISO(),
+        flexible);
     res.json(chosenSlot);
   } catch (error) {
     console.error(error);
@@ -57,6 +88,8 @@ router.get('/reschedule', async function(req, res) {
 
   // TODO: This is an unbelievable clapped way to do this I am so sorry, I will change it later - Ali
   const meetingTitle = req.query.meetingTitle.substring(3, req.query.meetingTitle.length - 3);
+
+  const beforeAfterKey = req.query.beforeAfterKey;
 
   if (!req.query.organiserSlackEmail) {
     res.json({error: 'Organiser\'s slack email not found'});
@@ -90,6 +123,13 @@ router.get('/reschedule', async function(req, res) {
 
     const startTime = JSON.parse(decodeURIComponent(req.query.eventStartTime));
     const email = JSON.parse(decodeURIComponent(req.query.organiserSlackEmail));
+
+    if (beforeAfterKey) {
+      const startEndTimes =
+       getStartEndTimesWithBeforeAfterKey(beforeAfterKey, startOfRangeToRescheduleTo, endOfRangeToRescheduleTo);
+      startOfRangeToRescheduleTo = startEndTimes.startDateTimeOfRange;
+      endOfRangeToRescheduleTo = startEndTimes.endDateTimeOfRange;
+    }
 
     // TODO: Delete these
     console.log('PARAMETERS FOR MEETINGS.RESCHEDULE****');
@@ -136,7 +176,7 @@ router.get('/meetings', async function(req, res) {
     const token = JSON.parse(await DATABASE.getToken(email));
     const today = new Date();
     // End date in one week for now
-    const endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate()+7);
+    const endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7);
     const events = await GOOGLE.getMeetings(token, today.toISOString(), endDate.toISOString());
 
     if (!events || events.length === 0) {
