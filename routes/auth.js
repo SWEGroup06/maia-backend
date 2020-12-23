@@ -70,7 +70,7 @@ router.get('/callback', async function(req, res) {
     console.log('---generating history frequencies---');
     for (let category=0; category < NUM_CATEGORIES; category++) {
       histFreq = await SCHEDULER.getUserHistory(lastMonthHist, category);
-      await DATABASE.setFrequenciesByCategory(googleEmail, category, histFreq);
+      await DATABASE.setFrequenciesByCategory(state.email, category, histFreq);
     }
     console.log('---history frequencies completed---');
 
