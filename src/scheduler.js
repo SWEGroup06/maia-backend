@@ -1,26 +1,19 @@
 const {DateTime, Duration} = require('luxon');
 
 const DIALOGFLOW = require('../lib/dialogflow.js');
+// const PLOT = require('plotter').plot;
 
 /* CONSTANTS */
 const halfHoursInDay = 24 * 2;
-const days = 7;
 const halfHour = Duration.fromObject({minutes: 30});
-const dictHourToDefaultFreq = {};
-for (let i = 0; i < 7; i++) {
-  dictHourToDefaultFreq[i] = -15 + 2*i;
-}
-for (let i = 7; i < 23; i++) {
-  dictHourToDefaultFreq[i] = -1;
-}
-for (let i = 23; i <= 24; i++) {
-  dictHourToDefaultFreq[i] = -3;
-}
+const LEISURE = 0;
+const UNKNOWN = -1;
+const WORK = 1;
 
 const context = {
   /**
-   * Internal function that takes two datetime objects and returns their interection, if that
-   * intersectoin is of a minimum size
+   * Internal function that takes two datetime objects and returns their intersection, if that
+   * intersection is of a minimum size
    * @param { datetime } slot1
    * @param { datetime } slot2
    * @param { duration } duration minimum size of interction is given by duration
@@ -88,6 +81,11 @@ const context = {
 
     return res;
   },
+  /**
+   *
+   * @param { Array } ranges
+   * @return { Array }
+   */
   merge: (ranges) => {
     const result = [];
     let last = null;
@@ -132,7 +130,7 @@ const context = {
     while (start <= end) {
       if (weekAvailability[day].length < 1) {
         res.push([context.combine(start, DateTime.fromObject({hour: 0, minute: 0})),
-          context.combine(start, DateTime.fromObject({hour: 23, minute: 59}))]);
+          context.combine(start, DateTime.fromObject({hour: 23, minute: 59, second: 59, millisecond: 999}))]);
       } else {
         weekAvailability[day].forEach(function(timeSlot) {
           if (timeSlot[0] !== '' && timeSlot[1] !== '') {
@@ -157,7 +155,7 @@ const context = {
    * , endtime]]
    */
   _schedule: (schedules, duration, constraints = null) => {
-    // bad input
+    // handle invalid input
     if (!schedules ||
       !schedules.length ||
       !duration) return null;
@@ -169,6 +167,7 @@ const context = {
     // console.log(schedules[0][0][0].toString(), schedules[0][0][1].toString(), schedules[0][1][0].toString(), schedules[0][1][1].toString(), );
     // console.log('schedules: ', schedules.map((schedule)=>{schedule.map((freeTime)=>[freeTime[0], freeTime[1]])}));
 
+    // find intersection of all the given schedules
     let ans = schedules[0];
     schedules.forEach((schedule) => {
       const curr = [];
@@ -199,8 +198,10 @@ const context = {
    */
   _choose: (freeTimes) => {
     const choices = freeTimes.map((xs) => [xs[0], xs[1].diff(xs[0])]);
+    console.log('choices: ', choices);
     choices.sort((a, b) => a[1] - b[1]);
     if (choices.length === 0) {
+      console.log('here');
       return null;
     }
     return choices[0][0];
@@ -229,6 +230,8 @@ const context = {
    */
   _chooseFromHistory: (freeTimes, historyFreqs, duration) => {
     // sum history freqs together to make one for everyone
+    console.log('---_chooseFromHistory---');
+    // console.log('freetimes: ', freeTimes[0]);
     if (historyFreqs.length < 1) {
       console.log('error in _chooseFromHistory: no history freqs given');
       return null;
@@ -275,7 +278,6 @@ const context = {
     }
     return bestTimeSlot;
   },
-
   /* [
     [start, end]
     .
@@ -300,13 +302,13 @@ const context = {
     }
 
     // If start time is within a slot move start time to end of slot
-    if (begin > busySlots[0][0] && begin < busySlots[0][1]) {
+    if (begin >= busySlots[0][0] && begin < busySlots[0][1]) {
       begin = busySlots[0][1];
     }
-
     const freeSlots = [];
     for (let i = 0; i < busySlots.length; i++) {
       const busyTimeSlot = busySlots[i];
+      console.log('busytimeslot[', i, ']', ' ', busyTimeSlot[0].toISO(), busyTimeSlot[1].toISO(), freeSlots.length);
       if (busyTimeSlot[1] > end) {
         break;
       }
@@ -315,16 +317,34 @@ const context = {
         begin = busyTimeSlot[1];
       }
     }
-    if (begin < end) {
+    if (end - begin > Duration.fromObject({seconds: 5})) {
       freeSlots.push([begin, end]);
     }
+    // console.log('xxx');
+    // freeSlots.forEach((x) => console.log('abc', x[0].c, x[1].c));
     return freeSlots;
   },
-
+  /**
+   *
+   * @param { Array } freeTimes
+   * @param { Duration } duration
+   * @param { Array } constraints
+   * @param { Array } historyFreqs
+   * @return {null|{start: string, end: string}}
+   */
   findMeetingSlot(freeTimes, duration, constraints = null, historyFreqs) {
+    // TODO: Change this to return something even if it clashes! Maybe try reschedule other things!
     if (!freeTimes || freeTimes.length === 0) {
-      return;
+      // no free time slot found
+      return null;
     }
+    // for (let i = 0; i < 7; i++) {
+    //   PLOT({
+    //     data: historyFreqs[0][i],
+    //     filename: `output_${i}.svg`,
+    //     format: 'svg',
+    //   });
+    // }
     const timeSlots = context._schedule(freeTimes, duration, constraints);
     // console.log('timeslots ', timeSlots.map((interval) => [interval[0].toString(), interval[1].toString()]));
     const choice = context._chooseFromHistory(timeSlots, historyFreqs, duration);
@@ -336,36 +356,81 @@ const context = {
     }
     return null;
   },
-  // eslint-disable-next-line valid-jsdoc
+  initialiseHistFreqs(category) {
+    const frequencies = Array(7);
+    // // initialise history frequencies to default for this category
+    // default leisure hist freq:
+    if (category === LEISURE) {
+      // workdays are less popular
+      for (let i = 0; i < 5; i++) {
+        const vals = Array(halfHoursInDay).fill(0);
+        for (let i = 0; i <= 8; i++) vals[i] = -5;
+        for (let i = 9; i <= 18; i++) vals[i] = -8.2+0.4*i;
+        for (let i = 19; i < 24; i++) vals[i] = -1;
+        for (let i = 24; i < 28; i++) vals[i] = -2;
+        for (let i = 28; i <= 34; i++) vals[i] = -1;
+        for (let i = 35; i <= 36; i++) vals[i] = -35 + i;
+        for (let i = 37; i <= 42; i++) vals[i] = 1;
+        for (let i = 43; i < 48; i++) vals[i] = 43-i;
+        frequencies[i]=vals;
+      }
+      // weekend days are more popular
+      for (let i = 5; i < 7; i++) {
+        const vals = Array(halfHoursInDay).fill(0);
+        for (let i = 0; i <= 8; i++) vals[i] = -5;
+        for (let i = 9; i <= 16; i++) vals[i] = -10 + 0.625*i;
+        for (let i = 17; i <= 21; i++) vals[i] = 0;
+        for (let i = 22; i <= 23; i++) vals[i] = 1;
+        for (let i = 24; i <= 27; i++) vals[i] = -1;
+        for (let i = 28; i <= 40; i++) vals[i] = 1;
+        for (let i = 41; i < 48; i++) vals[i] = 31 - 3/4 * i;
+        frequencies[i]=vals;
+      }
+    }
+    // default work hist freq:
+    if (category === WORK || category === UNKNOWN) {
+      // weekend days are LESS popular
+      for (let i = 5; i < 7; i++) {
+        const vals = Array(halfHoursInDay).fill(0);
+        for (let i = 0; i <= 8; i++) vals[i] = -5;
+        for (let i = 9; i <= 20; i++) vals[i] = -5 - 8/3 + 1/3*i;
+        for (let i = 21; i < 24; i++) vals[i] = -1;
+        for (let i = 24; i < 28; i++) vals[i] = -2;
+        for (let i = 28; i <= 38; i++) vals[i] = -1;
+        for (let i = 39; i < 48; i++) vals[i] = 14.2-0.4*i;
+        frequencies[i]=vals;
+      }
+      // week days are MORE popular
+      for (let i = 0; i < 5; i++) {
+        const vals = Array(halfHoursInDay).fill(0);
+        for (let i = 0; i <= 8; i++) vals[i] = -5;
+        for (let i = 9; i < 18; i++) vals[i] = -9.8 + 0.6*i;
+        for (let i = 18; i < 24; i++) vals[i] = 1;
+        for (let i = 24; i <= 27; i++) vals[i] = -1;
+        for (let i = 28; i <= 34; i++) vals[i] = 1;
+        for (let i = 35; i <= 42; i++) vals[i] = 0;
+        for (let i = 43; i < 48; i++) vals[i] = 35-5/6*i;
+        frequencies[i]=vals;
+      }
+    }
+    return frequencies;
+  },
   /**
    *
    * @param { Array } lastMonthBusySchedule [{startTime: ISO String, endTime: ISO String}]
+   * @param { Integer } category
    * @return {[]} array of frequencies for each half hour time slot for this user
    */
   async getUserHistory(lastMonthBusySchedule, category) {
-    console.log('getUserHistory');
-    console.log('cat', category);
-    // console.log(lastMonthBusySchedule);
-    const frequencies = [];
-    for (let i = 0; i < days; i++) {
-      const vals = Array(halfHoursInDay).fill(0);
-      for (let j = 0; j < halfHoursInDay; j++) {
-        vals[j] = dictHourToDefaultFreq[Math.floor(j/2)];
-      }
-      frequencies[i] = vals;
-    }
-    // let q = 0;
-    // const signs = [-1,-1,-1,-1,-1,-1,-1,-1,-1,0,
-    //   1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1,0,-1,-1,-1,-1,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,1,1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1];
-    // for (const lastMonthBusySchedule of lastMonthBusySchedules) {
+    console.log('---getUserHistory---');
+    console.log('category: ', category);
+    const frequencies = this.initialiseHistFreqs(category);
     for (const timeSlot of lastMonthBusySchedule) {
-      // const sign = signs[q];
-      // q++;
       const c = await DIALOGFLOW.getCategory(timeSlot[2]);
       let sign = 1;
       if (c === -1) {
         // don't weight against un-categorised events
-        sign = 0;
+        continue;
       } else if (c !== category) {
         sign = -1;
       }
