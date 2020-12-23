@@ -41,7 +41,7 @@ router.get('/login', async function(req, res) {
 });
 
 // eslint-disable-next-line require-jsdoc
-async function generateHistFreq() {
+async function generateHistFreq(tokens) {
   const today = DateTime.local();
   const oneMonthAgo = today.minus(Duration.fromObject({days: 30}));
 
@@ -76,7 +76,7 @@ router.get('/callback', async function(req, res) {
     const googleEmail = await GOOGLE.getEmail(tokens);
     await DATABASE.createNewUser(state.userID, state.email, googleEmail, JSON.stringify(tokens));
 
-    setTimeout(generateHistFreq, 0);
+    setTimeout(() => generateHistFreq(tokens), 0);
 
     // Redirect to success page
     res.redirect('success/login.html');
