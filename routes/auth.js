@@ -3,6 +3,9 @@ const router = express.Router();
 
 const GOOGLE = require('../lib/google.js');
 const DATABASE = require('../lib/database');
+const SCHEDULER = require('../src/scheduler');
+
+const NUM_CATEGORIES = 2;
 
 router.use('/success', express.static('public'));
 
@@ -48,6 +51,9 @@ router.get('/callback', async function(req, res) {
   }
 
   try {
+    const today = DateTime.local();
+    const oneMonthAgo = today.minus(Duration.fromObject({days: 30}));
+
     const state = JSON.parse(decodeURIComponent(req.query.state));
 
     const tokens = await GOOGLE.getTokens(req.query.code);
@@ -56,6 +62,16 @@ router.get('/callback', async function(req, res) {
 
     // Redirect to success page
     res.redirect('success/login.html');
+
+    let lastMonthHist = await GOOGLE.getMeetings(tokens, oneMonthAgo.toISO(), today.toISO());
+    lastMonthHist = lastMonthHist.map((e) => [e.start.dateTime, e.end.dateTime, e.summary]);
+    let histFreq;
+    console.log('---generating history frequencies---');
+    for (let category=0; category < NUM_CATEGORIES; category++) {
+      histFreq = await SCHEDULER.getUserHistory(lastMonthHist, category);
+      await DATABASE.setFrequenciesByCategory(googleEmail, category, histFreq);
+    }
+    console.log('---history frequencies completed---');
 
     console.log('**********');
     console.log(state);
