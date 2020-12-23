@@ -52,10 +52,11 @@ async function generateHistFreq(tokens, slackEmail) {
   console.log('---generating history frequencies---');
 
   for (let category=0; category < NUM_CATEGORIES; category++) {
+    console.log('categoryy: ', category);
     histFreq = await SCHEDULER.getUserHistory(lastMonthHist, category);
     await DATABASE.setFrequenciesByCategory(slackEmail, category, histFreq);
   }
-  console.log('---history frequencies completed---');
+  console.log('-------history frequencies completed-------');
 }
 
 // Google OAuth2 callback
