@@ -61,9 +61,7 @@ router.get('/callback', async function(req, res) {
     const googleEmail = await GOOGLE.getEmail(tokens);
     await DATABASE.createNewUser(state.userID, state.email, googleEmail, JSON.stringify(tokens));
 
-    // Redirect to success page
-    res.redirect('success/login.html');
-
+    // TODO: add some form of loading screen here
     let lastMonthHist = await GOOGLE.getMeetings(tokens, oneMonthAgo.toISO(), today.toISO());
     lastMonthHist = lastMonthHist.map((e) => [e.start.dateTime, e.end.dateTime, e.summary]);
     let histFreq;
@@ -73,6 +71,9 @@ router.get('/callback', async function(req, res) {
       await DATABASE.setFrequenciesByCategory(state.email, category, histFreq);
     }
     console.log('---history frequencies completed---');
+
+    // Redirect to success page
+    res.redirect('success/login.html');
 
     console.log('**********');
     console.log(state);
