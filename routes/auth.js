@@ -41,6 +41,14 @@ router.get('/login', async function(req, res) {
 });
 
 // eslint-disable-next-line require-jsdoc
+async function generateHistFreqForCategory(lastMonthHist, slackEmail, category) {
+  console.log('categoryy: ', category);
+  histFreq = await SCHEDULER.getUserHistory(lastMonthHist, category);
+  await DATABASE.setFrequenciesByCategory(slackEmail, category, histFreq);
+  console.log('-------history frequencies completed-------');
+}
+
+// eslint-disable-next-line require-jsdoc
 async function generateHistFreq(tokens, slackEmail) {
   const today = DateTime.local();
   const oneMonthAgo = today.minus(Duration.fromObject({days: 30}));
@@ -48,13 +56,9 @@ async function generateHistFreq(tokens, slackEmail) {
   // TODO: add some form of loading screen here
   let lastMonthHist = await GOOGLE.getMeetings(tokens, oneMonthAgo.toISO(), today.toISO());
   lastMonthHist = lastMonthHist.map((e) => [e.start.dateTime, e.end.dateTime, e.summary]);
-  let histFreq;
   console.log('---generating history frequencies---');
-
   for (let category=0; category < NUM_CATEGORIES; category++) {
-    console.log('categoryy: ', category);
-    histFreq = await SCHEDULER.getUserHistory(lastMonthHist, category);
-    await DATABASE.setFrequenciesByCategory(slackEmail, category, histFreq);
+    setTimeout(() => generateHistFreqForCategory(lastMonthHist, slackEmail, category), 0);
   }
   console.log('-------history frequencies completed-------');
 }
