@@ -111,7 +111,7 @@ const context = {
    */
   generateConstraints: (weekAvailability, _start, _end) => {
     if (weekAvailability == null ||
-        weekAvailability.length < 1) {
+        weekAvailability.length < 1 || weekAvailability.flat(1) < 1) {
       return [];
     }
     // merge overlapping intervals + sort
@@ -155,15 +155,17 @@ const context = {
    * , endtime]]
    */
   _schedule: (schedules, duration, constraints = null) => {
+    // console.log('---schedule---');
+
     // handle invalid input
     if (!schedules ||
       !schedules.length ||
       !duration) return null;
 
-    // console.log('schedules ', schedules.map((schedule)=> schedule.map((interval)=>[interval[0].toString(), interval[1].toString()])));
+    // console.log('free time schedules ', schedules.map((schedule)=> schedule.map((interval)=>[interval[0].toString(), interval[1].toString()])));
     // console.log('constraints ', constraints.map((person)=>person.map((interval)=>[interval[0].toString(), interval[1].toString()])));
     // include availability constraints
-    if (constraints != null && constraints.length > 0) schedules = schedules.concat(constraints);
+    if (constraints.length > 0) schedules = schedules.concat(constraints);
     // console.log(schedules[0][0][0].toString(), schedules[0][0][1].toString(), schedules[0][1][0].toString(), schedules[0][1][1].toString(), );
     // console.log('schedules: ', schedules.map((schedule)=>{schedule.map((freeTime)=>[freeTime[0], freeTime[1]])}));
 
@@ -308,7 +310,7 @@ const context = {
     const freeSlots = [];
     for (let i = 0; i < busySlots.length; i++) {
       const busyTimeSlot = busySlots[i];
-      console.log('busytimeslot[', i, ']', ' ', busyTimeSlot[0].toISO(), busyTimeSlot[1].toISO(), freeSlots.length);
+      // console.log('busytimeslot[', i, ']', ' ', busyTimeSlot[0].toISO(), busyTimeSlot[1].toISO(), freeSlots.length);
       if (busyTimeSlot[1] > end) {
         break;
       }
@@ -333,8 +335,9 @@ const context = {
    * @return {null|{start: string, end: string}}
    */
   findMeetingSlot(freeTimes, duration, constraints = null, historyFreqs) {
-    // TODO: Change this to return something even if it clashes! Maybe try reschedule other things!
+    console.log('---findMeetingSlot---');
     if (!freeTimes || freeTimes.length === 0) {
+      console.log('nothing found: ', freeTimes);
       // no free time slot found
       return null;
     }
