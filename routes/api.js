@@ -72,6 +72,7 @@ router.get('/schedule', async function(req, res) {
         startDateTimeOfRange.toISO(),
         endDateTimeOfRange.toISO(),
         flexible);
+    console.log('-- chosen slot: ', chosenSlot, ' --');
     res.json(chosenSlot);
   } catch (error) {
     console.error(error);

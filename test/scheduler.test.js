@@ -199,7 +199,11 @@ test('choose from history simple', () => {
   for (let i = 34; i < 38; i++) {
     historyFreqs[2][i]++;
   }
-  const chosen = _chooseFromHistory(FREE_DATETIME1, historyFreqs, Duration.fromObject({hours: 1}));
+  const chosen = _chooseFromHistory({
+    freeTimes: FREE_DATETIME1,
+    historyFreqs: historyFreqs,
+    duration: Duration.fromObject({hours: 1}),
+  });
   const expected = combine(DAY1, 18);
   expect(chosen.c).toEqual(expected.c);
 });
