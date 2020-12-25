@@ -202,7 +202,7 @@ test('choose from history simple', () => {
   const chosen = _chooseFromHistory({
     freeTimes: FREE_DATETIME1,
     historyFreqs: historyFreqs,
-    duration: Duration.fromObject({hours: 1})
+    duration: Duration.fromObject({hours: 1}),
   });
   const expected = combine(DAY1, 18);
   expect(chosen.c).toEqual(expected.c);

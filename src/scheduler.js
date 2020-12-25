@@ -337,7 +337,7 @@ const context = {
       // console.log('begin minus', busyTimeSlot[0].minus(minBreakLength).toISO(), busyTimeSlot[0].toISO());
       if (begin < busyTimeSlot[0].minus(minBreakLength)) {
         freeSlots.push([begin, busyTimeSlot[0].minus(minBreakLength)]);
-        console.log(busyTimeSlot[0].minus(minBreakLength).toISO(),busyTimeSlot[1].plus(minBreakLength).toISO(), freeSlots.map((interval) => [interval[0].toString(), interval[1].toString()]));
+        console.log(busyTimeSlot[0].minus(minBreakLength).toISO(), busyTimeSlot[1].plus(minBreakLength).toISO(), freeSlots.map((interval) => [interval[0].toString(), interval[1].toString()]));
         begin = busyTimeSlot[1].plus(minBreakLength);
       }
     }
