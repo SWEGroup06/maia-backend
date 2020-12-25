@@ -1,5 +1,5 @@
 const {DateTime, Duration} = require('luxon');
-const {_schedule, getFreeSlots, oldGenerateConstraints, generateConstraints, _choose, getUserHistory, _chooseFromHistory, merge} = require('../src/scheduler');
+const {_schedule, getFreeSlots, oldGenerateConstraints, generateConstraints, _choose, generateUserHistory, _chooseFromHistory, merge} = require('../src/scheduler');
 
 // wednesday
 const DAY1 = DateTime.local(2020, 10, 14);
@@ -154,7 +154,7 @@ test('gets busy times frequencies simple', () => {
   for (let i = 34; i < 38; i++) {
     expectedFreqs[1][i]++;
   }
-  const frequencies = getUserHistory([schedule]);
+  const frequencies = generateUserHistory([schedule], 1);
   expect(frequencies).toEqual(expectedFreqs);
 });
 
@@ -184,7 +184,7 @@ test('gets busy times frequencies', () => {
   for (let i = 0; i < 39; i++) {
     expectedFreqs[4][i]++;
   }
-  const frequencies = getUserHistory([schedule]);
+  const frequencies = generateUserHistory([schedule], 1);
   expect(frequencies).toEqual(expectedFreqs);
 });
 
@@ -199,7 +199,7 @@ test('choose from history simple', () => {
   for (let i = 34; i < 38; i++) {
     historyFreqs[2][i]++;
   }
-  const chosen = _chooseFromHistory(FREE_DATETIME1, historyFreqs, Duration.fromObject({hours: 1}), true);
+  const chosen = _chooseFromHistory(FREE_DATETIME1, historyFreqs, Duration.fromObject({hours: 1}));
   const expected = combine(DAY1, 18);
   expect(chosen.c).toEqual(expected.c);
 });

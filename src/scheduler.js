@@ -359,6 +359,14 @@ const context = {
     }
     return null;
   },
+  async getCategorisedSchedule(lastMonthBusySchedule) {
+    const x = [];
+    for (const timeSlot of lastMonthBusySchedule) {
+      const c = await DIALOGFLOW.getCategory(timeSlot[2]);
+      x.push([timeSlot, c]);
+    }
+    return x;
+  },
   initialiseHistFreqs(category) {
     const frequencies = Array(7);
     // // initialise history frequencies to default for this category
@@ -420,16 +428,17 @@ const context = {
   },
   /**
    *
-   * @param { Array } lastMonthBusySchedule [{startTime: ISO String, endTime: ISO String}]
+   * @param { Array } categorisedSchedule [{startTime: ISO String, endTime: ISO String}]
    * @param { Integer } category
    * @return {[]} array of frequencies for each half hour time slot for this user
    */
-  async getUserHistory(lastMonthBusySchedule, category) {
-    console.log('---getUserHistory---');
+  async generateUserHistory(categorisedSchedule, category) {
+    console.log('---generateUserHistory---');
     console.log('category: ', category);
     const frequencies = this.initialiseHistFreqs(category);
-    for (const timeSlot of lastMonthBusySchedule) {
-      const c = await DIALOGFLOW.getCategory(timeSlot[2]);
+    for (const timeSlotCategory of categorisedSchedule) {
+      const timeSlot = timeSlotCategory[0];
+      const c = timeSlotCategory[1];
       let sign = 1;
       if (c === -1) {
         // don't weight against un-categorised events
