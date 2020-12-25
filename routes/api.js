@@ -15,11 +15,11 @@ const MEETINGS = require('../lib/meetings.js');
  * @param {DateTime} endDateTimeOfRange
  * @return {{startDateTimeOfRange: DateTime, endDateTimeOfRange: (DateTime|Duration|*)}}
  */
-function getStartEndTimesWithBeforeAfterKey(beforeAfterKey, startDateTimeOfRange, endDateTimeOfRange) {
-  if (beforeAfterKey === '\"before\"') {
+function parseBeforeAfter(beforeAfterKey, startDateTimeOfRange, endDateTimeOfRange) {
+  if (beforeAfterKey === 'before') {
     endDateTimeOfRange = startDateTimeOfRange;
     startDateTimeOfRange = DateTime.local().plus({hours: 1}); // TODO: try to round to nearest half hour
-  } else if (beforeAfterKey === '\"after\"') {
+  } else if (beforeAfterKey === 'after') {
     startDateTimeOfRange = endDateTimeOfRange;
     endDateTimeOfRange = startDateTimeOfRange.plus({days: 14});
   }
@@ -41,8 +41,8 @@ router.get('/schedule', async function(req, res) {
   title = title.substring(1, title.length - 1);
 
   const flexible = JSON.parse(decodeURIComponent(req.query.flexible));
-
-  const beforeAfterKey = req.query.beforeAfterKey;
+  const beforeAfterKey = JSON.parse(decodeURIComponent(req.query.beforeAfterKey));
+  const duration = JSON.parse(decodeURIComponent(req.query.duration));
 
   let startDateTimeOfRange;
   if (!req.query.startDateTimeOfRange) {
@@ -59,7 +59,7 @@ router.get('/schedule', async function(req, res) {
   }
 
   if (beforeAfterKey) {
-    const startEndTimes = getStartEndTimesWithBeforeAfterKey(beforeAfterKey, startDateTimeOfRange, endDateTimeOfRange);
+    const startEndTimes = parseBeforeAfter(beforeAfterKey, startDateTimeOfRange, endDateTimeOfRange);
     startDateTimeOfRange = startEndTimes.startDateTimeOfRange;
     endDateTimeOfRange = startEndTimes.endDateTimeOfRange;
   }
@@ -67,11 +67,8 @@ router.get('/schedule', async function(req, res) {
   const slackEmails = JSON.parse(decodeURIComponent(req.query.emails));
 
   try {
-    const chosenSlot = await MEETINGS.schedule(title,
-        slackEmails,
-        startDateTimeOfRange.toISO(),
-        endDateTimeOfRange.toISO(),
-        flexible);
+    const chosenSlot = await MEETINGS.schedule(title, slackEmails, startDateTimeOfRange.toISO(),
+        endDateTimeOfRange.toISO(), flexible, duration);
     console.log('-- chosen slot: ', chosenSlot, ' --');
     res.json(chosenSlot);
   } catch (error) {
@@ -127,7 +124,7 @@ router.get('/reschedule', async function(req, res) {
 
     if (beforeAfterKey) {
       const startEndTimes =
-       getStartEndTimesWithBeforeAfterKey(beforeAfterKey, startOfRangeToRescheduleTo, endOfRangeToRescheduleTo);
+       parseBeforeAfter(beforeAfterKey, startOfRangeToRescheduleTo, endOfRangeToRescheduleTo);
       startOfRangeToRescheduleTo = startEndTimes.startDateTimeOfRange;
       endOfRangeToRescheduleTo = startEndTimes.endDateTimeOfRange;
     }
