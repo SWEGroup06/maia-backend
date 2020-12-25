@@ -16,10 +16,10 @@ const MEETINGS = require('../lib/meetings.js');
  * @return {{startDateTimeOfRange: DateTime, endDateTimeOfRange: (DateTime|Duration|*)}}
  */
 function parseBeforeAfter(beforeAfterKey, startDateTimeOfRange, endDateTimeOfRange) {
-  if (beforeAfterKey === '\"before\"') {
+  if (beforeAfterKey === 'before') {
     endDateTimeOfRange = startDateTimeOfRange;
     startDateTimeOfRange = DateTime.local().plus({hours: 1}); // TODO: try to round to nearest half hour
-  } else if (beforeAfterKey === '\"after\"') {
+  } else if (beforeAfterKey === 'after') {
     startDateTimeOfRange = endDateTimeOfRange;
     endDateTimeOfRange = startDateTimeOfRange.plus({days: 14});
   }
