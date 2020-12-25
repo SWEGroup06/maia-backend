@@ -41,7 +41,6 @@ router.get('/schedule', async function(req, res) {
   title = title.substring(1, title.length - 1);
 
   const flexible = JSON.parse(decodeURIComponent(req.query.flexible));
-  const beforeAfterKey = req.query.beforeAfterKey;
   const duration = JSON.parse(decodeURIComponent(req.query.duration));
 
   let startDateTimeOfRange;
@@ -58,8 +57,9 @@ router.get('/schedule', async function(req, res) {
     endDateTimeOfRange = DateTime.fromISO(JSON.parse(decodeURIComponent(req.query.endDateTimeOfRange)));
   }
 
-  if (beforeAfterKey) {
-    const startEndTimes = parseBeforeAfter(beforeAfterKey, startDateTimeOfRange, endDateTimeOfRange);
+  if (req.query.beforeAfterKey) {
+    const startEndTimes = parseBeforeAfter(JSON.parse(decodeURIComponent(req.query.beforeAfterKey)),
+        startDateTimeOfRange, endDateTimeOfRange);
     startDateTimeOfRange = startEndTimes.startDateTimeOfRange;
     endDateTimeOfRange = startEndTimes.endDateTimeOfRange;
   }
