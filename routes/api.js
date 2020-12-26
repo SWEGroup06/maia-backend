@@ -23,6 +23,13 @@ function parseBeforeAfter(beforeAfterKey, startDateTimeOfRange, endDateTimeOfRan
     startDateTimeOfRange = endDateTimeOfRange;
     endDateTimeOfRange = startDateTimeOfRange.plus({days: 14});
   }
+
+  console.log('***********************');
+  console.log('parseBeforeAfter');
+  console.log(startDateTimeOfRange);
+  console.log(endDateTimeOfRange);
+  console.log('***********************');
+
   return {endDateTimeOfRange, startDateTimeOfRange};
 }
 
@@ -87,8 +94,6 @@ router.get('/reschedule', async function(req, res) {
   // TODO: This is an unbelievable clapped way to do this I am so sorry, I will change it later - Ali
   const meetingTitle = req.query.meetingTitle.substring(3, req.query.meetingTitle.length - 3);
 
-  const beforeAfterKey = req.query.beforeAfterKey;
-
   if (!req.query.organiserSlackEmail) {
     res.json({error: 'Organiser\'s slack email not found'});
     return;
@@ -99,51 +104,49 @@ router.get('/reschedule', async function(req, res) {
     res.json({error: 'No event start time specified for rescheduling'});
   }
 
-  let startOfRangeToRescheduleTo;
+  let startDateTimeOfRange;
   let specificTimeGiven = false;
   if (!req.query.newStartDateTime) {
-    startOfRangeToRescheduleTo = DateTime.local();
+    startDateTimeOfRange = DateTime.local();
   } else {
-    startOfRangeToRescheduleTo = JSON.parse(decodeURIComponent(req.query.newStartDateTime));
+    startDateTimeOfRange = DateTime.fromISO(JSON.parse(decodeURIComponent(req.query.newStartDateTime)));
     specificTimeGiven = true;
   }
 
   try {
-    let endOfRangeToRescheduleTo;
+    let endDateTimeOfRange;
     if (!req.query.newEndDateTime) {
       // If no end date is specified, set a default range of two weeks from the given start range date
-      endOfRangeToRescheduleTo = DateTime.local(startOfRangeToRescheduleTo.getFullYear(),
-          startOfRangeToRescheduleTo.getMonth(),
-          startOfRangeToRescheduleTo.getDay() + 14).toISOString();
+      endDateTimeOfRange = DateTime.local().plus({days: 14});
     } else {
-      endOfRangeToRescheduleTo = JSON.parse(decodeURIComponent(req.query.newEndDateTime));
+      endDateTimeOfRange = DateTime.fromISO(JSON.parse(decodeURIComponent(req.query.newEndDateTime)));
     }
 
-    const startTime = JSON.parse(decodeURIComponent(req.query.eventStartTime));
+    const currEventStartTime = JSON.parse(decodeURIComponent(req.query.eventStartTime));
     const email = JSON.parse(decodeURIComponent(req.query.organiserSlackEmail));
 
-    if (beforeAfterKey) {
-      const startEndTimes =
-       parseBeforeAfter(beforeAfterKey, startOfRangeToRescheduleTo, endOfRangeToRescheduleTo);
-      startOfRangeToRescheduleTo = startEndTimes.startDateTimeOfRange;
-      endOfRangeToRescheduleTo = startEndTimes.endDateTimeOfRange;
+    if (req.query.beforeAfterKey) {
+      const startEndTimes = parseBeforeAfter(JSON.parse(decodeURIComponent(req.query.beforeAfterKey)),
+          startDateTimeOfRange, endDateTimeOfRange);
+      startDateTimeOfRange = startEndTimes.startDateTimeOfRange;
+      endDateTimeOfRange = startEndTimes.endDateTimeOfRange;
     }
 
     // TODO: Delete these
     console.log('PARAMETERS FOR MEETINGS.RESCHEDULE****');
     console.log(meetingTitle);
-    console.log(startTime);
+    console.log(currEventStartTime);
     console.log(email);
-    console.log(startOfRangeToRescheduleTo);
-    console.log(endOfRangeToRescheduleTo);
+    console.log(startDateTimeOfRange);
+    console.log(endDateTimeOfRange);
     console.log('**************************************');
 
     const chosenSlot = await MEETINGS.reschedule(
-        startTime,
+        currEventStartTime,
         meetingTitle,
         email,
-        startOfRangeToRescheduleTo,
-        endOfRangeToRescheduleTo,
+        startDateTimeOfRange.toISO(),
+        endDateTimeOfRange.toISO(),
         specificTimeGiven,
     );
 
