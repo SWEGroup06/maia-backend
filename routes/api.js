@@ -6,32 +6,7 @@ const {DateTime} = require('luxon');
 const GOOGLE = require('../lib/google.js');
 const DATABASE = require('../lib/database');
 const MEETINGS = require('../lib/meetings.js');
-
-/**
- * If the user specifies the event to be 'before' or 'after' a specific range, we must change the start
- * and end time of the range.
- * @param {String} beforeAfterKey - either "before" or "after"
- * @param {DateTime} startDateTimeOfRange
- * @param {DateTime} endDateTimeOfRange
- * @return {{startDateTimeOfRange: DateTime, endDateTimeOfRange: (DateTime|Duration|*)}}
- */
-function parseBeforeAfter(beforeAfterKey, startDateTimeOfRange, endDateTimeOfRange) {
-  if (beforeAfterKey === 'before') {
-    endDateTimeOfRange = startDateTimeOfRange;
-    startDateTimeOfRange = DateTime.local().plus({hours: 1}); // TODO: try to round to nearest half hour
-  } else if (beforeAfterKey === 'after') {
-    startDateTimeOfRange = endDateTimeOfRange;
-    endDateTimeOfRange = startDateTimeOfRange.plus({days: 14});
-  }
-
-  console.log('***********************');
-  console.log('parseBeforeAfter');
-  console.log(startDateTimeOfRange);
-  console.log(endDateTimeOfRange);
-  console.log('***********************');
-
-  return {endDateTimeOfRange, startDateTimeOfRange};
-}
+const TIME = require('../lib/time.js');
 
 // Schedule a new meeting
 router.get('/schedule', async function(req, res) {
@@ -65,7 +40,7 @@ router.get('/schedule', async function(req, res) {
   }
 
   if (req.query.beforeAfterKey) {
-    const startEndTimes = parseBeforeAfter(JSON.parse(decodeURIComponent(req.query.beforeAfterKey)),
+    const startEndTimes = TIME.parseBeforeAfter(JSON.parse(decodeURIComponent(req.query.beforeAfterKey)),
         startDateTimeOfRange, endDateTimeOfRange);
     startDateTimeOfRange = startEndTimes.startDateTimeOfRange;
     endDateTimeOfRange = startEndTimes.endDateTimeOfRange;
@@ -126,7 +101,7 @@ router.get('/reschedule', async function(req, res) {
     const email = JSON.parse(decodeURIComponent(req.query.organiserSlackEmail));
 
     if (req.query.beforeAfterKey) {
-      const startEndTimes = parseBeforeAfter(JSON.parse(decodeURIComponent(req.query.beforeAfterKey)),
+      const startEndTimes = TIME.parseBeforeAfter(JSON.parse(decodeURIComponent(req.query.beforeAfterKey)),
           startDateTimeOfRange, endDateTimeOfRange);
       startDateTimeOfRange = startEndTimes.startDateTimeOfRange;
       endDateTimeOfRange = startEndTimes.endDateTimeOfRange;
@@ -137,8 +112,8 @@ router.get('/reschedule', async function(req, res) {
     console.log(meetingTitle);
     console.log(currEventStartTime);
     console.log(email);
-    console.log(startDateTimeOfRange);
-    console.log(endDateTimeOfRange);
+    console.log(startDateTimeOfRange.toISO());
+    console.log(endDateTimeOfRange.toISO());
     console.log('**************************************');
 
     const chosenSlot = await MEETINGS.reschedule(
