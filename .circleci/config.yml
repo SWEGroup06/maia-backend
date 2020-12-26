@@ -15,7 +15,7 @@ jobs:
           steps:
             - run: npm install
             - run: npm run lint
-  #            - run: npm test
+            - run: npm run test
   deploy:
     executor:
       name: heroku/default

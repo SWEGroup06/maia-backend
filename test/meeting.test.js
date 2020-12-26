@@ -13,6 +13,7 @@ const {describe, it, before, after} = mocha;
 
 describe('scheduling within a given range', function() {
   before(async () => {
+    // before running this set of tests: connect to the database and clear mock user's calendar.
     await DATABASE.getDatabaseConnection();
     const token = JSON.parse(await DATABASE.getToken('s.amnabidi@gmail.com'));
     await GOOGLE.clearCalendar(token);
@@ -37,6 +38,7 @@ describe('scheduling within a given range', function() {
   });
 
   after(async () => {
+    // after running this set of tests, disconnect from the database.
     await DATABASE.closeDatabaseConnection();
   });
 });
