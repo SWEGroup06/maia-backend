@@ -156,7 +156,7 @@ const context = {
    * , endtime]]
    */
   _schedule: (schedules, duration, constraints = null) => {
-    // console.log('---schedule---');
+    console.log('---schedule---');
 
     // handle invalid input
     if (!schedules ||
@@ -257,6 +257,7 @@ const context = {
     // console.log(choices);
     let maxTimeSlotValue = -10000;
     let bestTimeSlot = null;
+    let n = 0;
 
     if (cluster) {
       // minimise the break val whilst being at least the minBreakLength
@@ -284,9 +285,11 @@ const context = {
             }
           }
           begin = begin.plus(fiveMinutes);
+          n++;
         }
       }
     }
+    console.log('#begins: ', n);
     return bestTimeSlot;
   },
   /* [
@@ -329,7 +332,7 @@ const context = {
     const freeSlots = [];
     for (let i = 0; i < busySlots.length; i++) {
       const busyTimeSlot = busySlots[i];
-      console.log('busytimeslot[', i, ']', ' ', busyTimeSlot[0].toISO(), busyTimeSlot[1].toISO(), freeSlots.length);
+      // console.log('busytimeslot[', i, ']', ' ', busyTimeSlot[0].toISO(), busyTimeSlot[1].toISO(), freeSlots.length);
       // If start time is within a slot move start time to end of slot
       if (begin >= busyTimeSlot[0].minus(minBreakLength) && begin < busyTimeSlot[1].plus(minBreakLength)) {
         begin = (busyTimeSlot[1]).plus(minBreakLength);
@@ -339,7 +342,7 @@ const context = {
         if (begin < busyTimeSlot[0].minus(minBreakLength)) {
           freeSlots.push([begin, busyTimeSlot[0].minus(minBreakLength)]);
         }
-        console.log(busyTimeSlot[0].minus(minBreakLength).toISO(), busyTimeSlot[1].plus(minBreakLength).toISO(), freeSlots.map((interval) => [interval[0].toString(), interval[1].toString()]));
+        // console.log(busyTimeSlot[0].minus(minBreakLength).toISO(), busyTimeSlot[1].plus(minBreakLength).toISO(), freeSlots.map((interval) => [interval[0].toString(), interval[1].toString()]));
         if (busyTimeSlot[1].plus(minBreakLength) > end) {
           break;
         }
@@ -377,9 +380,8 @@ const context = {
     //   });
     // }
     const timeSlots = context._schedule(freeTimes, duration, constraints);
-    // console.log('free times ', freeTimes.map((interval) => [interval[0][0].toString(), interval[0][1].toString()]));
-
-    console.log('free timeslots ', timeSlots.map((interval) => [interval[0].toString(), interval[1].toString()]));
+    // console.log('free times ', freeTimes[0].map((interval) => [interval[0].toString(), interval[1].toString()]));
+    // console.log('free timeslots ', timeSlots.map((interval) => [interval[0].toString(), interval[1].toString()]));
     const choice = context._chooseFromHistory({
       freeTimes: timeSlots,
       historyFreqs: historyFreqs,
