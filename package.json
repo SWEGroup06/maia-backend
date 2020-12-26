@@ -10,7 +10,7 @@
     "start": "node server.js --dev",
     "auto": "node server.js --dev --auto",
     "prod": "node server.js",
-    "test": "jest",
+    "test": "mocha --timeout 10000 test -r dotenv/config",
     "lint": "eslint .",
     "lint-fix": "eslint . --fix",
     "logs": "heroku logs -a maia-server"
@@ -40,9 +40,9 @@
     "eslint": "^7.11.0",
     "eslint-config-google": "^0.14.0",
     "heroku": "^7.46.2",
-    "mocha": "^8.2.0",
-    "nyc": "^15.1.0",
-    "jest": "^26.6.1"
+    "jest": "^26.6.3",
+    "mocha": "^8.2.1",
+    "nyc": "^15.1.0"
   },
   "jest": {
     "verbose": true
