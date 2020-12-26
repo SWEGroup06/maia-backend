@@ -10,7 +10,7 @@
     "start": "node server.js --dev",
     "auto": "node server.js --dev --auto",
     "prod": "node server.js",
-    "test": "mocha test -r dotenv/config",
+    "test": "mocha --timeout 10000 test -r dotenv/config",
     "lint": "eslint .",
     "lint-fix": "eslint . --fix",
     "logs": "heroku logs -a maia-server"
