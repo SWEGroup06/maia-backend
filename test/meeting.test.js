@@ -7,10 +7,13 @@ const DATABASE = require('../lib/database.js');
 const MEETINGS = require('../lib/meetings.js');
 
 const mocha = require('mocha');
-const describe = mocha.describe;
-const it = mocha.it;
+const {describe, it, before, after} = mocha;
 
 describe('Scheduling in a given range', () => {
+  before((done) => {
+    DATABASE.getDatabaseConnection().then(done);
+  });
+
   it('should book correctly', async () => {
     const tomorrow = DateTime.local().plus({days: 1});
     const tomorrowTwelveHours = DateTime.local(tomorrow.year, tomorrow.month, tomorrow.day, 12);
@@ -20,13 +23,15 @@ describe('Scheduling in a given range', () => {
     const testEmails = ['s.amnabidi@gmail.com']; // TODO: Change to a test email account
     const testToken = JSON.parse(await DATABASE.getToken(testEmails[0]));
 
-    MEETINGS.schedule(undefined, testEmails, tomorrowTwelveHours.toISO(),
+    const meetingSlot = await MEETINGS.schedule(undefined, testEmails, tomorrowTwelveHours.toISO(),
         tomorrowEighteenHours.toISO(), true, ONE_HOUR);
 
-    const meetingSlot = MEETINGS.schedule(undefined, testEmails, tomorrowTwelveHours.toISO(),
-        tomorrowEighteenHours.toISO(), true, ONE_HOUR);
-    const events = GOOGLE.getEvents(testToken, meetingSlot.start);
+    const events = await GOOGLE.getEvents(testToken, meetingSlot.start);
 
-    assert.strictEqual(events.length(), 1);
+    assert.strictEqual(events.length, 1);
+  });
+
+  after(() => {
+    DATABASE.closeDatabaseConnection();
   });
 });
