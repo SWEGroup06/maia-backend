@@ -6,7 +6,7 @@ const DIALOGFLOW = require('../lib/dialogflow.js');
 /* CONSTANTS */
 const halfHoursInDay = 24 * 2;
 const halfHour = Duration.fromObject({minutes: 30});
-const quarterHour = Duration.fromObject({minutes: 15});
+const fiveMinutes = Duration.fromObject({minutes: 5});
 const LEISURE = 0;
 const UNKNOWN = -1;
 const WORK = 1;
@@ -218,7 +218,7 @@ const context = {
       const day = begin.weekday - 1;
       val += historyFreq[day][i] > 0 ? historyFreq[day][i] ** 2 : -1 * (historyFreq[day][i] ** 2);
       i = (i + 1) % halfHoursInDay;
-      begin = begin.plus(quarterHour);
+      begin = begin.plus(halfHour);
     }
     return val;
   },
@@ -283,7 +283,7 @@ const context = {
               bestTimeSlot = new DateTime(begin);
             }
           }
-          begin = begin.plus(quarterHour);
+          begin = begin.plus(fiveMinutes);
         }
       }
     }
