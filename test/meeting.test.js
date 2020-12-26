@@ -15,27 +15,18 @@ describe('Scheduling in a given range', () => {
     const tomorrow = DateTime.local().plus({days: 1});
     const tomorrowTwelveHours = DateTime.local(tomorrow.year, tomorrow.month, tomorrow.day, 12);
     const tomorrowEighteenHours = DateTime.local(tomorrow.year, tomorrow.month, tomorrow.day, 18);
+    const ONE_HOUR = 60;
 
-    console.log('HERE');
+    const testEmails = ['s.amnabidi@gmail.com']; // TODO: Change to a test email account
+    const testToken = JSON.parse(await DATABASE.getToken(testEmails[0]));
 
-    const testEmail = 's.amnabidi@gmail.com'; // TODO: Change to a test email account
-    const testToken = DATABASE.getToken(testEmail);
+    MEETINGS.schedule(undefined, testEmails, tomorrowTwelveHours.toISO(),
+        tomorrowEighteenHours.toISO(), true, ONE_HOUR);
 
-    console.log('HEREE');
+    const meetingSlot = MEETINGS.schedule(undefined, testEmails, tomorrowTwelveHours.toISO(),
+        tomorrowEighteenHours.toISO(), true, ONE_HOUR);
+    const events = GOOGLE.getEvents(testToken, meetingSlot.start);
 
-    const meetingSlot = await MEETINGS.schedule(undefined, [testEmail], tomorrowTwelveHours.toISO(),
-        tomorrowEighteenHours.toISO(), true);
-    const events = await GOOGLE.getEvents(testToken, meetingSlot.start);
-
-    console.log('slackEmails: ' + [].push(testEmail));
-    console.log('tomorrowTwelveHours: ' + tomorrowTwelveHours.toISO());
-    console.log('tomorrowEighteenHours: ' + tomorrowEighteenHours.toISO());
-
-    console.log('HEREEE');
-
-    console.log('* meetingSlot ' + meetingSlot);
-    console.log('* events[0]: ' + events[0]);
-
-    assert.strictEqual(true, true);
+    assert.strictEqual(events.length(), 1);
   });
 });
