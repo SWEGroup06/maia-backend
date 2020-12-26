@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const assert = require('assert');
 
 const {DateTime} = require('luxon');
@@ -9,9 +11,11 @@ const MEETINGS = require('../lib/meetings.js');
 const mocha = require('mocha');
 const {describe, it, before, after} = mocha;
 
-describe('Scheduling in a given range', () => {
-  before((done) => {
-    DATABASE.getDatabaseConnection().then(done);
+describe('Scheduling in a given range', function() {
+  before(async () => {
+    await DATABASE.getDatabaseConnection();
+    const token = JSON.parse(await DATABASE.getToken('s.amnabidi@gmail.com'));
+    await GOOGLE.clearCalendar(token);
   });
 
   it('should book correctly', async () => {
@@ -31,7 +35,7 @@ describe('Scheduling in a given range', () => {
     assert.strictEqual(events.length, 1);
   });
 
-  after(() => {
-    DATABASE.closeDatabaseConnection();
+  after(async () => {
+    await DATABASE.closeDatabaseConnection();
   });
 });
