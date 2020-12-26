@@ -8,6 +8,9 @@ const {DateTime} = require('luxon');
 const TIME = require('../lib/time.js');
 const DATABASE = require('../lib/database.js');
 const MEETINGS = require('../lib/meetings.js');
+const GOOGLE = require('../lib/google.js');
+const VIEW = require('../lib/view.json');
+
 
 router.use('/actions', bodyParser.urlencoded({extended: true}));
 
@@ -100,19 +103,71 @@ const actionHandlers = {
       return error.toString();
     }
   },
+  confirm: async function(payload, action) {
+    try {
+      if (action.action_id == 'cancel') {
+        const email = await DATABASE.getEmailFromID(payload.user.id);
+        await MEETINGS.cancelLastBookedMeeting(email);
+        const text = 'Your meeting booking has been cancelled';
+        await submitResponse(payload, {text});
+      } else if (action.action_id == 'edit') {
+        console.log('post request to views open');
+        VIEW.trigger_id = payload.trigger_id;
+        const res = await fetch('https://slack.com/api/views.open', {
+          method: 'POST',
+          headers: {
+            'Content-type': 'application/json; charset=utf-8',
+            'Authorization': `Bearer xoxb-1411028050436-1449329514355-kawEgvoB7U0ku4EtR27iFILZ`,
+          },
+          body: JSON.stringify(VIEW),
+        });
+        console.log(VIEW);
+        const json = await res.json();
+        console.log(json);
+      }
+    } catch (error) {
+      return error.toString();
+    }
+  },
+  viewSubmission: async function(payload, action) {
+    try {
+      const values = payload.view.state.values;
+      const name = values.name['name-action'].value;
+      const date = values.date['datepicker-action'].selected_date;
+      const startTime = values.startTime['timepicker-action'].selected_time;
+      const endTime = values.endTime['timepicker-action'].selected_time;
+
+      console.log(name);
+      console.log(date);
+      console.log(startTime);
+      console.log(endTime);
+      // await GOOGLE.updateMeeting(organiserToken, originalEvent, chosenSlot.start, chosenSlot.end);  
+    } catch (error) {
+      return error.toString();
+    }
+  },
 };
 
 // Handles Block-kit UI actions
 router.post('/actions', async function(req, res) {
   const payload = JSON.parse(req.body.payload);
-  if (!payload || !payload.actions || !payload.actions[0]) {
-    res.sendStatus(200);
-    return;
-  }
+  console.log(payload);
 
-  // Delegate specific tasks to action handler
-  const action = payload.actions[0];
-  const handler = actionHandlers[action.block_id];
+  // If view submission
+  let handler = null;
+  let action = null;
+  if (payload.type == 'view_submission') {
+    console.log('view submission detected');
+    handler = actionHandlers['viewSubmission'];
+  } else {
+    if (!payload || !payload.actions || !payload.actions[0]) {
+      res.sendStatus(200);
+      return;
+    }
+    // Delegate specific tasks to action handler
+    action = payload.actions[0];
+    handler = actionHandlers[action.block_id];
+  }
   if (handler) {
     const error = await handler(payload, action);
     if (error) {
