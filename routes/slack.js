@@ -7,7 +7,7 @@ const router = express.Router();
 const TIME = require('../lib/time.js');
 const DATABASE = require('../lib/database.js');
 const MEETINGS = require('../lib/meetings.js');
-const EDIT_MEETING_VIEW = require('../lib/view.json');
+const EDIT_MEETING_VIEW = require('../lib/editMeetingView.json');
 const CONFIG = require('../config.js');
 
 router.use('/actions', bodyParser.urlencoded({extended: true}));
@@ -155,7 +155,7 @@ const actionHandlers = {
       await MEETINGS.rescheduleToSpecificDateTime(email, name, date, startTime, endTime);
       // Send 200 OK response with empty body to close view
       res.send();
-      const text = 'Your meeting has been successfully edited.';
+      const text = 'Your meeting has been successfully edited to ' + date + ' from ' + startTime + ' to ' + endTime;
       postMessage(channelId, text);
     } catch (error) {
       return error.toString();
@@ -205,7 +205,7 @@ router.post('/actions', async function(req, res) {
   }
 });
 
-// Post request for getting all meetings
+// Post request for getting all meetings for the dropdown
 router.post('/actions/meeting_options', async function(req, res) {
   const payload = JSON.parse(req.body.payload);
   const meetingOptions = {options: []};
