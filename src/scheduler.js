@@ -263,28 +263,39 @@ const context = {
     if (cluster) {
       // minimise the break val whilst being at least the minBreakLength
       let bestBreakVal = 1000000;
+      let breakLength;
       for (const timeSlot of freeTimes) {
         let begin = timeSlot[0];
         const end = timeSlot[1];
         // breakLength represents how well clustered this event is/break time between meetings --
         // if want back-to-back then wanna minimise this value whilst being at least the minimum required by user
-        let breakLength = end.diff(begin, ['minutes']);
+        breakLength = end.diff(begin, ['minutes']);
         // console.log('begin: ', begin.toString(), ' end: ', end.toString(), ' \t\tbreaklength: ', breakLength.minutes);
         // console.log('begin: ', begin.toString(), '\t\tend: ', end.toString(), '\t\tbestTimeSlot: ', bestTimeSlot + clusterVal.values.minutes);
-        breakLength = breakLength.values.hours * 60 + breakLength.values.minutes;
+        breakLength = breakLength.values.minutes;
         while (begin <= end) {
           const v = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
-          // console.log('begin: ', begin.toString(), ' v: ', v);
+          // console.log('begin: ', begin.toString(), ' v: ', v, ' bestBreakVal: ', bestBreakVal, ' breakVal: ', breakLength);
           if (v > maxTimeSlotValue) {
             maxTimeSlotValue = v;
             bestTimeSlot = new DateTime(begin);
             bestBreakVal = breakLength;
           } else if (v === maxTimeSlotValue) {
-            if (breakLength < bestBreakVal && breakLength >= minBreakLength) {
+            if (breakLength < bestBreakVal) {
               bestBreakVal = breakLength;
               bestTimeSlot = new DateTime(begin);
             }
           }
+          // if (breakLength < bestBreakVal) {
+          //   maxTimeSlotValue = v;
+          //   bestTimeSlot = new DateTime(begin);
+          //   bestBreakVal = breakLength;
+          // } else if (breakLength === bestBreakVal) {
+          //   if (v > maxTimeSlotValue) {
+          //     bestBreakVal = breakLength;
+          //     bestTimeSlot = new DateTime(begin);
+          //   }
+          // }
           begin = begin.plus(fiveMinutes);
           n++;
         }
@@ -473,7 +484,7 @@ const context = {
   async generateUserHistory(categorisedSchedule, category) {
     console.log('---generateUserHistory---');
     console.log('category: ', category);
-    const frequencies = this.initialiseHistFreqs(category);
+    let frequencies = this.initialiseHistFreqs(category);
     for (const timeSlotCategory of categorisedSchedule) {
       const timeSlot = timeSlotCategory[0];
       const c = timeSlotCategory[1];
@@ -496,6 +507,8 @@ const context = {
         begin = begin.plus(halfHour);
       }
     }
+    const sumOfFreqs = frequencies.flat(1).reduce((a, b) => a + b, 0);
+    frequencies = frequencies.map((arr)=>arr.map((a)=>a/sumOfFreqs));
     return frequencies;
   },
 };
