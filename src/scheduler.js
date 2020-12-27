@@ -507,7 +507,7 @@ const context = {
         begin = begin.plus(halfHour);
       }
     }
-    const sumOfFreqs = frequencies.flat(1).reduce((a, b) => a + b, 0);
+    const sumOfFreqs = frequencies.flat(1).reduce((a, b) => Math.abs(a) + Math.abs(b), 0);
     frequencies = frequencies.map((arr)=>arr.map((a)=>a/sumOfFreqs));
     return frequencies;
   },
