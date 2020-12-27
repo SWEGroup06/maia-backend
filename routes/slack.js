@@ -1,29 +1,53 @@
 const express = require('express');
-const router = express.Router();
-
 const bodyParser = require('body-parser');
 const fetch = require('node-fetch');
 const {DateTime} = require('luxon');
+const router = express.Router();
 
 const TIME = require('../lib/time.js');
 const DATABASE = require('../lib/database.js');
 const MEETINGS = require('../lib/meetings.js');
-const GOOGLE = require('../lib/google.js');
-const VIEW = require('../lib/view.json');
-
+const EDIT_MEETING_VIEW = require('../lib/view.json');
+const CONFIG = require('../config.js');
 
 router.use('/actions', bodyParser.urlencoded({extended: true}));
 
+/* Submits a response to the slack bot
+via the RESPONSE_URL provided by the payload */
 const submitResponse = async function(payload, obj) {
   await fetch(payload.response_url, {
     method: 'POST',
     body: JSON.stringify(obj),
     headers: {'Content-Type': 'application/json'},
   });
-  // const json = await res.json();
-  // console.log(json);
 };
 
+/* Post a message to the channel via Slack API */
+const postMessage = async function(channelId, text) {
+  await fetch('https://slack.com/api/chat.postMessage', {
+    method: 'POST',
+    headers: {
+      'Content-type': 'application/json',
+      'Authorization': `Bearer ${CONFIG.BOT_TOKEN}`,
+    },
+    body: JSON.stringify({'channel': channelId, 'text': text}),
+  });
+};
+
+/* Open a Modal View on the Slack App via Slack API */
+const openView = async function(view) {
+  await fetch('https://slack.com/api/views.open', {
+    method: 'POST',
+    headers: {
+      'Content-type': 'application/json; charset=utf-8',
+      'Authorization': `Bearer ${CONFIG.BOT_TOKEN}`,
+    },
+    body: JSON.stringify(view),
+  });
+};
+
+
+let channelId = null;
 const actionHandlers = {
   reschedule_button: async function(payload, action) {
     try {
@@ -31,7 +55,6 @@ const actionHandlers = {
         return 'Please select a meeting';
       }
       const rescheduleOptions = payload.state.values.reschedule_options;
-      console.log(rescheduleOptions);
       const meetingDetails = decode(rescheduleOptions.meeting_select.selected_option.value);
       const meetingName = meetingDetails[0];
       const meetingStart = meetingDetails[1];
@@ -105,43 +128,34 @@ const actionHandlers = {
   },
   confirm: async function(payload, action) {
     try {
+      // Save the channel id
+      channelId = payload.channel.id;
       if (action.action_id == 'cancel') {
         const email = await DATABASE.getEmailFromID(payload.user.id);
         await MEETINGS.cancelLastBookedMeeting(email);
         const text = 'Your meeting booking has been cancelled';
         await submitResponse(payload, {text});
       } else if (action.action_id == 'edit') {
-        console.log('post request to views open');
-        VIEW.trigger_id = payload.trigger_id;
-        const res = await fetch('https://slack.com/api/views.open', {
-          method: 'POST',
-          headers: {
-            'Content-type': 'application/json; charset=utf-8',
-            'Authorization': `Bearer xoxb-1411028050436-1449329514355-kawEgvoB7U0ku4EtR27iFILZ`,
-          },
-          body: JSON.stringify(VIEW),
-        });
-        console.log(VIEW);
-        const json = await res.json();
-        console.log(json);
+        EDIT_MEETING_VIEW.trigger_id = payload.trigger_id;
+        openView(EDIT_MEETING_VIEW);
       }
     } catch (error) {
       return error.toString();
     }
   },
-  viewSubmission: async function(payload, action) {
+  viewSubmission: async function(payload, action, res) {
     try {
       const values = payload.view.state.values;
       const name = values.name['name-action'].value;
       const date = values.date['datepicker-action'].selected_date;
       const startTime = values.startTime['timepicker-action'].selected_time;
       const endTime = values.endTime['timepicker-action'].selected_time;
-
-      console.log(name);
-      console.log(date);
-      console.log(startTime);
-      console.log(endTime);
-      // await GOOGLE.updateMeeting(organiserToken, originalEvent, chosenSlot.start, chosenSlot.end);  
+      const email = await DATABASE.getEmailFromID(payload.user.id);
+      await MEETINGS.rescheduleSpecific(email, name, date, startTime, endTime);
+      const text = 'Your meeting has been successfully edited.';
+      // Send 200 OK response with empty body to close view and then post success message
+      res.send();
+      postMessage(channelId, text);
     } catch (error) {
       return error.toString();
     }
@@ -153,14 +167,18 @@ router.post('/actions', async function(req, res) {
   const payload = JSON.parse(req.body.payload);
   console.log(payload);
 
-  // If view submission
   let handler = null;
   let action = null;
+
+  if (!payload) {
+    res.sendStatus(200);
+    return;
+  }
+
   if (payload.type == 'view_submission') {
-    console.log('view submission detected');
     handler = actionHandlers['viewSubmission'];
-  } else {
-    if (!payload || !payload.actions || !payload.actions[0]) {
+  } else if (payload.type == 'block_actions') {
+    if (!payload.actions || !payload.actions[0]) {
       res.sendStatus(200);
       return;
     }
@@ -169,7 +187,7 @@ router.post('/actions', async function(req, res) {
     handler = actionHandlers[action.block_id];
   }
   if (handler) {
-    const error = await handler(payload, action);
+    const error = await handler(payload, action, res);
     if (error) {
       console.log(error);
       await submitResponse(payload, {
@@ -178,7 +196,8 @@ router.post('/actions', async function(req, res) {
         text: error,
       });
     } else {
-      res.sendStatus(200);
+      // Send status 200 with an empty body (required by view-submission)
+      res.send();
     }
   } else {
     res.sendStatus(200);
