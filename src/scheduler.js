@@ -1,7 +1,7 @@
 const {DateTime, Duration} = require('luxon');
 
 const DIALOGFLOW = require('../lib/dialogflow.js');
-// const PLOT = require('plotter').plot;
+const PLOT = require('plotter').plot;
 
 /* CONSTANTS */
 const halfHoursInDay = 24 * 2;
@@ -384,13 +384,13 @@ const context = {
       // no free time slot found
       return null;
     }
-    // for (let i = 0; i < 7; i++) {
-    //   PLOT({
-    //     data: historyFreqs[0][i],
-    //     filename: `output_${i}.svg`,
-    //     format: 'svg',
-    //   });
-    // }
+    for (let i = 0; i < 7; i++) {
+      PLOT({
+        data: historyFreqs[0][i],
+        filename: `output_${i}.svg`,
+        format: 'svg',
+      });
+    }
     const timeSlots = context._schedule(freeTimes, duration, constraints);
     // console.log('free times ', freeTimes[0].map((interval) => [interval[0].toString(), interval[1].toString()]));
     // console.log('free timeslots ', timeSlots.map((interval) => [interval[0].toString(), interval[1].toString()]));
@@ -485,8 +485,6 @@ const context = {
     console.log('---generateUserHistory---');
     console.log('category: ', category);
     let frequencies = this.initialiseHistFreqs(category);
-    let smallest = 100;
-    let largest = -100;
     for (const timeSlotCategory of categorisedSchedule) {
       const timeSlot = timeSlotCategory[0];
       const c = timeSlotCategory[1];
@@ -505,10 +503,20 @@ const context = {
       while (begin < end) {
         const day = begin.weekday - 1;
         frequencies[day][i] = frequencies[day][i] + sign;
-        if (frequencies[day][i] > largest) largest = frequencies[day][i];
-        if (frequencies[day][i] < smallest) smallest = frequencies[day][i];
         i = (i + 1) % halfHoursInDay;
         begin = begin.plus(halfHour);
+      }
+    }
+    let smallest = frequencies[0][0];
+    let largest = frequencies[0][0];
+
+    for (let i = 0; i < 7; i++) {
+      for (let j = 0; j < halfHoursInDay; j++) {
+        if (frequencies[i][j] < smallest) {
+          smallest = frequencies[i][j];
+        } else if (frequencies[i][j] > largest) {
+          largest = frequencies[i][j];
+        }
       }
     }
     frequencies = frequencies.map((arr)=>arr.map((a)=>(a+Math.abs(smallest))/(largest-smallest)));
