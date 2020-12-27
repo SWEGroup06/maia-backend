@@ -199,4 +199,39 @@ router.get('/constraint', async function(req, res) {
   }
 });
 
+router.get('/cancel', async function(req, res) {
+  console.log('CANCEL REQ');
+  console.log(req.query);
+
+  if (!req.query.email) {
+    res.json({error: 'No email found'});
+  }
+
+  try {
+    const email = JSON.parse(decodeURIComponent(req.query.email));
+    const organiserToken = JSON.parse(decodeURIComponent(await DATABASE.getToken(email)));
+
+    const meetingTitle = decodeURIComponent(req.query.meetingTitle);
+    const meetingDateTime = decodeURIComponent(req.query.meetingDateTime);
+
+    let events;
+
+    if (meetingDateTime) {
+      events = await GOOGLE.getEvents(organiserToken, JSON.parse(meetingDateTime));
+    } else if (meetingTitle) {
+      events = await GOOGLE.getEventByName(organiserToken, JSON.parse(meetingTitle));
+    }
+
+    console.log(events);
+
+    if (events.length > 0) {
+      await GOOGLE.cancelEvent(organiserToken, events[0].id);
+      res.send({success: true});
+    }
+  } catch (error) {
+    console.error(error);
+    res.send({error: error.toString()});
+  }
+});
+
 module.exports = router;
