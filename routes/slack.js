@@ -115,7 +115,9 @@ const actionHandlers = {
       const email = JSON.parse(action.action_id);
       if (await DATABASE.userExists(email)) {
         await DATABASE.deleteUser(email);
-        await submitResponse(payload, {text: `*Sign out with ${email} was successful*`});
+        const text = `*Sign out with ${email} was successful*`;
+        console.log(text);
+        await submitResponse(payload, {text});
       } else {
         const text = `*Account with email ${email} does not exist.*`;
         console.log(text);
