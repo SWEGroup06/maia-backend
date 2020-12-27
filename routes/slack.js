@@ -63,8 +63,6 @@ const actionHandlers = {
       if (rescheduleOptions.startDate.selected_date && rescheduleOptions.endDate.selected_date) {
         const newStartDate = new Date(rescheduleOptions.startDate.selected_date).toISOString();
         const newEndDate = new Date(rescheduleOptions.endDate.selected_date).toISOString();
-        console.log(newStartDate);
-        console.log(newEndDate);
         newSlot = await MEETINGS.reschedule(meetingStart, null, email, newStartDate, newEndDate);
       } else {
         newSlot = await MEETINGS.reschedule(meetingStart, null, email, null, null);
@@ -75,7 +73,8 @@ const actionHandlers = {
         const date = startDateTime.toLocaleString(DateTime.DATE_SHORT);
         const startTime = startDateTime.toLocaleString(DateTime.TIME_24_SIMPLE);
         const endTime = endDateTime.toLocaleString(DateTime.TIME_24_SIMPLE);
-        await submitResponse(payload, {text: 'Okay, cool! :thumbsup::skin-tone-3: Rescheduled ' + meetingName + ' to ' + date + ' from ' + startTime + ' to ' + endTime});
+        const text = 'Okay, cool! :thumbsup::skin-tone-3: Rescheduled ' + meetingName + ' to ' + date + ' from ' + startTime + ' to ' + endTime;
+        await submitResponse(payload, {text});
       }
       return;
     } catch (error) {
@@ -153,10 +152,10 @@ const actionHandlers = {
       const startTime = values.startTime['timepicker-action'].selected_time;
       const endTime = values.endTime['timepicker-action'].selected_time;
       const email = await DATABASE.getEmailFromID(payload.user.id);
-      await MEETINGS.rescheduleSpecific(email, name, date, startTime, endTime);
-      const text = 'Your meeting has been successfully edited.';
-      // Send 200 OK response with empty body to close view and then post success message
+      await MEETINGS.rescheduleToSpecificDateTime(email, name, date, startTime, endTime);
+      // Send 200 OK response with empty body to close view
       res.send();
+      const text = 'Your meeting has been successfully edited.';
       postMessage(channelId, text);
     } catch (error) {
       return error.toString();
@@ -198,7 +197,7 @@ router.post('/actions', async function(req, res) {
         text: error,
       });
     } else {
-      // Send status 200 with an empty body (required by view-submission)
+      // Send status 200 with an empty body
       res.send();
     }
   } else {
