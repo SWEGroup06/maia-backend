@@ -272,7 +272,7 @@ const context = {
         breakLength = end.diff(begin, ['minutes']);
         // console.log('begin: ', begin.toString(), ' end: ', end.toString(), ' \t\tbreaklength: ', breakLength.minutes);
         // console.log('begin: ', begin.toString(), '\t\tend: ', end.toString(), '\t\tbestTimeSlot: ', bestTimeSlot + clusterVal.values.minutes);
-        clusterVal = breakLength.values.minutes/30;
+        clusterVal = breakLength.values.minutes/duration.get('minutes');
         while (begin <= end) {
           const v = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
           if (bestVal < v*2 - clusterVal) {
