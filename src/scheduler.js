@@ -6,7 +6,6 @@ const DIALOGFLOW = require('../lib/dialogflow.js');
 /* CONSTANTS */
 const halfHoursInDay = 24 * 2;
 const halfHour = Duration.fromObject({minutes: 30});
-const fiveMinutes = Duration.fromObject({minutes: 5});
 const LEISURE = 0;
 const UNKNOWN = -1;
 const WORK = 1;
@@ -129,10 +128,11 @@ const context = {
     let day = start.weekday - 1;
     const res = [];
     while (start <= end) {
-      if (weekAvailability[day].length < 1) {
-        res.push([context.combine(start, DateTime.fromObject({hour: 0, minute: 0})),
-          context.combine(start, DateTime.fromObject({hour: 23, minute: 59, second: 59, millisecond: 999}))]);
-      } else {
+      // if (weekAvailability[day].length < 1) {
+      //   res.push([context.combine(start, DateTime.fromObject({hour: 0, minute: 0})),
+      //     context.combine(start, DateTime.fromObject({hour: 23, minute: 59, second: 59, millisecond: 999}))]);
+      // }
+      if (weekAvailability[day].length > 0) {
         weekAvailability[day].forEach(function(timeSlot) {
           if (timeSlot[0] !== '' && timeSlot[1] !== '') {
             res.push([context.combine(start, timeSlot[0]), context.combine(start, timeSlot[1])]);
@@ -256,41 +256,30 @@ const context = {
     // choices.sort((a, b) => a[1] - b[1]);
     // choices = choices.map((timeSlot) => [timeSlot[0], timeSlot[1], timeSlot[1].diff(timeSlot[0]).minutes]);
     // console.log(choices);
-    let maxTimeSlotValue = -10000;
+    let bestP = -1000;
     let bestTimeSlot = null;
-    let n = 0;
 
     if (cluster) {
       // minimise the break val whilst being at least the minBreakLength
-      let bestBreakVal = 1000000;
       for (const timeSlot of freeTimes) {
-        let begin = timeSlot[0];
+        const begin = timeSlot[0];
         const end = timeSlot[1];
         // breakLength represents how well clustered this event is/break time between meetings --
         // if want back-to-back then wanna minimise this value whilst being at least the minimum required by user
-        let breakLength = end.diff(begin, ['minutes']);
         // console.log('begin: ', begin.toString(), ' end: ', end.toString(), ' \t\tbreaklength: ', breakLength.minutes);
         // console.log('begin: ', begin.toString(), '\t\tend: ', end.toString(), '\t\tbestTimeSlot: ', bestTimeSlot + clusterVal.values.minutes);
-        breakLength = breakLength.values.hours * 60 + breakLength.values.minutes;
-        while (begin <= end) {
-          const v = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
-          // console.log('begin: ', begin.toString(), ' v: ', v);
-          if (v > maxTimeSlotValue) {
-            maxTimeSlotValue = v;
-            bestTimeSlot = new DateTime(begin);
-            bestBreakVal = breakLength;
-          } else if (v === maxTimeSlotValue) {
-            if (breakLength < bestBreakVal && breakLength >= minBreakLength) {
-              bestBreakVal = breakLength;
-              bestTimeSlot = new DateTime(begin);
-            }
+        const p1 = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
+        const p2 = context.getTimeSlotValue(end, end.plus(duration), historyFreq);
+        if (bestP < p1) {
+          bestP = p1;
+          bestTimeSlot = new DateTime(begin);
+          if (bestP < p2) {
+            bestP = p2;
+            bestTimeSlot = new DateTime(end);
           }
-          begin = begin.plus(fiveMinutes);
-          n++;
         }
       }
     }
-    console.log('#begins: ', n);
     return bestTimeSlot;
   },
   /* [
@@ -473,7 +462,7 @@ const context = {
   async generateUserHistory(categorisedSchedule, category) {
     console.log('---generateUserHistory---');
     console.log('category: ', category);
-    const frequencies = this.initialiseHistFreqs(category);
+    let frequencies = this.initialiseHistFreqs(category);
     for (const timeSlotCategory of categorisedSchedule) {
       const timeSlot = timeSlotCategory[0];
       const c = timeSlotCategory[1];
@@ -496,6 +485,19 @@ const context = {
         begin = begin.plus(halfHour);
       }
     }
+    let smallest = frequencies[0][0];
+    let largest = frequencies[0][0];
+
+    for (let i = 0; i < 7; i++) {
+      for (let j = 0; j < halfHoursInDay; j++) {
+        if (frequencies[i][j] < smallest) {
+          smallest = frequencies[i][j];
+        } else if (frequencies[i][j] > largest) {
+          largest = frequencies[i][j];
+        }
+      }
+    }
+    frequencies = frequencies.map((arr)=>arr.map((a) => (a+Math.abs(smallest))/(largest-smallest)));
     return frequencies;
   },
 };
