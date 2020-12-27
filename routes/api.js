@@ -64,10 +64,11 @@ router.get('/reschedule', async function(req, res) {
   // TODO: Delete these
   console.log('REQ.QUERY************');
   console.log(req.query);
+  console.log(decodeURIComponent(req.query.meetingTitle));
   console.log('*********************');
 
-  // TODO: This is an unbelievable clapped way to do this I am so sorry, I will change it later - Ali
-  const meetingTitle = req.query.meetingTitle.substring(3, req.query.meetingTitle.length - 3);
+  let meetingTitle = JSON.parse(decodeURIComponent(req.query.meetingTitle));
+  meetingTitle = meetingTitle.substring(1, meetingTitle.length - 1);
 
   if (!req.query.organiserSlackEmail) {
     res.json({error: 'Organiser\'s slack email not found'});
