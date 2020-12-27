@@ -200,4 +200,45 @@ router.get('/constraint', async function(req, res) {
   }
 });
 
+router.get('/cancel', async function(req, res) {
+  console.log('CANCEL REQ');
+  console.log(req.query);
+
+  if (!req.query.email) {
+    res.json({error: 'No email found'});
+  }
+
+  try {
+    const email = JSON.parse(decodeURIComponent(req.query.email));
+    const organiserToken = JSON.parse(decodeURIComponent(await DATABASE.getToken(email)));
+
+    let meetingTitle = JSON.parse(decodeURIComponent(req.query.meetingTitle));
+    meetingTitle = meetingTitle.substring(1, meetingTitle.length - 1);
+    const meetingDateTime = JSON.parse(decodeURIComponent(req.query.meetingDateTime));
+
+    let events;
+
+    if (meetingDateTime) {
+      events = await GOOGLE.getEvents(organiserToken, meetingDateTime);
+      if (events.length === 0 || (events.length > 0 && !TIME.compareTime(events[0].start.dateTime, meetingDateTime))) {
+        res.send({error: 'No Meeting found'});
+        return;
+      }
+    } else if (meetingTitle && meetingTitle !== '') {
+      events = await GOOGLE.getEventByName(organiserToken, meetingTitle);
+    } else {
+      res.send({error: 'To cancel an event, please specify the event name or start time.'});
+    }
+
+    const eventTitle = events[0].summary;
+    const eventDateTime = events[0].start.dateTime;
+
+    await GOOGLE.cancelEvent(organiserToken, events[0].id);
+    res.json({title: eventTitle, dateTime: eventDateTime});
+  } catch (error) {
+    console.error(error);
+    res.send({error: error.toString()});
+  }
+});
+
 module.exports = router;
