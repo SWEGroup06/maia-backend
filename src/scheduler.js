@@ -41,48 +41,6 @@ const context = {
     });
   },
   /**
-   * Takes in days of the week to produce availablities for, indicated by weekdayAvailable array. The
-   * available times are passed in the availableTimes array. The function will produce availablities
-   * for a number of weeks, specified by the weeks parameter
-   * @param { Array } weekdayAvailable array of boolean flags [1,0,1,0,0,0,0]
-   * @param { Array } availableTimes [{startTime: x, endtime: y}], where startTime < endtime
-   * @param { Int } weeks number of weeks to produce availablity for
-   * @return { Array } [[ dateTime, dateTime ], ...],
-   * [[{startTime: X, endTime: Y},...],...]
-   */
-  oldGenerateConstraints: (weekdayAvailable, availableTimes, weeks=1) => {
-    // bad input
-    if (!weekdayAvailable ||
-      !availableTimes ||
-      !availableTimes.length ||
-      weeks < 1) {
-      return null;
-    }
-
-    let date = DateTime.fromISO(availableTimes[0].startTime);
-    let weekday = date.weekday - 1;
-    availableTimes = availableTimes.map((x) => {
-      const z = DateTime.fromISO(x.startTime);
-      const y = DateTime.fromISO(x.endTime);
-      return {'start': z, 'end': y};
-    });
-    const res = [];
-    for (let days = 0; days < weeks * 7; days++) {
-      // generate available times for only days of the weekday that are specified
-      if (weekdayAvailable[weekday]) {
-        for (const time of availableTimes) {
-          res.push([context.combine(date, time.start.c), context.combine(date, time.end.c)]);
-        }
-      }
-      // increment to the next day
-      weekday = (weekday + 1) % 7;
-      date = date.plus({days: 1});
-    }
-
-    return res;
-  },
-  /**
-   *
    * @param { Array } ranges
    * @return { Array }
    */
@@ -103,7 +61,6 @@ const context = {
     return result;
   },
   /**
-   *
    * @param {Array} weekAvailability [[{startTime: X, endTime: Y}],...]list of time constraints for every day of the week
    * @param { string } _start ISO Date/Time format, represents start DateTime that event can occur
    * @param { string } _end ISO Date/Time format, represents end DateTime
@@ -282,68 +239,110 @@ const context = {
     }
     return bestTimeSlot;
   },
-  /* [
-    [start, end]
-    .
-    .
-    .
-  ] */
-  // eslint-disable-next-line valid-jsdoc
   /**
-   *
-   * @param { Array } busySlots
    * @param { String } startISO
    * @param { String } endISO
    * @param { Duration } minBreakLength // array of every user's minimum break length
+   * @param {[{DateTime, Datetime}]}  workDays
    * @return {[]|DateTime[][]}
    */
-  getFreeSlots: (busySlots, startISO, endISO, minBreakLength=Duration.fromObject({minutes: 0})) => {
+  getFreeSlots: (busySlots, startISO, endISO,
+      minBreakLength=Duration.fromObject({minutes: 0}), workDays) => {
     console.log('---getFreeSlots---');
-    // Parse start and end times
-    let begin = DateTime.fromISO(startISO);
-    const end = DateTime.fromISO(endISO);
-
-    // Parse busy slots as DateTime objecs
-    busySlots = busySlots.map((x) => {
-      x[0] = DateTime.fromISO(x[0]);
-      x[1] = DateTime.fromISO(x[1]);
-      return x;
-    });
 
     // If there are no busy slots return entire time period
     if (!busySlots.length) {
-      return [[begin, end]];
+      const start = DateTime.fromISO(startISO);
+      const end = DateTime.fromISO(endISO);
+      return context.freeSlotsAux(start, end, workDays);
     }
 
-    // If start time is within a slot move start time to end of slot
-    // if (begin >= busySlots[0][0].minus(minBreakLength) && begin < busySlots[0][1].plus(minBreakLength)) {
-    //   begin = (busySlots[0][1]).plus(minBreakLength);
-    // }
-    const freeSlots = [];
+    // Parse busy slots as DateTime objects
+    busySlots = busySlots.map((x) => {
+      x[0] = DateTime.fromISO(x[0]).minus(minBreakLength);
+      x[1] = DateTime.fromISO(x[1]).plus(minBreakLength);
+      return x;
+    });
+
+    // Initalise variables
+    const fiveSeconds = Duration.fromObject({seconds: 5});
+    const oneDay = Duration.fromObject({days: 1});
+    const start = DateTime.fromISO(startISO);
+    let freeSlots = [];
+
+    // Generate free slots for days before the first busy slot
+    if (busySlots[0][0] - start > oneDay) {
+      end = busySlots[0][0].minus(oneDay);
+      freeSlots = context.freeSlotsAux(start, end, workDays);
+    }
+
+    // Generate free time slots
+    let prevDay = busySlots[0][0].weekday - 1;
+    let begin = null; let end = null;
     for (let i = 0; i < busySlots.length; i++) {
       const busyTimeSlot = busySlots[i];
-      // console.log('busytimeslot[', i, ']', ' ', busyTimeSlot[0].toISO(), busyTimeSlot[1].toISO(), freeSlots.length);
-      // If start time is within a slot move start time to end of slot
-      if (begin >= busyTimeSlot[0].minus(minBreakLength) && begin < busyTimeSlot[1].plus(minBreakLength)) {
-        begin = (busyTimeSlot[1]).plus(minBreakLength);
+      const day = busyTimeSlot[0].weekday;
+      // compute beginning and end of the new working day
+      if (prevDay !== day) {
+        if (workDays[day].length > 0) {
+          // Generate last free slot of the previous day
+          if (begin && end - begin > fiveSeconds) {
+            freeSlots.push([begin, end]);
+          }
+          prevDay = day;
+          begin = context.combine(busyTimeSlot, workDays[day].startTime);
+          end = context.combine(busyTimeSlot, workDays[day].endTime);
+        } else {
+          // skip over non-working days (e.g. weekend)
+          continue;
+        }
       }
-      // console.log('begin minus', busyTimeSlot[0].minus(minBreakLength).toISO(), busyTimeSlot[0].toISO());
-      if (begin <= busyTimeSlot[0].minus(minBreakLength)) {
-        if (begin < busyTimeSlot[0].minus(minBreakLength)) {
-          freeSlots.push([begin, busyTimeSlot[0].minus(minBreakLength)]);
+      // We loop through slots until these conditions are met before generating free slots:
+      // 1. begin < end, this allows us to ignore time slots after end, as begin increases over time
+      // 2. slotEnd < begin, this allows us to ignore time slots before initial begin value
+      // 3. not (slot < begin < slotEnd), we don't want to generate inside an existing time slot
+      if (begin < end) {
+        if (busyTimeSlot[0] <= begin && begin < busyTimeSlot[1]) {
+          begin = busyTimeSlot[1];
+        } else if (begin < busyTimeSlot[0]) {
+          if (end < busyTimeSlot[0]) {
+            freeSlots.push([begin, end]);
+          } else {
+            freeSlots.push([begin, busyTimeSlot[0]]);
+          }
+          begin = busyTimeSlot[1];
         }
-        // console.log(busyTimeSlot[0].minus(minBreakLength).toISO(), busyTimeSlot[1].plus(minBreakLength).toISO(), freeSlots.map((interval) => [interval[0].toString(), interval[1].toString()]));
-        if (busyTimeSlot[1].plus(minBreakLength) > end) {
-          break;
-        }
-        begin = busyTimeSlot[1].plus(minBreakLength);
       }
     }
-    if (end - begin > Duration.fromObject({seconds: 5})) {
+    if (end - begin > fiveSeconds) {
       freeSlots.push([begin, end]);
     }
-    // console.log('xxx');
-    // freeSlots.forEach((x) => console.log('abc', x[0].c, x[1].c));
+    end = DateTime.fromISO(endISO);
+    if (end - begin > oneDay) {
+      const start = begin.plus(oneDay);
+      const moreFreeSlots = freeSlotsAux(start, end, workDays);
+      freeSlots = freeSlots.concat(moreFreeSlots);
+    }
+    return freeSlots;
+  },
+  /**
+   *
+   * @param { DateTime } start
+   * @param { DateTime } end
+   * @param { [{DateTime, DateTime}] }workDays
+   * return { [[DateTime]] }
+   */
+  freeSlotsAux: (start, end, workDays) => {
+    const oneDay = Duration.fromObject({hours: 1});
+    const freeSlots = [];
+    while (start <= end) {
+      const day = start.weekday;
+      if (workDays[day].length > 0) {
+        freeSlots.push([context.combine(start, workDays[day].startTime),
+          context.combine(start, workDays[day].endTime)]);
+      }
+      start = start.plus(oneDay);
+    }
     return freeSlots;
   },
   /**
@@ -359,7 +358,6 @@ const context = {
     console.log('---findMeetingSlot---');
     if (!freeTimes || freeTimes.length === 0) {
       console.log('nothing found: ', freeTimes);
-      // no free time slot found
       return null;
     }
     // for (let i = 0; i < 7; i++) {
