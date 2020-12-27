@@ -6,7 +6,6 @@ const DIALOGFLOW = require('../lib/dialogflow.js');
 /* CONSTANTS */
 const halfHoursInDay = 24 * 2;
 const halfHour = Duration.fromObject({minutes: 30});
-const fiveMinutes = Duration.fromObject({minutes: 5});
 const LEISURE = 0;
 const UNKNOWN = -1;
 const WORK = 1;
