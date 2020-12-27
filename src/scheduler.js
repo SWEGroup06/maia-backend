@@ -519,7 +519,7 @@ const context = {
         }
       }
     }
-    frequencies = frequencies.map((arr)=>arr.map((a)=>(a+Math.abs(smallest))/(largest-smallest)));
+    frequencies = frequencies.map((arr)=>arr.map((a) => -1+(a+Math.abs(smallest))/(largest-smallest)));
     return frequencies;
   },
 };
