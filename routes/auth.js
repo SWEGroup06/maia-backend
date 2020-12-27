@@ -7,6 +7,8 @@ const DATABASE = require('../lib/database');
 const SCHEDULER = require('../src/scheduler');
 
 const NUM_CATEGORIES = 2;
+const today = DateTime.local();
+const oneMonthAgo = today.minus(Duration.fromObject({days: 30}));
 
 router.use('/success', express.static('public'));
 
@@ -41,22 +43,24 @@ router.get('/login', async function(req, res) {
 });
 
 // eslint-disable-next-line require-jsdoc
-async function generateHistFreq(tokens, slackEmail) {
-  const today = DateTime.local();
-  const oneMonthAgo = today.minus(Duration.fromObject({days: 30}));
+async function generateHistFreqForCategory(categorisedSchedule, slackEmail, category) {
+  console.log('categoryy: ', category);
+  const histFreq = await SCHEDULER.generateUserHistory(categorisedSchedule, category);
+  await DATABASE.setFrequenciesByCategory(slackEmail, category, histFreq);
+  console.log('-------history frequency ', category, ' completed -------');
+}
 
-  // TODO: add some form of loading screen here
+// eslint-disable-next-line require-jsdoc
+async function generatePreferences(tokens, slackEmail) {
   let lastMonthHist = await GOOGLE.getMeetings(tokens, oneMonthAgo.toISO(), today.toISO());
   lastMonthHist = lastMonthHist.map((e) => [e.start.dateTime, e.end.dateTime, e.summary]);
-  let histFreq;
+  const categorisedSchedule = await SCHEDULER.getCategorisedSchedule(lastMonthHist);
   console.log('---generating history frequencies---');
-
   for (let category=0; category < NUM_CATEGORIES; category++) {
-    console.log('categoryy: ', category);
-    histFreq = await SCHEDULER.getUserHistory(lastMonthHist, category);
-    await DATABASE.setFrequenciesByCategory(slackEmail, category, histFreq);
+    setTimeout(() => generateHistFreqForCategory(categorisedSchedule, slackEmail, category), 0);
   }
-  console.log('-------history frequencies completed-------');
+  console.log('---generating meeting cluster preferences---');
+  // TODO: ...
 }
 
 // Google OAuth2 callback
@@ -77,7 +81,7 @@ router.get('/callback', async function(req, res) {
     const googleEmail = await GOOGLE.getEmail(tokens);
     await DATABASE.createNewUser(state.userID, state.email, googleEmail, JSON.stringify(tokens));
 
-    setTimeout(() => generateHistFreq(tokens, state.email), 0);
+    setTimeout(() => generatePreferences(tokens, state.email), 0);
 
     // Redirect to success page
     res.redirect('success/login.html');

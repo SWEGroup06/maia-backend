@@ -6,6 +6,7 @@ const DIALOGFLOW = require('../lib/dialogflow.js');
 /* CONSTANTS */
 const halfHoursInDay = 24 * 2;
 const halfHour = Duration.fromObject({minutes: 30});
+const fiveMinutes = Duration.fromObject({minutes: 5});
 const LEISURE = 0;
 const UNKNOWN = -1;
 const WORK = 1;
@@ -227,10 +228,11 @@ const context = {
    * @param {Array} freeTimes -- array returned by _schedule [[start1, start2]]
    * @param {Array} historyFreqs -- array of arrays returned by userHistory()
    * @param {Duration} duration -- event's duration
+   * @param {Boolean} cluster
    * @return {DateTime} -- best start date time for event
    * @private
    */
-  _chooseFromHistory: (freeTimes, historyFreqs, duration) => {
+  _chooseFromHistory: ({freeTimes, historyFreqs, duration, cluster}) => {
     // sum history freqs together to make one for everyone
     console.log('---_chooseFromHistory---');
     // console.log('freetimes: ', freeTimes[0]);
@@ -255,27 +257,34 @@ const context = {
     // console.log(choices);
     let maxTimeSlotValue = -10000;
     let bestTimeSlot = null;
-    let bestClusterVal = 1000000;
-    for (const timeSlot of freeTimes) {
-      let begin = timeSlot[0];
-      const end = timeSlot[1];
-      // clusterval represents how well clustered this event is -- wanna minimise this value
-      let clusterVal = end.diff(begin, ['minutes', 'hours']);
-      // console.log('begin: ', begin.toString(), '\t\tend: ', end.toString(), '\t\tclusterval: ', clusterVal.values.hours * 60 + clusterVal.values.minutes);
-      clusterVal = clusterVal.values.hours * 60 + clusterVal.values.minutes;
-      while (begin <= end) {
-        const v = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
-        if (v > maxTimeSlotValue) {
-          maxTimeSlotValue = v;
-          bestTimeSlot = new DateTime(begin);
-          bestClusterVal = clusterVal;
-        } else if (v === maxTimeSlotValue) {
-          if (clusterVal < bestClusterVal) {
-            bestClusterVal = clusterVal;
+
+    if (cluster) {
+      // minimise the break val whilst being at least the minBreakLength
+      let bestBreakVal = 1000000;
+      for (const timeSlot of freeTimes) {
+        let begin = timeSlot[0];
+        const end = timeSlot[1];
+        // breakLength represents how well clustered this event is/break time between meetings --
+        // if want back-to-back then wanna minimise this value whilst being at least the minimum required by user
+        let breakLength = end.diff(begin, ['minutes']);
+        // console.log('begin: ', begin.toString(), ' end: ', end.toString(), ' \t\tbreaklength: ', breakLength.minutes);
+        // console.log('begin: ', begin.toString(), '\t\tend: ', end.toString(), '\t\tbestTimeSlot: ', bestTimeSlot + clusterVal.values.minutes);
+        breakLength = breakLength.values.hours * 60 + breakLength.values.minutes;
+        while (begin <= end) {
+          const v = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
+          // console.log('begin: ', begin.toString(), ' v: ', v);
+          if (v > maxTimeSlotValue) {
+            maxTimeSlotValue = v;
             bestTimeSlot = new DateTime(begin);
+            bestBreakVal = breakLength;
+          } else if (v === maxTimeSlotValue) {
+            if (breakLength < bestBreakVal && breakLength >= minBreakLength) {
+              bestBreakVal = breakLength;
+              bestTimeSlot = new DateTime(begin);
+            }
           }
+          begin = begin.plus(fiveMinutes);
         }
-        begin = begin.plus(halfHour);
       }
     }
     return bestTimeSlot;
@@ -286,10 +295,20 @@ const context = {
     .
     .
   ] */
-  getFreeSlots: (busySlots, start, end) => {
+  // eslint-disable-next-line valid-jsdoc
+  /**
+   *
+   * @param { Array } busySlots
+   * @param { String } startISO
+   * @param { String } endISO
+   * @param { Duration } minBreakLength // array of every user's minimum break length
+   * @return {[]|DateTime[][]}
+   */
+  getFreeSlots: (busySlots, startISO, endISO, minBreakLength=Duration.fromObject({minutes: 0})) => {
+    console.log('---getFreeSlots---');
     // Parse start and end times
-    let begin = DateTime.fromISO(start);
-    end = DateTime.fromISO(end);
+    let begin = DateTime.fromISO(startISO);
+    const end = DateTime.fromISO(endISO);
 
     // Parse busy slots as DateTime objecs
     busySlots = busySlots.map((x) => {
@@ -304,19 +323,27 @@ const context = {
     }
 
     // If start time is within a slot move start time to end of slot
-    if (begin >= busySlots[0][0] && begin < busySlots[0][1]) {
-      begin = busySlots[0][1];
-    }
+    // if (begin >= busySlots[0][0].minus(minBreakLength) && begin < busySlots[0][1].plus(minBreakLength)) {
+    //   begin = (busySlots[0][1]).plus(minBreakLength);
+    // }
     const freeSlots = [];
     for (let i = 0; i < busySlots.length; i++) {
       const busyTimeSlot = busySlots[i];
-      // console.log('busytimeslot[', i, ']', ' ', busyTimeSlot[0].toISO(), busyTimeSlot[1].toISO(), freeSlots.length);
-      if (busyTimeSlot[1] > end) {
-        break;
+      console.log('busytimeslot[', i, ']', ' ', busyTimeSlot[0].toISO(), busyTimeSlot[1].toISO(), freeSlots.length);
+      // If start time is within a slot move start time to end of slot
+      if (begin >= busyTimeSlot[0].minus(minBreakLength) && begin < busyTimeSlot[1].plus(minBreakLength)) {
+        begin = (busyTimeSlot[1]).plus(minBreakLength);
       }
-      if (begin < busyTimeSlot[0]) {
-        freeSlots.push([begin, busyTimeSlot[0]]);
-        begin = busyTimeSlot[1];
+      // console.log('begin minus', busyTimeSlot[0].minus(minBreakLength).toISO(), busyTimeSlot[0].toISO());
+      if (begin <= busyTimeSlot[0].minus(minBreakLength)) {
+        if (begin < busyTimeSlot[0].minus(minBreakLength)) {
+          freeSlots.push([begin, busyTimeSlot[0].minus(minBreakLength)]);
+        }
+        console.log(busyTimeSlot[0].minus(minBreakLength).toISO(), busyTimeSlot[1].plus(minBreakLength).toISO(), freeSlots.map((interval) => [interval[0].toString(), interval[1].toString()]));
+        if (busyTimeSlot[1].plus(minBreakLength) > end) {
+          break;
+        }
+        begin = busyTimeSlot[1].plus(minBreakLength);
       }
     }
     if (end - begin > Duration.fromObject({seconds: 5})) {
@@ -332,9 +359,10 @@ const context = {
    * @param { Duration } duration
    * @param { Array } constraints
    * @param { Array } historyFreqs
+   * @param { Boolean } cluster // whether the user would like their meetings clustered or not
    * @return {null|{start: string, end: string}}
    */
-  findMeetingSlot(freeTimes, duration, constraints = null, historyFreqs) {
+  findMeetingSlot(freeTimes, duration, constraints = null, historyFreqs, cluster = true) {
     console.log('---findMeetingSlot---');
     if (!freeTimes || freeTimes.length === 0) {
       console.log('nothing found: ', freeTimes);
@@ -349,8 +377,15 @@ const context = {
     //   });
     // }
     const timeSlots = context._schedule(freeTimes, duration, constraints);
-    // console.log('timeslots ', timeSlots.map((interval) => [interval[0].toString(), interval[1].toString()]));
-    const choice = context._chooseFromHistory(timeSlots, historyFreqs, duration);
+    // console.log('free times ', freeTimes.map((interval) => [interval[0][0].toString(), interval[0][1].toString()]));
+
+    console.log('free timeslots ', timeSlots.map((interval) => [interval[0].toString(), interval[1].toString()]));
+    const choice = context._chooseFromHistory({
+      freeTimes: timeSlots,
+      historyFreqs: historyFreqs,
+      duration: duration,
+      cluster: cluster,
+    });
     if (choice) {
       return {
         start: choice.toISO(),
@@ -358,6 +393,14 @@ const context = {
       };
     }
     return null;
+  },
+  async getCategorisedSchedule(lastMonthBusySchedule) {
+    const x = [];
+    for (const timeSlot of lastMonthBusySchedule) {
+      const c = await DIALOGFLOW.getCategory(timeSlot[2]);
+      x.push([timeSlot, c]);
+    }
+    return x;
   },
   initialiseHistFreqs(category) {
     const frequencies = Array(7);
@@ -420,16 +463,17 @@ const context = {
   },
   /**
    *
-   * @param { Array } lastMonthBusySchedule [{startTime: ISO String, endTime: ISO String}]
+   * @param { Array } categorisedSchedule [{startTime: ISO String, endTime: ISO String}]
    * @param { Integer } category
    * @return {[]} array of frequencies for each half hour time slot for this user
    */
-  async getUserHistory(lastMonthBusySchedule, category) {
-    console.log('---getUserHistory---');
+  async generateUserHistory(categorisedSchedule, category) {
+    console.log('---generateUserHistory---');
     console.log('category: ', category);
     const frequencies = this.initialiseHistFreqs(category);
-    for (const timeSlot of lastMonthBusySchedule) {
-      const c = await DIALOGFLOW.getCategory(timeSlot[2]);
+    for (const timeSlotCategory of categorisedSchedule) {
+      const timeSlot = timeSlotCategory[0];
+      const c = timeSlotCategory[1];
       let sign = 1;
       if (c === -1) {
         // don't weight against un-categorised events
