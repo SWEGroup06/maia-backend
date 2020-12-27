@@ -216,7 +216,8 @@ const context = {
     let i = startHour * 2 + startHalf;
     while (begin < end) {
       const day = begin.weekday - 1;
-      val += historyFreq[day][i] > 0 ? historyFreq[day][i] ** 2 : -1 * (historyFreq[day][i] ** 2);
+      // val += historyFreq[day][i] > 0 ? historyFreq[day][i] ** 2 : -1 * (historyFreq[day][i] ** 2);
+      val += historyFreq[day][i];
       i = (i + 1) % halfHoursInDay;
       begin = begin.plus(halfHour);
     }
@@ -454,7 +455,7 @@ const context = {
         for (let i = 0; i <= 8; i++) vals[i] = -5;
         for (let i = 9; i < 18; i++) vals[i] = -9.8 + 0.6*i;
         for (let i = 18; i < 24; i++) vals[i] = 1;
-        for (let i = 24; i <= 27; i++) vals[i] = -1;
+        for (let i = 24; i <= 27; i++) vals[i] = -2;
         for (let i = 28; i <= 34; i++) vals[i] = 1;
         for (let i = 35; i <= 42; i++) vals[i] = 0;
         for (let i = 43; i < 48; i++) vals[i] = 35-5/6*i;
