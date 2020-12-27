@@ -256,14 +256,14 @@ const context = {
     // choices.sort((a, b) => a[1] - b[1]);
     // choices = choices.map((timeSlot) => [timeSlot[0], timeSlot[1], timeSlot[1].diff(timeSlot[0]).minutes]);
     // console.log(choices);
-    let maxTimeSlotValue = -10000;
+    let bestVal = -1000;
     let bestTimeSlot = null;
     let n = 0;
 
     if (cluster) {
       // minimise the break val whilst being at least the minBreakLength
-      let bestBreakVal = 1000000;
       let breakLength;
+      let clusterVal;
       for (const timeSlot of freeTimes) {
         let begin = timeSlot[0];
         const end = timeSlot[1];
@@ -272,20 +272,14 @@ const context = {
         breakLength = end.diff(begin, ['minutes']);
         // console.log('begin: ', begin.toString(), ' end: ', end.toString(), ' \t\tbreaklength: ', breakLength.minutes);
         // console.log('begin: ', begin.toString(), '\t\tend: ', end.toString(), '\t\tbestTimeSlot: ', bestTimeSlot + clusterVal.values.minutes);
-        breakLength = breakLength.values.minutes;
+        clusterVal = breakLength.values.minutes/30;
         while (begin <= end) {
           const v = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
-          // console.log('begin: ', begin.toString(), ' v: ', v, ' bestBreakVal: ', bestBreakVal, ' breakVal: ', breakLength);
-          if (v > maxTimeSlotValue) {
-            maxTimeSlotValue = v;
+          if (bestVal < v - clusterVal) {
+            bestVal = v;
             bestTimeSlot = new DateTime(begin);
-            bestBreakVal = breakLength;
-          } else if (v === maxTimeSlotValue) {
-            if (breakLength < bestBreakVal) {
-              bestBreakVal = breakLength;
-              bestTimeSlot = new DateTime(begin);
-            }
           }
+          console.log('begin: ', begin.toString(), ' v: ', v, ' clusterVal: ', clusterVal, ' bestVal: ', bestVal);
           // if (breakLength < bestBreakVal) {
           //   maxTimeSlotValue = v;
           //   bestTimeSlot = new DateTime(begin);
@@ -519,7 +513,7 @@ const context = {
         }
       }
     }
-    frequencies = frequencies.map((arr)=>arr.map((a) => -1+(a+Math.abs(smallest))/(largest-smallest)));
+    frequencies = frequencies.map((arr)=>arr.map((a) => (a+Math.abs(smallest))/(largest-smallest)));
     return frequencies;
   },
 };
