@@ -485,6 +485,8 @@ const context = {
     console.log('---generateUserHistory---');
     console.log('category: ', category);
     let frequencies = this.initialiseHistFreqs(category);
+    let smallest = 100;
+    let largest = -100;
     for (const timeSlotCategory of categorisedSchedule) {
       const timeSlot = timeSlotCategory[0];
       const c = timeSlotCategory[1];
@@ -503,12 +505,13 @@ const context = {
       while (begin < end) {
         const day = begin.weekday - 1;
         frequencies[day][i] = frequencies[day][i] + sign;
+        if (frequencies[day][i] > largest) largest = frequencies[day][i];
+        if (frequencies[day][i] < smallest) smallest = frequencies[day][i];
         i = (i + 1) % halfHoursInDay;
         begin = begin.plus(halfHour);
       }
     }
-    const sumOfFreqs = frequencies.flat(1).reduce((a, b) => Math.abs(a) + Math.abs(b), 0);
-    frequencies = frequencies.map((arr)=>arr.map((a)=>a/sumOfFreqs));
+    frequencies = frequencies.map((arr)=>arr.map((a)=>(a+Math.abs(smallest))/(largest-smallest)));
     return frequencies;
   },
 };
