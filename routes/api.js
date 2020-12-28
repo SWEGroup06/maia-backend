@@ -10,14 +10,10 @@ const TIME = require('../lib/time.js');
 
 // Schedule a new meeting
 router.get('/schedule', async function(req, res) {
-  if (!req.query.emails) {
+  if (!req.query.slackEmails && !req.query.googleEmails) {
     res.json({error: 'No emails'});
     return;
   }
-
-  console.log('REQ************');
-  console.log(req.query);
-  console.log('***************');
 
   let title = JSON.parse(decodeURIComponent(req.query.title));
   title = title.substring(1, title.length - 1);
@@ -46,12 +42,17 @@ router.get('/schedule', async function(req, res) {
     endDateTimeOfRange = startEndTimes.endDateTimeOfRange;
   }
 
-  const slackEmails = JSON.parse(decodeURIComponent(req.query.emails));
+  let googleEmails;
+  if (req.query.googleEmails) {
+    googleEmails = JSON.parse(decodeURIComponent(req.query.googleEmails));
+  } else {
+    const slackEmails = JSON.parse(decodeURIComponent(req.query.slackEmails));
+    googleEmails = await DATABASE.getGoogleEmailsFromSlackEmails(slackEmails);
+  }
 
   try {
-    const chosenSlot = await MEETINGS.schedule(title, slackEmails, startDateTimeOfRange.toISO(),
+    const chosenSlot = await MEETINGS.schedule(title, googleEmails, startDateTimeOfRange.toISO(),
         endDateTimeOfRange.toISO(), flexible, duration);
-    console.log('-- chosen slot: ', chosenSlot, ' --');
     res.json(chosenSlot);
   } catch (error) {
     console.error(error);
@@ -61,19 +62,18 @@ router.get('/schedule', async function(req, res) {
 
 // Reschedule an existing meeting
 router.get('/reschedule', async function(req, res) {
-  // TODO: Delete these
-  console.log('REQ.QUERY************');
-  console.log(req.query);
-  console.log(decodeURIComponent(req.query.meetingTitle));
-  console.log('*********************');
+  if (!req.query.slackEmail && !req.query.googleEmail) {
+    res.json({error: 'Organiser\'s email not found'});
+    return;
+  }
+
+  if (!req.query.meetingTitle) {
+    res.json({error: 'No Title Provided'});
+    return;
+  }
 
   let meetingTitle = JSON.parse(decodeURIComponent(req.query.meetingTitle));
   meetingTitle = meetingTitle.substring(1, meetingTitle.length - 1);
-
-  if (!req.query.organiserSlackEmail) {
-    res.json({error: 'Organiser\'s slack email not found'});
-    return;
-  }
 
   // check if event to be reschedule has been specified
   if (!req.query.eventStartTime) {
@@ -99,7 +99,14 @@ router.get('/reschedule', async function(req, res) {
     }
 
     const currEventStartTime = JSON.parse(decodeURIComponent(req.query.eventStartTime));
-    const email = JSON.parse(decodeURIComponent(req.query.organiserSlackEmail));
+    let googleEmail;
+    if (req.query.googleEmail) {
+      googleEmail = JSON.parse(decodeURIComponent(req.query.googleEmail));
+    } else {
+      const slackEmail = JSON.parse(decodeURIComponent(req.query.organiserSlackEmail));
+      googleEmail = await DATABASE.getGoogleEmailFromSlackEmail(slackEmail);
+    }
+
 
     if (req.query.beforeAfterKey) {
       const startEndTimes = TIME.parseBeforeAfter(JSON.parse(decodeURIComponent(req.query.beforeAfterKey)),
@@ -108,19 +115,10 @@ router.get('/reschedule', async function(req, res) {
       endDateTimeOfRange = startEndTimes.endDateTimeOfRange;
     }
 
-    // TODO: Delete these
-    console.log('PARAMETERS FOR MEETINGS.RESCHEDULE****');
-    console.log(meetingTitle);
-    console.log(currEventStartTime);
-    console.log(email);
-    console.log(startDateTimeOfRange.toISO());
-    console.log(endDateTimeOfRange.toISO());
-    console.log('**************************************');
-
     const chosenSlot = await MEETINGS.reschedule(
         currEventStartTime,
         meetingTitle,
-        email,
+        googleEmail,
         startDateTimeOfRange.toISO(),
         endDateTimeOfRange.toISO(),
         specificTimeGiven,
@@ -135,22 +133,28 @@ router.get('/reschedule', async function(req, res) {
 
 // Retrieve all meetings
 router.get('/meetings', async function(req, res) {
-  if (!req.query.email) {
-    res.json({error: 'No emails'});
+  if (!req.query.slackEmail && !req.query.googleEmail) {
+    res.json({error: 'Email not found'});
     return;
   }
 
   try {
-    const email = JSON.parse(decodeURIComponent(req.query.email));
+    let googleEmail;
+    if (req.query.googleEmail) {
+      googleEmail = JSON.parse(decodeURIComponent(req.query.googleEmail));
+    } else {
+      const slackEmail = JSON.parse(decodeURIComponent(req.query.organiserSlackEmail));
+      googleEmail = await DATABASE.getGoogleEmailFromSlackEmail(slackEmail);
+    }
 
     // Check if a user with the provided details existing in the database
-    if (!await DATABASE.userExists(email)) {
-      res.json({error: `${email} is not signed in`});
+    if (!await DATABASE.userExists(googleEmail)) {
+      res.json({error: `${googleEmail} is not signed in`});
       return;
     }
 
     // Get tokens from the database
-    const token = JSON.parse(await DATABASE.getTokenFromGoogleEmail(email));
+    const token = JSON.parse(await DATABASE.getTokenFromGoogleEmail(googleEmail));
     const today = new Date();
     // End date in one week for now
     const endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7);
@@ -173,8 +177,9 @@ router.get('/meetings', async function(req, res) {
 
 // Add constraints
 router.get('/constraints', async function(req, res) {
-  if (!req.query.email) {
-    res.json({error: 'No email found'});
+  if (!req.query.slackEmail && !req.query.googleEmail) {
+    res.json({error: 'Email not found'});
+    return;
   }
 
   if (!req.query.busyTimes) {
@@ -187,11 +192,18 @@ router.get('/constraints', async function(req, res) {
   }
 
   try {
-    const email = JSON.parse(decodeURIComponent(req.query.email));
+    let googleEmail;
+    if (req.query.googleEmail) {
+      googleEmail = JSON.parse(decodeURIComponent(req.query.googleEmail));
+    } else {
+      const slackEmail = JSON.parse(decodeURIComponent(req.query.organiserSlackEmail));
+      googleEmail = await DATABASE.getGoogleEmailFromSlackEmail(slackEmail);
+    }
+
     const days = JSON.parse(decodeURIComponent(req.query.busyDays));
     const times = JSON.parse(decodeURIComponent(req.query.busyTimes));
 
-    await MEETINGS.setContraints(email, days, times);
+    await MEETINGS.setContraints(googleEmail, days, times);
 
     res.send({success: true});
   } catch (error) {
@@ -201,16 +213,20 @@ router.get('/constraints', async function(req, res) {
 });
 
 router.get('/cancel', async function(req, res) {
-  console.log('CANCEL REQ');
-  console.log(req.query);
-
-  if (!req.query.email) {
-    res.json({error: 'No email found'});
+  if (!req.query.slackEmail && !req.query.googleEmail) {
+    res.json({error: 'Email not found'});
+    return;
   }
 
   try {
-    const email = JSON.parse(decodeURIComponent(req.query.email));
-    const organiserToken = JSON.parse(decodeURIComponent(await DATABASE.getTokenFromGoogleEmail(email)));
+    let googleEmail;
+    if (req.query.googleEmail) {
+      googleEmail = JSON.parse(decodeURIComponent(req.query.googleEmail));
+    } else {
+      const slackEmail = JSON.parse(decodeURIComponent(req.query.organiserSlackEmail));
+      googleEmail = await DATABASE.getGoogleEmailFromSlackEmail(slackEmail);
+    }
+    const organiserToken = JSON.parse(decodeURIComponent(await DATABASE.getTokenFromGoogleEmail(googleEmail)));
 
     let meetingTitle = JSON.parse(decodeURIComponent(req.query.meetingTitle));
     meetingTitle = meetingTitle.substring(1, meetingTitle.length - 1);
