@@ -3,21 +3,18 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const GoogleAccountSchema = new Schema({
-  email: String, // Email associated with Google Calendar account
-  token: String, // Authorisation token per user for Google Calendar
+  email: {type: String, unique: true, required: true}, // Email associated with Google Calendar account
+  token: {type: String, required: true}, // Authorisation token per user for Google Calendar
+});
+
+const SlackAccountSchema = new Schema({
+  id: {type: String}, // ID associated with Slack account
+  email: {type: String, unique: true}, // Email associated with Slack account
 });
 
 const UserSchema = new Schema({
-  id: {
-    type: String,
-    unique: true,
-  },
-  email: {
-    type: String,
-    unique: true,
-    required: true,
-  },
   google: GoogleAccountSchema,
+  slack: SlackAccountSchema,
   constraints: [[{startTime: String, endTime: String}]],
   frequencies: [{histFreq: [[Number]], timestamp: String}],
 });
