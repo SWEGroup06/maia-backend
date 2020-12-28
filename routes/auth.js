@@ -1,14 +1,9 @@
 const express = require('express');
 const router = express.Router();
 
-const {DateTime, Duration} = require('luxon');
 const GOOGLE = require('../lib/google.js');
-const DATABASE = require('../lib/database');
-const SCHEDULER = require('../src/scheduler');
-
-const NUM_CATEGORIES = 2;
-const today = DateTime.local();
-const oneMonthAgo = today.minus(Duration.fromObject({days: 30}));
+const DATABASE = require('../lib/database.js');
+const MEETINGS = require('../lib/meetings.js');
 
 router.use('/success', express.static('public'));
 
@@ -42,27 +37,6 @@ router.get('/login', async function(req, res) {
   }
 });
 
-// eslint-disable-next-line require-jsdoc
-async function generateHistFreqForCategory(categorisedSchedule, slackEmail, category) {
-  console.log('categoryy: ', category);
-  const histFreq = await SCHEDULER.generateUserHistory(categorisedSchedule, category);
-  await DATABASE.setFrequenciesByCategory(slackEmail, category, histFreq);
-  console.log('-------history frequency ', category, ' completed -------');
-}
-
-// eslint-disable-next-line require-jsdoc
-async function generatePreferences(tokens, slackEmail) {
-  let lastMonthHist = await GOOGLE.getMeetings(tokens, oneMonthAgo.toISO(), today.toISO());
-  lastMonthHist = lastMonthHist.map((e) => [e.start.dateTime, e.end.dateTime, e.summary]);
-  const categorisedSchedule = await SCHEDULER.getCategorisedSchedule(lastMonthHist);
-  console.log('---generating history frequencies---');
-  for (let category=0; category < NUM_CATEGORIES; category++) {
-    setTimeout(() => generateHistFreqForCategory(categorisedSchedule, slackEmail, category), 0);
-  }
-  console.log('---generating meeting cluster preferences---');
-  // TODO: ...
-}
-
 // Google OAuth2 callback
 router.get('/callback', async function(req, res) {
   if (!req.query.code) {
@@ -81,16 +55,10 @@ router.get('/callback', async function(req, res) {
     const googleEmail = await GOOGLE.getEmail(tokens);
     await DATABASE.createNewUser(googleEmail, JSON.stringify(tokens), state.email, state.userID);
 
-    setTimeout(() => generatePreferences(tokens, state.email), 0);
+    setTimeout(() => MEETINGS.generatePreferences(tokens, state.email), 0);
 
     // Redirect to success page
     res.redirect('success/login.html');
-
-    console.log('**********');
-    console.log(state);
-
-    console.log('user.id: ' + state.user.id);
-    console.log('id: ' + state.id);
 
     // res.json({userID: state.userID, teamID: state.teamID, tokens});
   } catch (error) {
