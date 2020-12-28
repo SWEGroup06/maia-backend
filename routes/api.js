@@ -172,7 +172,7 @@ router.get('/meetings', async function(req, res) {
 });
 
 // Add constraints
-router.get('/constraint', async function(req, res) {
+router.get('/constraints', async function(req, res) {
   if (!req.query.email) {
     res.json({error: 'No email found'});
   }
