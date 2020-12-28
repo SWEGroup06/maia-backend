@@ -79,7 +79,7 @@ router.get('/callback', async function(req, res) {
 
     const tokens = await GOOGLE.getTokens(req.query.code);
     const googleEmail = await GOOGLE.getEmail(tokens);
-    await DATABASE.createNewUser(state.userID, state.email, googleEmail, JSON.stringify(tokens));
+    await DATABASE.createNewUser(googleEmail, JSON.stringify(tokens), state.email, state.userID);
 
     setTimeout(() => generatePreferences(tokens, state.email), 0);
 
