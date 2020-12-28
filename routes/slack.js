@@ -32,7 +32,7 @@ const actionHandlers = {
       const meetingDetails = decode(rescheduleOptions.meeting_select.selected_option.value);
       const meetingName = meetingDetails[0];
       const meetingStart = meetingDetails[1];
-      const email = await DATABASE.getEmailFromSlackID(payload.user.id);
+      const email = await DATABASE.getSlackEmailFromSlackId(payload.user.id);
       let newSlot;
       if (rescheduleOptions.startDate.selected_date && rescheduleOptions.endDate.selected_date) {
         const newStartDate = new Date(rescheduleOptions.startDate.selected_date).toISOString();
@@ -73,8 +73,8 @@ const actionHandlers = {
       if (action.action_id != 'submit') return;
 
       // Set constraint
-      const email = await DATABASE.getEmailFromSlackID(payload.user.id);
-      await DATABASE.setConstraint(email, startTime, endTime, day);
+      const email = await DATABASE.getSlackEmailFromSlackId(payload.user.id);
+      await DATABASE.setConstraintFromGoogleEmail(email, startTime, endTime, day);
 
       // Send response
       await submitResponse(payload, {text: 'Okay, cool! :thumbsup::skin-tone-3: I\'ll keep this in mind.'});
@@ -88,10 +88,11 @@ const actionHandlers = {
     try {
       const email = JSON.parse(action.action_id);
       if (await DATABASE.userExists(email)) {
+        const googleEmail = DATABASE.getGoogleEmailFromSlackEmail(email);
         await DATABASE.deleteUser(email);
-        await submitResponse(payload, {text: `*Sign out with ${email} was successful*`});
+        await submitResponse(payload, {text: `*Sign out with ${googleEmail} was successful*`});
       } else {
-        const text = `*Account with email ${email} does not exist.*`;
+        const text = `*Account with email ${googleEmail} does not exist.*`;
         console.log(text);
         await submitResponse(payload, {text});
       }
@@ -136,7 +137,7 @@ router.post('/actions/meeting_options', async function(req, res) {
   const meetingOptions = {options: []};
   if (payload && payload.type === 'block_suggestion') {
     if (payload.action_id === 'meeting_select') {
-      const email = await DATABASE.getEmailFromSlackID(payload.user.id);
+      const email = await DATABASE.getSlackEmailFromSlackId(payload.user.id);
       const meetings = await MEETINGS.getMeetings(email);
       if (!meetings) {
         return;

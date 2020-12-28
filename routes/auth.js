@@ -9,28 +9,28 @@ router.use('/success', express.static('public'));
 
 // Login
 router.get('/login', async function(req, res) {
-  if (!req.query.email) {
+  if (!req.query.googleEmail) {
     res.json({error: 'No email provided'});
     return;
   }
 
-  if (!req.query.userID) {
-    res.json({error: 'No ID provided'});
-    return;
-  }
-
   try {
-    const userID = JSON.parse(decodeURIComponent(req.query.userID));
-    const email = JSON.parse(decodeURIComponent(req.query.email));
+    const data = {
+      googleEmail: JSON.parse(decodeURIComponent(req.query.googleEmail)),
+    };
+    if ((!!req.query.slackId + !!req.query.slackId) == 2) {
+      data.slackId = JSON.parse(decodeURIComponent(req.query.slackId));
+      data.slackEmail = JSON.parse(decodeURIComponent(req.query.slackEmail));
+    }
 
     // Check if a user with the provided details existing in the database
-    if (await DATABASE.userExists(email)) {
-      res.json({exists: true, email});
+    if (await DATABASE.userExists(data.googleEmail)) {
+      res.json({exists: true, googleEmail: data.email});
       return;
     }
 
     // If no details were found send URL
-    await res.json({url: GOOGLE.generateAuthUrl(userID, email)});
+    await res.json({url: GOOGLE.generateAuthUrl(data)});
   } catch (error) {
     console.error(error);
     res.send({error: error.toString()});
@@ -51,11 +51,11 @@ router.get('/callback', async function(req, res) {
   try {
     const state = JSON.parse(decodeURIComponent(req.query.state));
 
-    const tokens = await GOOGLE.getTokens(req.query.code);
+    const tokens = await GOOGLE.getTokenFromGoogleEmails(req.query.code);
     const googleEmail = await GOOGLE.getEmail(tokens);
-    await DATABASE.createNewUser(googleEmail, JSON.stringify(tokens), state.email, state.userID);
+    await DATABASE.createNewUser(googleEmail, JSON.stringify(tokens), state.slackEmail, state.slackId);
 
-    setTimeout(() => MEETINGS.generatePreferences(tokens, state.email), 0);
+    setTimeout(() => MEETINGS.generatePreferences(tokens, state.slackEmail), 0);
 
     // Redirect to success page
     res.redirect('success/login.html');

@@ -150,7 +150,7 @@ router.get('/meetings', async function(req, res) {
     }
 
     // Get tokens from the database
-    const token = JSON.parse(await DATABASE.getToken(email));
+    const token = JSON.parse(await DATABASE.getTokenFromGoogleEmail(email));
     const today = new Date();
     // End date in one week for now
     const endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7);
@@ -210,7 +210,7 @@ router.get('/cancel', async function(req, res) {
 
   try {
     const email = JSON.parse(decodeURIComponent(req.query.email));
-    const organiserToken = JSON.parse(decodeURIComponent(await DATABASE.getToken(email)));
+    const organiserToken = JSON.parse(decodeURIComponent(await DATABASE.getTokenFromGoogleEmail(email)));
 
     let meetingTitle = JSON.parse(decodeURIComponent(req.query.meetingTitle));
     meetingTitle = meetingTitle.substring(1, meetingTitle.length - 1);
