@@ -32,7 +32,7 @@ const actionHandlers = {
       const meetingDetails = decode(rescheduleOptions.meeting_select.selected_option.value);
       const meetingName = meetingDetails[0];
       const meetingStart = meetingDetails[1];
-      const email = await DATABASE.getEmailFromID(payload.user.id);
+      const email = await DATABASE.getEmailFromSlackID(payload.user.id);
       let newSlot;
       if (rescheduleOptions.startDate.selected_date && rescheduleOptions.endDate.selected_date) {
         const newStartDate = new Date(rescheduleOptions.startDate.selected_date).toISOString();
@@ -73,7 +73,7 @@ const actionHandlers = {
       if (action.action_id != 'submit') return;
 
       // Set constraint
-      const email = await DATABASE.getEmailFromID(payload.user.id);
+      const email = await DATABASE.getEmailFromSlackID(payload.user.id);
       await DATABASE.setConstraint(email, startTime, endTime, day);
 
       // Send response
@@ -136,7 +136,7 @@ router.post('/actions/meeting_options', async function(req, res) {
   const meetingOptions = {options: []};
   if (payload && payload.type === 'block_suggestion') {
     if (payload.action_id === 'meeting_select') {
-      const email = await DATABASE.getEmailFromID(payload.user.id);
+      const email = await DATABASE.getEmailFromSlackID(payload.user.id);
       const meetings = await MEETINGS.getMeetings(email);
       if (!meetings) {
         return;
