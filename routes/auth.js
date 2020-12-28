@@ -9,7 +9,7 @@ router.use('/success', express.static('public'));
 
 // Login
 router.get('/login', async function(req, res) {
-  if (!req.query.googleEmail || (!!req.query.slackId + !!req.query.slackId) < 2) {
+  if (!req.query.googleEmail && (!!req.query.slackId + !!req.query.slackId) < 2) {
     res.json({error: 'No email provided'});
     return;
   }
