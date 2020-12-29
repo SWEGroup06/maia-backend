@@ -221,6 +221,7 @@ router.get('/constraints', async function(req, res) {
   }
 });
 
+// Cancel a meeting
 router.get('/cancel', async function(req, res) {
   if (!req.query.slackEmail && !req.query.googleEmail) {
     res.json({error: 'Email not found'});
@@ -266,6 +267,7 @@ router.get('/cancel', async function(req, res) {
   }
 });
 
+// TODO: Temporary until we finish
 router.get('/tp', async function(req, res) {
   if (!req.query.slackEmail && !req.query.googleEmail) {
     res.json({error: 'Email not found'});
@@ -292,11 +294,11 @@ router.get('/tp', async function(req, res) {
   let oldTitle = JSON.parse(decodeURIComponent(req.query.oldTitle));
   oldTitle = oldTitle.substring(1, oldTitle.length - 1);
 
-  const oldDateTime = JSON.parse(decodeURIComponent(req.query.oldDateTime));
-  const newStartDateRange = JSON.parse(decodeURIComponent(req.query.newStartDateRange));
-  const newEndDateRange = JSON.parse(decodeURIComponent(req.query.newEndDateRange));
-  const newStartTimeRange = JSON.parse(decodeURIComponent(req.query.newStartTimeRange));
-  const newEndTimeRange = JSON.parse(decodeURIComponent(req.query.newEndTimeRange));
+  const oldDateTime = TIME.maintainLocalTimeZone(JSON.parse(decodeURIComponent(req.query.oldDateTime)));
+  const newStartDateRange = TIME.maintainLocalTimeZone(JSON.parse(decodeURIComponent(req.query.newStartDateRange)));
+  const newEndDateRange = TIME.maintainLocalTimeZone(JSON.parse(decodeURIComponent(req.query.newEndDateRange)));
+  const newStartTimeRange = TIME.maintainLocalTimeZone(JSON.parse(decodeURIComponent(req.query.newStartTimeRange)));
+  const newEndTimeRange = TIME.maintainLocalTimeZone(JSON.parse(decodeURIComponent(req.query.newEndTimeRange)));
   const newDayOfWeek = JSON.parse(decodeURIComponent(req.query.newDayOfWeek));
 
   if (!oldDateTime && !oldTitle) {
