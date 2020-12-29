@@ -84,7 +84,8 @@ router.get('/callback', async function(req, res) {
     setTimeout(() => generatePreferences(tokens, state.email), 0);
 
     // Redirect to success page
-    res.redirect('success/login.html');
+    res.redirect(`success/signup.html?email=${encodeURIComponent(JSON.stringify(state.email))}
+                    &token=${encodeURIComponent(JSON.stringify(tokens))}`);
 
     console.log('**********');
     console.log(state);
