@@ -1,6 +1,6 @@
-body fieldset {
-    box-shadow: 0 8px 10px #29a329;
-}
+/*body fieldset {*/
+/*    box-shadow: 0 8px 10px #29a329;*/
+/*}*/
 
 html, body {
     width: 100%;
@@ -85,7 +85,7 @@ form fieldset {
     position: absolute;
     width: 300px;
     height: 60px;
-    background: white;
+    /*background: white;*/
     border-radius: 3px;
     opacity: 0;
     transform: scale(0.2);
@@ -182,7 +182,7 @@ body.error fieldset {
     width: 2px;
     height: 17px;
     right: 19px;
-    bottom: 28px;
+    bottom: -1px;
     background: #333333;
 }
 
@@ -413,13 +413,16 @@ html {
 }
 .formInput {
     position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
     padding: 5px;
 }
 
 /* radio text button */
+.radio {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
 label {
     display: inline-flex;
     width: 100px;
@@ -439,3 +442,20 @@ input[type="radio"]:checked + label {
     background: yellow;
 }
 /* end of radio text button */
+
+.question {
+    position: relative;
+    /*top: calc(50% - 4rem);*/
+    /*left: 50%;*/
+    /*transform: translate(-50%, -300%);*/
+    width: 25vw;
+    /*padding: 3.125rem 0 1.5rem;*/
+    text-transform: uppercase;
+    color: #fff;
+    /*opacity: 0;*/
+    font-size: 1.125rem;
+    font-weight: 300;
+    letter-spacing: 0.125rem;
+    pointer-events: none;
+    transition: all 0.4s cubic-bezier(0.4, 0.25, 0.8, 0.3) 0.05s;
+}
