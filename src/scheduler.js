@@ -353,7 +353,7 @@ const context = {
     start = start.startOf('day');
     end = end.endOf('day');
     while (start <= end) {
-      const day = start.weekday;
+      const day = start.weekday-1;
       if (workDays[day].length > 0) {
         freeSlots.push([context.combine(start, workDays[day][0]),
           context.combine(start, workDays[day][1])]);
