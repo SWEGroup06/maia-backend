@@ -60,16 +60,6 @@ router.get('/callback', async function(req, res) {
 
     const tokens = await GOOGLE.getToken(req.query.code);
     const googleEmail = await GOOGLE.getEmail(tokens);
-    console.log('USER DATA', {
-      google: {
-        email: googleEmail,
-        tokens: JSON.stringify(tokens),
-      },
-      slack: {
-        email: state.slackEmail,
-        id: state.slackId,
-      },
-    });
     await DATABASE.createNewUser(googleEmail, JSON.stringify(tokens), state.slackEmail, state.slackId);
 
     // setTimeout(() => MEETINGS.generatePreferences(googleEmail, tokens), 0);
