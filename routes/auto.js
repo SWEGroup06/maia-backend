@@ -28,7 +28,7 @@ router.get('/accept', async function(req, res) {
       return;
     }
 
-    const token = JSON.parse(await DATABASE.getToken(email));
+    const token = JSON.parse(await DATABASE.getTokenFromGoogleEmail(email));
     const events = await GOOGLE.getEvents(token, meetingData.from.start, meetingData.from.end);
 
     if (!events || !events.length) {
