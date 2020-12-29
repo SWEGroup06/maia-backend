@@ -4,102 +4,54 @@
     <meta charset="UTF-8">
     <title>Maia AI Calendar</title>
     <link href='https://fonts.googleapis.com/css?family=Lato:300,400' rel='stylesheet' type='text/css'><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
-    <link rel="stylesheet" href="./css/form.css">
+<!--    <link rel="stylesheet" href="./css/form.css">-->
+    <link rel="stylesheet" href="./css/form2.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="http://malsup.github.com/jquery.form.js"></script>
 </head>
-<body onload="setFocusToInput1()">
+<body>
 <!-- partial:index.partial.html -->
 <section class="intro">
     <div id="desc">
-        <h1>Nearly there...</h1>
+        <h1 style="font-size: 100px; margin: 0 0 15% 0">Nearly there...</h1>
         <p style="font-size: 25px" class="fade-in">To best calibrate Maia to your daily needs, swipe down and answer as many questions as you can.</p>
     </div>
     <a href="#questionsContainer" class="scroll-down" address="true"></a>
 </section>
 <section id="questionsContainer">
+<h1>Step by step form</h1>
+<h2>Just practising Javascript</h2>
+
 <form class="centered" id="signUpForm" action="./login.html">
-    <input id="input-1" type="text" placeholder="John Doe" required autofocus />
-    <label for="input-1">
-        <span class="label-text">Full Name</span>
-        <span class="nav-dot"></span>
-        <div class="signup-button-trigger">Signn Up</div>
-    </label>
-
-<!--    <label class="switch">-->
-<!--        <input id="input-1" type="checkbox" checked autofocus>-->
-<!--        <span class="slider round"></span>-->
-<!--    </label>-->
-<!--    <label for="input-1">-->
-<!--        <span class="nav-dot"></span>-->
-<!--        <div class="signup-button-trigger">Signn Up</div>-->
-<!--    </label>-->
-    <input id="input-2" type="text" placeholder="john" required />
-    <label for="input-2">
-        <span class="label-text">Username</span>
-        <span class="nav-dot"></span>
-    </label>
-    <input id="input-3" type="email" placeholder="email@address.com" required />
-    <label for="input-3">
-        <span class="label-text">Email</span>
-        <span class="nav-dot"></span>
-    </label>
-    <input id="input-4" type="text" placeholder="&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;" required />
-    <label for="input-4">
-        <span class="label-text">Password</span>
-        <span class="nav-dot"></span>
-    </label>
-    <input id="input-5" type="text" placeholder="&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;" required />
-    <label for="input-5">
-        <span class="label-text">Confirm Password</span>
-        <span class="nav-dot"></span>
-    </label>
-
-    <button type="submit">Create Your Account</button>
-    <p class="tip">Press Tab</p>
-    <div class="start-button">continue</div>
+    <ul class="items"></ul>
+    <fieldset class="formInput scheduleBreaks enable">
+        <div class="icon left"><i class="user"></i></div>
+        <div class="radio">
+            <input type="radio" id="test" name="jeff" checked>
+            <label for="test">Yes</label>
+            <input type="radio" id="test2" name="jeff">
+            <label for="test2">No</label>
+        </div>
+        <div class="icon right button"><i class="arrow"></i></div>
+    </fieldset>
+    <fieldset class="formInput email">
+        <div class="icon left"><i class="letter"></i></div>
+        <input type="mail" name="email" placeholder="Email"/>
+        <div class="icon right button"><i class="arrow"></i></div>
+    </fieldset>
+    <fieldset class="formInput password">
+        <div class="icon left"><i class="lock"></i></div>
+        <input type="password" name="password" placeholder="Password"/>
+        <div class="icon right button"><i class="arrow"></i></div>
+    </fieldset>
+    <fieldset class="formInput thanks">
+        <div class="icon left"><i class="heart"></i></div>
+        <p>Thanks for your time</p>
+        <div class="icon right"><i class="heart"></i></div>
+    </fieldset>
 </form>
 </section>
-<script>
-    console.log('---sign up form---');
-    const params = new URLSearchParams(window.location.search);
-    const email = params.get('email');
-    const token = params.get('token');
-    console.log('---email---', email);
-
-    // wait for the DOM to be loaded
-    $(function () {
-        // bind 'myForm' and provide a simple callback function
-        $('#signUpForm').submit(async function() {
-            let url = `http://localhost:3000/api/signup?email=${email}
-                        &token=${token}
-                        &name=${encodeURIComponent(JSON.stringify(document.getElementById('input-1').value))}`;
-            // fetch(url).then((data) => data.json()).then(resolve);
-            console.log("Fetching:", url);
-            const res = await fetch(url).then((resp) => resp.json()).catch((err) => console.log(`Error: ${err}`));
-            if (res.error !== null) {
-                console.log(this.action);
-                this.action = `./signupError.html?error=${res.error}`;
-                console.log(this.action);
-            }
-            alert(res.error)
-            return true;
-        });
-    });
-
-    $('.scroll-down').click(function() {
-        console.log('scroll');
-            $('html, body').animate({scrollTop: $('section#questionsContainer').offset().top }, 'slow');
-            setFocusToInput1();
-            return false;
-    });
-
-    function setFocusToInput1(){
-        console.log('focus');
-        document.getElementById("input-1").focus();
-    }
-
-</script>
-
+<script  src="./signup.js"></script>
 </body>
 </html>
