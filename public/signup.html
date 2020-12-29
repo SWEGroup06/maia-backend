@@ -8,7 +8,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="http://malsup.github.com/jquery.form.js"></script>
 </head>
-<body>
+<body onload="setFocusToInput1()">
 <!-- partial:index.partial.html -->
 <section class="intro">
     <div id="desc">
@@ -44,20 +44,20 @@
         <span class="label-text">Email</span>
         <span class="nav-dot"></span>
     </label>
-<!--    <input id="input-4" type="text" placeholder="&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;" required />-->
-<!--    <label for="input-4">-->
-<!--        <span class="label-text">Password</span>-->
-<!--        <span class="nav-dot"></span>-->
-<!--    </label>-->
-<!--    <input id="input-5" type="text" placeholder="&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;" required />-->
-<!--    <label for="input-5">-->
-<!--        <span class="label-text">Confirm Password</span>-->
-<!--        <span class="nav-dot"></span>-->
-<!--    </label>-->
+    <input id="input-4" type="text" placeholder="&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;" required />
+    <label for="input-4">
+        <span class="label-text">Password</span>
+        <span class="nav-dot"></span>
+    </label>
+    <input id="input-5" type="text" placeholder="&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;" required />
+    <label for="input-5">
+        <span class="label-text">Confirm Password</span>
+        <span class="nav-dot"></span>
+    </label>
 
     <button type="submit">Create Your Account</button>
     <p class="tip">Press Tab</p>
-    <div class="start-button">Start</div>
+    <div class="start-button">continue</div>
 </form>
 </section>
 <script>
@@ -87,12 +87,18 @@
         });
     });
 
-    $(function() {
-        $('.scroll-down').click (function() {
-            $('html, body').animate({scrollTop: $('section.ok').offset().top }, 'slow');
+    $('.scroll-down').click(function() {
+        console.log('scroll');
+            $('html, body').animate({scrollTop: $('section#questionsContainer').offset().top }, 'slow');
+            setFocusToInput1();
             return false;
-        });
     });
+
+    function setFocusToInput1(){
+        console.log('focus');
+        document.getElementById("input-1").focus();
+    }
+
 </script>
 
 </body>
