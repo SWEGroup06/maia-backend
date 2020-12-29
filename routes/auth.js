@@ -17,6 +17,14 @@ router.get('/login', async function(req, res) {
   try {
     const data = {};
     if (req.query.googleEmail) {
+      data.googleEmail = JSON.parse(decodeURIComponent(req.query.googleEmail));
+
+      // Check if a user with the provided details existing in the database
+      if (await DATABASE.userExists(data.googleEmail)) {
+        res.json({exists: true, email: data.email});
+        return;
+      }
+    } else {
       data.slackId = JSON.parse(decodeURIComponent(req.query.slackId));
       data.slackEmail = JSON.parse(decodeURIComponent(req.query.slackEmail));
 
@@ -24,14 +32,6 @@ router.get('/login', async function(req, res) {
       if (await DATABASE.userExists(data.slackEmail)) {
         const email = DATABASE.getGoogleEmailFromSlackEmail(data.slackEmail);
         res.json({exists: true, email});
-        return;
-      }
-    } else {
-      data.googleEmail = JSON.parse(decodeURIComponent(req.query.googleEmail));
-
-      // Check if a user with the provided details existing in the database
-      if (await DATABASE.userExists(data.googleEmail)) {
-        res.json({exists: true, email: data.email});
         return;
       }
     }
