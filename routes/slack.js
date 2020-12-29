@@ -113,7 +113,7 @@ const actionHandlers = {
     try {
       const slackEmail = JSON.parse(action.action_id);
       if (await DATABASE.userExists(slackEmail)) {
-        const googleEmail = DATABASE.getGoogleEmailFromSlackEmail(slackEmail);
+        const googleEmail = await DATABASE.getGoogleEmailFromSlackEmail(slackEmail);
         await DATABASE.deleteUser(googleEmail);
         await submitResponse(payload, {text: `*Sign out with ${googleEmail} was successful*`});
       } else {
