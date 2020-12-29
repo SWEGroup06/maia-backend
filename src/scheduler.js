@@ -249,16 +249,17 @@ const context = {
   getFreeSlots: (busySlots, startISO, endISO,
       minBreakLength=Duration.fromObject({minutes: 0}), workDays) => {
     console.log('---getFreeSlots---');
-
     // Parse workDays into a usable format
     workDays = workDays.map((day) => {
-      return (day.length > 0 ? [DateTime.fromISO(day[0].startTime), DateTime.fromISO(day[0].startTime)] : []);
+      return (day.length > 0 ? [DateTime.fromISO(day[0].startTime), DateTime.fromISO(day[0].endTime)] : []);
     });
+    console.log('workdays: ', workDays);
 
     // If there are no busy slots return entire search period
     const searchStart = DateTime.fromISO(startISO);
     const searchEnd = DateTime.fromISO(endISO);
     if (!busySlots.length) {
+      console.log('no busy slots found -- return whole period');
       return context.freeSlotsAux(searchStart, searchEnd, workDays);
     }
 
@@ -268,7 +269,10 @@ const context = {
       x[1] = DateTime.fromISO(x[1]).plus(minBreakLength);
       return x;
     });
-    busySlots = busySlots.push([searchEnd, searchEnd.endOf('day')]);
+    console.log('parsed busySlots: ', busySlots.map((slot) => [slot[0].toString(), slot[1].toString()]));
+
+    busySlots.push([searchEnd, searchEnd.endOf('day')]);
+    console.log('parsed busySlots: ', busySlots.map((slot) => [slot[0].toString(), slot[1].toString()]));
 
     // Initialise variables for generating free slots
     const fiveSeconds = Duration.fromObject({seconds: 5});
@@ -284,6 +288,8 @@ const context = {
       currDayBegin = DateTime.max(context.combine(searchStart, workDays[initialDay][0]), searchStart);
       currDayEnd = DateTime.min(context.combine(searchStart, workDays[initialDay][1]), searchEnd);
     }
+    console.log('currDayBegin: ', currDayBegin.toString());
+    console.log('currDayEnd: ', currDayEnd.toString());
 
     // Generate free time slots
     for (let i = 0; i < busySlots.length; i++) {
@@ -373,8 +379,8 @@ const context = {
     //   });
     // }
     const timeSlots = context._schedule(freeTimes, duration, constraints);
-    // console.log('free times ', freeTimes[0].map((interval) => [interval[0].toString(), interval[1].toString()]));
-    // console.log('free timeslots ', timeSlots.map((interval) => [interval[0].toString(), interval[1].toString()]));
+    console.log('free times ', freeTimes[0].map((interval) => [interval[0].toString(), interval[1].toString()]));
+    console.log('free timeslots ', timeSlots.map((interval) => [interval[0].toString(), interval[1].toString()]));
     const choice = context._chooseFromHistory({
       freeTimes: timeSlots,
       historyFreqs: historyFreqs,
