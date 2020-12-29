@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Maia AI Calendar</title>
+    <link href="https://fonts.googleapis.com/css?family=Quicksand:700" rel="stylesheet">
+    <link href="css/main.css" rel="stylesheet">
+</head>
+
+<body>
+<div id="almostDone">
+    <div class="almostDone">
+        <div id='icon'></div>
+        <h1>Sign up error</h1>
+        <h2>You can now close this window</h2>
+    </div>
+</div>
+</body>
+
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get('error');
+    console.log('---error---', error);
+
+</script>
+</html>
