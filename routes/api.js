@@ -64,11 +64,7 @@ router.get('/reschedule', async function(req, res) {
   // TODO: Delete these
   console.log('REQ.QUERY************');
   console.log(req.query);
-  console.log(decodeURIComponent(req.query.meetingTitle));
   console.log('*********************');
-
-  let meetingTitle = JSON.parse(decodeURIComponent(req.query.meetingTitle));
-  meetingTitle = meetingTitle.substring(1, meetingTitle.length - 1);
 
   if (!req.query.organiserSlackEmail) {
     res.json({error: 'Organiser\'s slack email not found'});
@@ -80,6 +76,9 @@ router.get('/reschedule', async function(req, res) {
     res.json({error: 'No event start time specified for rescheduling'});
   }
 
+  let meetingTitle = JSON.parse(decodeURIComponent(req.query.meetingTitle));
+  meetingTitle = meetingTitle.substring(1, meetingTitle.length - 1);
+
   let startDateTimeOfRange;
   let specificTimeGiven = false;
   if (!req.query.newStartDateTime) {
@@ -89,25 +88,25 @@ router.get('/reschedule', async function(req, res) {
     specificTimeGiven = true;
   }
 
+  let endDateTimeOfRange;
+  if (!req.query.newEndDateTime) {
+    // If no end date is specified, set a default range of two weeks from the given start range date
+    endDateTimeOfRange = DateTime.local().plus({days: 14});
+  } else {
+    endDateTimeOfRange = DateTime.fromISO(JSON.parse(decodeURIComponent(req.query.newEndDateTime)));
+  }
+
+  const currEventStartTime = JSON.parse(decodeURIComponent(req.query.eventStartTime));
+  const email = JSON.parse(decodeURIComponent(req.query.organiserSlackEmail));
+
+  if (req.query.beforeAfterKey) {
+    const startEndTimes = TIME.parseBeforeAfter(JSON.parse(decodeURIComponent(req.query.beforeAfterKey)),
+        startDateTimeOfRange, endDateTimeOfRange);
+    startDateTimeOfRange = startEndTimes.startDateTimeOfRange;
+    endDateTimeOfRange = startEndTimes.endDateTimeOfRange;
+  }
+
   try {
-    let endDateTimeOfRange;
-    if (!req.query.newEndDateTime) {
-      // If no end date is specified, set a default range of two weeks from the given start range date
-      endDateTimeOfRange = DateTime.local().plus({days: 14});
-    } else {
-      endDateTimeOfRange = DateTime.fromISO(JSON.parse(decodeURIComponent(req.query.newEndDateTime)));
-    }
-
-    const currEventStartTime = JSON.parse(decodeURIComponent(req.query.eventStartTime));
-    const email = JSON.parse(decodeURIComponent(req.query.organiserSlackEmail));
-
-    if (req.query.beforeAfterKey) {
-      const startEndTimes = TIME.parseBeforeAfter(JSON.parse(decodeURIComponent(req.query.beforeAfterKey)),
-          startDateTimeOfRange, endDateTimeOfRange);
-      startDateTimeOfRange = startEndTimes.startDateTimeOfRange;
-      endDateTimeOfRange = startEndTimes.endDateTimeOfRange;
-    }
-
     // TODO: Delete these
     console.log('PARAMETERS FOR MEETINGS.RESCHEDULE****');
     console.log(meetingTitle);
@@ -235,6 +234,48 @@ router.get('/cancel', async function(req, res) {
 
     await GOOGLE.cancelEvent(organiserToken, events[0].id);
     res.json({title: eventTitle, dateTime: eventDateTime});
+  } catch (error) {
+    console.error(error);
+    res.send({error: error.toString()});
+  }
+});
+
+router.get('/tp', async function(req, res) {
+  console.log('\nTP REQ.QUERY************');
+  console.log(req.query);
+  console.log('**************************\n');
+
+  // Check that the organiser's email has been given.
+  if (!req.query.organiserSlackEmail) {
+    res.json({error: 'Organiser\'s email not found'});
+    return;
+  }
+
+  // Check that either an event time or title has been specified.
+  if (!req.query.oldDateTime && !req.query.oldTitle) {
+    res.json({error: 'No event time or title specified for rescheduling.'});
+  }
+
+  let oldTitle = JSON.parse(decodeURIComponent(req.query.oldTitle));
+  oldTitle = oldTitle.substring(1, oldTitle.length - 1);
+
+  const oldDateTime = JSON.parse(decodeURIComponent(req.query.oldDateTime));
+  const newStartDateRange = JSON.parse(decodeURIComponent(req.query.newStartDateRange));
+  const newEndDateRange = JSON.parse(decodeURIComponent(req.query.newEndDateRange));
+  const newStartTimeRange = JSON.parse(decodeURIComponent(req.query.newStartTimeRange));
+  const newEndTimeRange = JSON.parse(decodeURIComponent(req.query.newEndTimeRange));
+  const newDayOfWeek = JSON.parse(decodeURIComponent(req.query.newDayOfWeek));
+
+  try {
+    const chosenSlotToRescheduleTo = await MEETINGS.tp(
+        oldTitle,
+        oldDateTime,
+        newStartDateRange,
+        newEndDateRange,
+        newStartTimeRange,
+        newEndTimeRange,
+        newDayOfWeek,
+    );
   } catch (error) {
     console.error(error);
     res.send({error: error.toString()});
