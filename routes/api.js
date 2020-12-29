@@ -309,4 +309,20 @@ router.get('/tp', async function(req, res) {
   }
 });
 
+router.get('/preferences', async function(req, res) {
+  res.sendStatus(200);
+  return;
+  try {
+    const googleEmail = 'kpal81xd@gmail.com';
+    const tokens = JSON.parse(await DATABASE.getTokenFromGoogleEmail(googleEmail));
+
+    await MEETINGS.generatePreferences(googleEmail, tokens);
+
+    res.send({status: 'ok'});
+  } catch (err) {
+    console.error(error);
+    res.send({error: error.toString()});
+  }
+});
+
 module.exports = router;

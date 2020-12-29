@@ -3,7 +3,6 @@ const router = express.Router();
 
 const GOOGLE = require('../lib/google.js');
 const DATABASE = require('../lib/database.js');
-const MEETINGS = require('../lib/meetings.js');
 
 router.use('/success', express.static('public'));
 
