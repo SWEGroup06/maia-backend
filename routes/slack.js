@@ -1,26 +1,53 @@
 const express = require('express');
-const router = express.Router();
-
 const bodyParser = require('body-parser');
 const fetch = require('node-fetch');
 const {DateTime} = require('luxon');
+const router = express.Router();
 
 const TIME = require('../lib/time.js');
 const DATABASE = require('../lib/database.js');
 const MEETINGS = require('../lib/meetings.js');
+const EDIT_MEETING_VIEW = require('../lib/editMeetingView.json');
+const CONFIG = require('../config.js');
 
 router.use('/actions', bodyParser.urlencoded({extended: true}));
 
+/* Submits a response to the slack bot
+via the RESPONSE_URL provided by the payload */
 const submitResponse = async function(payload, obj) {
   await fetch(payload.response_url, {
     method: 'POST',
     body: JSON.stringify(obj),
     headers: {'Content-Type': 'application/json'},
   });
-  // const json = await res.json();
-  // console.log(json);
 };
 
+/* Post a message to the channel via Slack API */
+const postMessage = async function(channelId, text) {
+  await fetch('https://slack.com/api/chat.postMessage', {
+    method: 'POST',
+    headers: {
+      'Content-type': 'application/json',
+      'Authorization': `Bearer ${CONFIG.BOT_TOKEN}`,
+    },
+    body: JSON.stringify({'channel': channelId, 'text': text}),
+  });
+};
+
+/* Open a Modal View on the Slack App via Slack API */
+const openView = async function(view) {
+  await fetch('https://slack.com/api/views.open', {
+    method: 'POST',
+    headers: {
+      'Content-type': 'application/json; charset=utf-8',
+      'Authorization': `Bearer ${CONFIG.BOT_TOKEN}`,
+    },
+    body: JSON.stringify(view),
+  });
+};
+
+
+let channelId = null;
 const actionHandlers = {
   reschedule_button: async function(payload, action) {
     try {
@@ -46,7 +73,8 @@ const actionHandlers = {
         const date = startDateTime.toLocaleString(DateTime.DATE_SHORT);
         const startTime = startDateTime.toLocaleString(DateTime.TIME_24_SIMPLE);
         const endTime = endDateTime.toLocaleString(DateTime.TIME_24_SIMPLE);
-        await submitResponse(payload, {text: 'Okay, cool! :thumbsup::skin-tone-3: Rescheduled ' + meetingName + ' to ' + date + ' from ' + startTime + ' to ' + endTime});
+        const text = 'Okay, cool! :thumbsup::skin-tone-3: Rescheduled ' + meetingName + ' to ' + date + ' from ' + startTime + ' to ' + endTime;
+        await submitResponse(payload, {text});
       }
       return;
     } catch (error) {
@@ -98,21 +126,68 @@ const actionHandlers = {
       return error.toString();
     }
   },
+  confirm: async function(payload, action) {
+    try {
+      // Save the channel id
+      channelId = payload.channel.id;
+      if (action.action_id == 'cancel') {
+        const email = await DATABASE.getEmailFromID(payload.user.id);
+        await MEETINGS.cancelLastBookedMeeting(email);
+        const text = 'Your meeting booking has been cancelled';
+        await submitResponse(payload, {text});
+      } else if (action.action_id == 'edit') {
+        EDIT_MEETING_VIEW.trigger_id = payload.trigger_id;
+        openView(EDIT_MEETING_VIEW);
+      }
+    } catch (error) {
+      return error.toString();
+    }
+  },
+  viewSubmission: async function(payload, action, res) {
+    try {
+      const values = payload.view.state.values;
+      const name = values.name['name-action'].value;
+      const date = values.date['datepicker-action'].selected_date;
+      const startTime = values.startTime['timepicker-action'].selected_time;
+      const endTime = values.endTime['timepicker-action'].selected_time;
+      const email = await DATABASE.getEmailFromID(payload.user.id);
+      await MEETINGS.rescheduleToSpecificDateTime(email, name, date, startTime, endTime);
+      // Send 200 OK response with empty body to close view
+      res.send();
+      const text = 'Your meeting has been successfully edited to ' + date + ' from ' + startTime + ' to ' + endTime;
+      postMessage(channelId, text);
+    } catch (error) {
+      return error.toString();
+    }
+  },
 };
 
 // Handles Block-kit UI actions
 router.post('/actions', async function(req, res) {
   const payload = JSON.parse(req.body.payload);
-  if (!payload || !payload.actions || !payload.actions[0]) {
+  console.log(payload);
+
+  let handler = null;
+  let action = null;
+
+  if (!payload) {
     res.sendStatus(200);
     return;
   }
 
-  // Delegate specific tasks to action handler
-  const action = payload.actions[0];
-  const handler = actionHandlers[action.block_id];
+  if (payload.type == 'view_submission') {
+    handler = actionHandlers['viewSubmission'];
+  } else if (payload.type == 'block_actions') {
+    if (!payload.actions || !payload.actions[0]) {
+      res.sendStatus(200);
+      return;
+    }
+    // Delegate specific tasks to action handler
+    action = payload.actions[0];
+    handler = actionHandlers[action.block_id];
+  }
   if (handler) {
-    const error = await handler(payload, action);
+    const error = await handler(payload, action, res);
     if (error) {
       console.log(error);
       await submitResponse(payload, {
@@ -121,14 +196,15 @@ router.post('/actions', async function(req, res) {
         text: error,
       });
     } else {
-      res.sendStatus(200);
+      // Send status 200 with an empty body
+      res.send();
     }
   } else {
     res.sendStatus(200);
   }
 });
 
-// Post request for getting all meetings
+// Post request for getting all meetings for the dropdown
 router.post('/actions/meeting_options', async function(req, res) {
   const payload = JSON.parse(req.body.payload);
   const meetingOptions = {options: []};
