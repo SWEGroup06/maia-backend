@@ -3,6 +3,11 @@
     font-family: "Lato", sans-serif;
 }
 
+h1 {
+    font-size: 6rem;
+    margin: 7px 7px;
+}
+
 #desc {
     text-align: center;
     color: white;
@@ -53,12 +58,12 @@ input::selection {
 }
 
 button,
-.signup-button {
+.start-button {
     padding: 0.25em 0;
     border: 0;
     outline: 0;
-    background: #bb1515;
-    color: rgba(255, 255, 255, 0.85);
+    background: whitesmoke;
+    color: orangered;
     font-size: 2rem;
     line-height: 3.6rem;
     letter-spacing: 0.0625rem;
@@ -90,8 +95,8 @@ input:focus ~ .tip {
     opacity: 1;
 }
 
-input:focus ~ .signup-button,
-button:focus ~ .signup-button {
+input:focus ~ .start-button,
+button:focus ~ .start-button {
     opacity: 0;
 }
 
@@ -122,7 +127,7 @@ input:focus + label .nav-dot:before {
     transition: opacity 0.25s 0.5s;
 }
 
-.signup-button,
+.start-button,
 .signup-button-trigger {
     position: absolute;
     top: 50%;
@@ -360,5 +365,59 @@ html {
         -webkit-transform: translateY(-5px);
         -ms-transform: translateY(-5px);
         transform: translateY(-5px);
+    }
+}
+
+/* FADE IN */
+
+.fade-in {
+    animation: fadeIn ease 5s;
+    -webkit-animation: fadeIn ease 10s;
+    -moz-animation: fadeIn ease 10s;
+    -o-animation: fadeIn ease 10s;
+    -ms-animation: fadeIn ease 10s;
+}
+@keyframes fadeIn {
+    0% {
+        opacity:0;
+    }
+    100% {
+        opacity:1;
+    }
+}
+
+@-moz-keyframes fadeIn {
+    0% {
+        opacity:0;
+    }
+    100% {
+        opacity:1;
+    }
+}
+
+@-webkit-keyframes fadeIn {
+    0% {
+        opacity:0;
+    }
+    100% {
+        opacity:1;
+    }
+}
+
+@-o-keyframes fadeIn {
+    0% {
+        opacity:0;
+    }
+    100% {
+        opacity:1;
+    }
+}
+
+@-ms-keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
     }
 }
