@@ -76,7 +76,7 @@ router.get('/reschedule', async function(req, res) {
   meetingTitle = meetingTitle.substring(1, meetingTitle.length - 1);
 
   // check if event to be reschedule has been specified
-  if (!req.query.eventStartTime) {
+  if (!req.query.startDateTime) {
     res.json({error: 'No event start time specified for rescheduling'});
   }
 
@@ -98,12 +98,12 @@ router.get('/reschedule', async function(req, res) {
       endDateTimeOfRange = DateTime.fromISO(JSON.parse(decodeURIComponent(req.query.newEndDateTime)));
     }
 
-    const currEventStartTime = JSON.parse(decodeURIComponent(req.query.eventStartTime));
+    const currEventStartTime = JSON.parse(decodeURIComponent(req.query.startDateTime));
     let googleEmail;
     if (req.query.googleEmail) {
       googleEmail = JSON.parse(decodeURIComponent(req.query.googleEmail));
     } else {
-      const slackEmail = JSON.parse(decodeURIComponent(req.query.organiserSlackEmail));
+      const slackEmail = JSON.parse(decodeURIComponent(req.query.slackEmail));
       googleEmail = await DATABASE.getGoogleEmailFromSlackEmail(slackEmail);
     }
 

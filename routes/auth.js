@@ -30,7 +30,7 @@ router.get('/login', async function(req, res) {
 
       // Check if a user with the provided details existing in the database
       if (await DATABASE.userExists(data.slackEmail)) {
-        const email = DATABASE.getGoogleEmailFromSlackEmail(data.slackEmail);
+        const email = await DATABASE.getGoogleEmailFromSlackEmail(data.slackEmail);
         res.json({exists: true, email});
         return;
       }

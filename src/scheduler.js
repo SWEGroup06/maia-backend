@@ -156,19 +156,12 @@ const context = {
    * , endtime]]
    */
   _schedule: (schedules, duration, constraints = null) => {
-    console.log('---schedule---');
-
     // handle invalid input
     if (!schedules ||
       !schedules.length ||
       !duration) return null;
 
-    // console.log('free time schedules ', schedules.map((schedule)=> schedule.map((interval)=>[interval[0].toString(), interval[1].toString()])));
-    // console.log('constraints ', constraints.map((person)=>person.map((interval)=>[interval[0].toString(), interval[1].toString()])));
-    // include availability constraints
     if (constraints.length > 0) schedules = schedules.concat(constraints);
-    // console.log(schedules[0][0][0].toString(), schedules[0][0][1].toString(), schedules[0][1][0].toString(), schedules[0][1][1].toString(), );
-    // console.log('schedules: ', schedules.map((schedule)=>{schedule.map((freeTime)=>[freeTime[0], freeTime[1]])}));
 
     // find intersection of all the given schedules
     let ans = schedules[0];
@@ -204,7 +197,6 @@ const context = {
     console.log('choices: ', choices);
     choices.sort((a, b) => a[1] - b[1]);
     if (choices.length === 0) {
-      console.log('here');
       return null;
     }
     return choices[0][0];
@@ -298,7 +290,6 @@ const context = {
    * @return {[]|DateTime[][]}
    */
   getFreeSlots: (busySlots, startISO, endISO, minBreakLength=Duration.fromObject({minutes: 0})) => {
-    console.log('---getFreeSlots---');
     // Parse start and end times
     let begin = DateTime.fromISO(startISO);
     const end = DateTime.fromISO(endISO);
@@ -356,9 +347,7 @@ const context = {
    * @return {null|{start: string, end: string}}
    */
   findMeetingSlot(freeTimes, duration, constraints = null, historyFreqs, cluster = true) {
-    console.log('---findMeetingSlot---');
     if (!freeTimes || freeTimes.length === 0) {
-      console.log('nothing found: ', freeTimes);
       // no free time slot found
       return null;
     }
@@ -460,8 +449,6 @@ const context = {
    * @return {[]} array of frequencies for each half hour time slot for this user
    */
   async generateUserHistory(categorisedSchedule, category) {
-    console.log('---generateUserHistory---');
-    console.log('category: ', category);
     let frequencies = this.initialiseHistFreqs(category);
     for (const timeSlotCategory of categorisedSchedule) {
       const timeSlot = timeSlotCategory[0];
