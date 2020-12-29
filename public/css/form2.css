@@ -91,13 +91,13 @@ form fieldset {
     transform: scale(0.2);
     transition: all 0.4s ease-in-out;
 }
-form fieldset input, form fieldset p {
-    display: inline-block;
-    width: 200px;
-    color: #333333;
-    font-size: 16px;
-    letter-spacing: 1px;
-}
+/*form fieldset input, form fieldset p {*/
+/*    display: inline-block;*/
+/*    width: 200px;*/
+/*    color: #333333;*/
+/*    font-size: 16px;*/
+/*    letter-spacing: 1px;*/
+/*}*/
 form fieldset p {
     margin-top: 22px;
     text-align: center;
@@ -191,7 +191,7 @@ body.error fieldset {
     height: 6px;
     bottom: -1px;
     left: -3px;
-    border-color: #333333;
+    /*border-color: #333333;*/
     border-right: 2px solid;
     border-bottom: 2px solid;
     transform: rotate(45deg);
@@ -408,8 +408,11 @@ html {
         opacity: 1;
     }
 }
-
+.cont {
+    position: relative;
+}
 .formInput {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: space-between;
