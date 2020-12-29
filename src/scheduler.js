@@ -269,8 +269,6 @@ const context = {
       x[1] = DateTime.fromISO(x[1]).plus(minBreakLength);
       return x;
     });
-    console.log('parsed busySlots: ', busySlots.map((slot) => [slot[0].toString(), slot[1].toString()]));
-
     busySlots.push([searchEnd, searchEnd.endOf('day')]);
     console.log('parsed busySlots: ', busySlots.map((slot) => [slot[0].toString(), slot[1].toString()]));
 
@@ -296,17 +294,24 @@ const context = {
       const busyTimeSlot = busySlots[i];
       const day = busyTimeSlot[0].weekday - 1;
 
+      console.log('\n\nbusytimeslot: ', busyTimeSlot[0].toString(), busyTimeSlot[1].toString());
+
       // If we are on a new day, update the begin and end for that day.
-      const daysApart = busyTimeSlot[0].startOf('day').diff(prevBusySlotEnd.startOf('day'));
+      const daysApart = busyTimeSlot[0].startOf('day').diff(prevBusySlotEnd.startOf('day'), 'days');
+      console.log('days apart: ', daysApart.values.days);
       if (daysApart.days > 0) {
         // generates the rest of the current working day
         if (currDayBegin && currDayEnd - currDayBegin > fiveSeconds) {
+          console.log('1');
           freeSlots.push([currDayBegin, currDayEnd]);
         }
         // updates begin and end for current busy slot's day
+        console.log('workdays[', day, '] ', workDays[day].toString());
         if (workDays[day].length > 0) {
           currDayBegin = context.combine(busyTimeSlot[0], workDays[day][0]);
           currDayEnd = context.combine(busyTimeSlot[0], workDays[day][1]);
+          console.log('currDayBegin: ', currDayBegin.toString());
+          console.log('currDayEnd: ', currDayEnd.toString());
         } else {
           currDayBegin = null;
           currDayEnd = null;
@@ -317,6 +322,7 @@ const context = {
           prevBusySlotEnd = prevBusySlotEnd.plus(oneDay);
           freeSlots = freeSlots.concat(context.freeSlotsAux(prevBusySlotEnd, endDate, workDays));
         }
+        // console.log('mappp', freeSlots.map((slot) => [slot[0].toString(), slot[1].toString()]));
       }
       prevBusySlotEnd = busyTimeSlot[0];
 
@@ -342,7 +348,7 @@ const context = {
    * return { [[DateTime]] }
    */
   freeSlotsAux: (start, end, workDays) => {
-    const oneDay = Duration.fromObject({hours: 1});
+    const oneDay = Duration.fromObject({days: 1});
     const freeSlots = [];
     start = start.startOf('day');
     end = end.endOf('day');
@@ -354,6 +360,7 @@ const context = {
       }
       start = start.plus(oneDay);
     }
+    console.log('mappp', freeSlots.map((slot) => [slot[0].toString(), slot[1].toString()]));
     return freeSlots;
   },
   /**
