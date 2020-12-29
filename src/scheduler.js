@@ -250,15 +250,16 @@ const context = {
       minBreakLength=Duration.fromObject({minutes: 0}), workDays) => {
     console.log('---getFreeSlots---');
 
-    const start = DateTime.fromISO(startISO);
-    let end = DateTime.fromISO(endISO);
+    // Parse workDays into a usable format
+    workDays = workDays.map((day) => {
+      return (day.length > 0 ? [DateTime.fromISO(day[0].startTime), DateTime.fromISO(day[0].startTime)] : []);
+    });
 
-    workDays.map((day) => [(day.length > 0 ? {'startTime': DateTime.fromISO(day[0].startTime),
-      'endTime': DateTime.fromISO(day[0].endTime)} : [])])
-
-    // If there are no busy slots return entire time period
+    // If there are no busy slots return entire search period
+    const searchStart = DateTime.fromISO(startISO);
+    const searchEnd = DateTime.fromISO(endISO);
     if (!busySlots.length) {
-      return context.freeSlotsAux(start, end, workDays);
+      return context.freeSlotsAux(searchStart, searchEnd, workDays);
     }
 
     // Parse busy slots as DateTime objects
@@ -267,65 +268,64 @@ const context = {
       x[1] = DateTime.fromISO(x[1]).plus(minBreakLength);
       return x;
     });
+    busySlots = busySlots.push([searchEnd, searchEnd.endOf('day')]);
 
-    // Initialise variables
+    // Initialise variables for generating free slots
     const fiveSeconds = Duration.fromObject({seconds: 5});
     const oneDay = Duration.fromObject({days: 1});
     let freeSlots = [];
+    let prevBusySlotEnd = searchStart;
+    let currDayBegin = null;
+    let currDayEnd = null;
 
-    // Generate free slots for days before the first busy slot
-    if (busySlots[0][0] - start > oneDay) {
-      end = busySlots[0][0].minus(oneDay);
-      freeSlots = context.freeSlotsAux(start, end, workDays);
+    // Set initial values if possible
+    const initialDay = searchStart.weekday - 1;
+    if (workDays[initialDay].length > 0) {
+      currDayBegin = DateTime.max(context.combine(searchStart, workDays[initialDay][0]), searchStart);
+      currDayEnd = DateTime.min(context.combine(searchStart, workDays[initialDay][1]), searchEnd);
     }
 
     // Generate free time slots
-    let prevDay = busySlots[0][0].weekday - 1;
-    let currDayBegin = null; let currDayEnd = null;
     for (let i = 0; i < busySlots.length; i++) {
       const busyTimeSlot = busySlots[i];
-      const day = busyTimeSlot[0].weekday;
-      // compute beginning and end of the new working day
-      if (prevDay !== day) {
+      const day = busyTimeSlot[0].weekday - 1;
+
+      // If we are on a new day, update the begin and end for that day.
+      const daysApart = busyTimeSlot[0].startOf('day').diff(prevBusySlotEnd.startOf('day'));
+      if (daysApart.days > 0) {
+        // generates the rest of the current working day
+        if (currDayBegin && currDayEnd - currDayBegin > fiveSeconds) {
+          freeSlots.push([currDayBegin, currDayEnd]);
+        }
+        // updates begin and end for current busy slot's day
         if (workDays[day].length > 0) {
-          // Generate last free slot of the previous day
-          if (currDayBegin && currDayEnd - currDayBegin > fiveSeconds) {
-            freeSlots.push([currDayBegin, currDayEnd]);
-          }
-          prevDay = day;
-          currDayBegin = context.combine(busyTimeSlot, workDays[day].startTime);
-          currDayEnd = context.combine(busyTimeSlot, workDays[day].endTime);
+          currDayBegin = context.combine(busyTimeSlot[0], workDays[day][0]);
+          currDayEnd = context.combine(busyTimeSlot[0], workDays[day][1]);
         } else {
-          // skip over non-working days (e.g. weekend)
-          continue;
+          currDayBegin = null;
+          currDayEnd = null;
+        }
+        // if between busy slots, there is a day/s not scheduled in, then generate free slots for those days
+        if (daysApart.days > 1) {
+          const endDate = busyTimeSlot[0].minus(oneDay);
+          prevBusySlotEnd = prevBusySlotEnd.plus(oneDay);
+          freeSlots = freeSlots.concat(context.freeSlotsAux(prevBusySlotEnd, endDate, workDays));
         }
       }
+      prevBusySlotEnd = busyTimeSlot[0];
+
       // We loop through slots until these conditions are met before generating free slots:
       // 1. begin < end, this allows us to ignore time slots after end, as begin increases over time
       // 2. slotEnd < begin, this allows us to ignore time slots before initial begin value
       // 3. not (slot < begin < slotEnd), we don't want to generate inside an existing time slot
-      if (currDayBegin < currDayEnd) {
-        if (busyTimeSlot[0] <= currDayBegin && currDayBegin < busyTimeSlot[1]) {
-          currDayBegin = busyTimeSlot[1];
-        } else if (currDayBegin < busyTimeSlot[0]) {
-          if (currDayEnd < busyTimeSlot[0]) {
-            freeSlots.push([currDayBegin, currDayEnd]);
-          } else {
-            freeSlots.push([currDayBegin, busyTimeSlot[0]]);
-          }
-          currDayBegin = busyTimeSlot[1];
+      if (currDayBegin && currDayBegin < currDayEnd) {
+        if (currDayBegin < busyTimeSlot[0]) {
+          freeSlots.push([currDayBegin, DateTime.min(busyTimeSlot[0], currDayEnd)]);
         }
+        currDayBegin = DateTime.max(currDayBegin, busyTimeSlot[1]);
       }
     }
-    if (currDayEnd - currDayBegin > fiveSeconds) {
-      freeSlots.push([currDayBegin, currDayEnd]);
-    }
-    currDayEnd = DateTime.fromISO(endISO);
-    if (currDayEnd - currDayBegin > oneDay) {
-      const start = currDayBegin.plus(oneDay);
-      const moreFreeSlots = freeSlotsAux(start, currDayEnd, workDays);
-      freeSlots = freeSlots.concat(moreFreeSlots);
-    }
+
     return freeSlots;
   },
   /**
@@ -338,11 +338,13 @@ const context = {
   freeSlotsAux: (start, end, workDays) => {
     const oneDay = Duration.fromObject({hours: 1});
     const freeSlots = [];
+    start = start.startOf('day');
+    end = end.endOf('day');
     while (start <= end) {
       const day = start.weekday;
       if (workDays[day].length > 0) {
-        freeSlots.push([context.combine(start, workDays[day].startTime),
-          context.combine(start, workDays[day].endTime)]);
+        freeSlots.push([context.combine(start, workDays[day][0]),
+          context.combine(start, workDays[day][1])]);
       }
       start = start.plus(oneDay);
     }
