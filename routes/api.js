@@ -221,6 +221,7 @@ router.get('/constraints', async function(req, res) {
   }
 });
 
+// Cancel event
 router.get('/cancel', async function(req, res) {
   if (!req.query.slackEmail && !req.query.googleEmail) {
     res.json({error: 'Email not found'});

@@ -7,7 +7,7 @@ const router = express.Router();
 const TIME = require('../lib/time.js');
 const DATABASE = require('../lib/database.js');
 const MEETINGS = require('../lib/meetings.js');
-const EDIT_MEETING_VIEW = require('../docs/edit-meeting-view.json');
+const EDIT_MEETING_VIEW = require('../blocks/edit-meeting-view.json');
 const CONFIG = require('../config.js');
 
 router.use('/actions', bodyParser.urlencoded({extended: true}));
