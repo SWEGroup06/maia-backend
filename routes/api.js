@@ -300,7 +300,8 @@ router.get('/tp', async function(req, res) {
   const newDayOfWeek = JSON.parse(decodeURIComponent(req.query.newDayOfWeek));
 
   try {
-    const chosenSlotToRescheduleTo = await MEETINGS.tp(googleEmail, oldTitle, oldDateTime, newStartDateRange, newEndDateRange, newStartTimeRange, newEndTimeRange, newDayOfWeek);
+    const chosenSlotToRescheduleTo = await MEETINGS.tp(googleEmail, oldTitle, oldDateTime, newStartDateRange,
+        newEndDateRange, newStartTimeRange, newEndTimeRange, newDayOfWeek);
     res.json(chosenSlotToRescheduleTo);
   } catch (error) {
     console.error(error);
