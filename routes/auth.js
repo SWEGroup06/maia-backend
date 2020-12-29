@@ -62,7 +62,7 @@ router.get('/callback', async function(req, res) {
     const googleEmail = await GOOGLE.getEmail(tokens);
     await DATABASE.createNewUser(googleEmail, JSON.stringify(tokens), state.slackEmail, state.slackId);
 
-    setTimeout(() => MEETINGS.generatePreferences(googleEmail, tokens), 0);
+    // setTimeout(() => MEETINGS.generatePreferences(googleEmail, tokens), 0);
 
     // Redirect to success page
     res.redirect('success/login.html');
