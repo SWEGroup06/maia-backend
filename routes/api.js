@@ -256,6 +256,8 @@ router.get('/tp', async function(req, res) {
     res.json({error: 'No event time or title specified for rescheduling.'});
   }
 
+  const email = JSON.parse(decodeURIComponent(req.query.organiserSlackEmail));
+
   let oldTitle = JSON.parse(decodeURIComponent(req.query.oldTitle));
   oldTitle = oldTitle.substring(1, oldTitle.length - 1);
 
@@ -267,15 +269,8 @@ router.get('/tp', async function(req, res) {
   const newDayOfWeek = JSON.parse(decodeURIComponent(req.query.newDayOfWeek));
 
   try {
-    const chosenSlotToRescheduleTo = await MEETINGS.tp(
-        oldTitle,
-        oldDateTime,
-        newStartDateRange,
-        newEndDateRange,
-        newStartTimeRange,
-        newEndTimeRange,
-        newDayOfWeek,
-    );
+    const chosenSlotToRescheduleTo = await MEETINGS.tp(email, oldTitle, oldDateTime, newStartDateRange, newEndDateRange, newStartTimeRange, newEndTimeRange, newDayOfWeek);
+    res.json(chosenSlotToRescheduleTo);
   } catch (error) {
     console.error(error);
     res.send({error: error.toString()});
