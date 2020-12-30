@@ -73,6 +73,31 @@ router.get('/callback', async function(req, res) {
   }
 });
 
-// Logout (handled in slack.js)
+// Logout
+router.get('/login', async function(req, res) {
+  if (!req.query.googleEmail && !req.query.slackEmail) {
+    res.json({error: 'No email provided'});
+    return;
+  }
+
+  try {
+    let googleEmail;
+    if (req.query.googleEmail) {
+      googleEmail = JSON.parse(decodeURIComponent(req.query.googleEmail));
+    } else {
+      const slackEmail = JSON.parse(decodeURIComponent(req.query.slackEmail));
+      googleEmail = await DATABASE.getGoogleEmailFromSlackEmail(slackEmail);
+    }
+
+    // Delete account
+    await DATABASE.deleteUser(googleEmail);
+
+    // Send success
+    await res.json({text: `*Sign out with ${googleEmail} was successful*`});
+  } catch (error) {
+    console.error(error);
+    res.send({error: error.toString()});
+  }
+});
 
 module.exports = router;
