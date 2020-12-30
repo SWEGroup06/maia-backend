@@ -44,9 +44,6 @@ const {describe, it, before, after} = mocha;
 //   });
 // });
 
-/**
- * TODO: Comment
- */
 describe('Scheduling in a given range', function() {
   const tomorrow = DateTime.local().plus({days: 1});
   const ONE_HOUR = 60;
@@ -58,7 +55,6 @@ describe('Scheduling in a given range', function() {
     await GOOGLE.clearCalendar(token);
   });
 
-  // TODO: Doesn't get correct event because of scheduler.
   it('should book a single flexible one-hour event between 12pm and 6pm', async () => {
     const tomorrowTwelveHours = DateTime.local(tomorrow.year, tomorrow.month, tomorrow.day, 12);
     const tomorrowEighteenHours = DateTime.local(tomorrow.year, tomorrow.month, tomorrow.day, 18);
@@ -73,11 +69,14 @@ describe('Scheduling in a given range', function() {
     // Check the Google Calendar for an event starting at the slot time given by the scheduler.
     const event = await GOOGLE.getEvent(testToken, meetingSlot.start);
 
-    assert.notStrictEqual(event, null, 'event should exist, i.e. not be null');
-    assert.strictEqual(TIME.isBetweenTimes(event.start.dateTime, tomorrowTwelveHours, tomorrowEighteenHours), true);
-    assert.strictEqual(TIME.getDurationInMinutes(event.start.dateTime, event.end.dateTime), ONE_HOUR);
+    assert.notStrictEqual(event, null, 'event should exist, i.e. not be null/');
+    assert.strictEqual(TIME.isBetweenTimes(event.start.dateTime, tomorrowTwelveHours, tomorrowEighteenHours),
+        true, 'start time of the event should be between 12pm and 6pm.');
+    assert.strictEqual(TIME.getDurationInMinutes(event.start.dateTime, event.end.dateTime), ONE_HOUR,
+        'event should be exactly one hour long, as specified.');
   });
 
+  // TODO: Doesn't get correct event because of scheduler.
   it('should book a single non-flexible half-hour event between 7pm and 8:30pm', async () => {
     const tomorrowNinteenHours = DateTime.local(tomorrow.year, tomorrow.month, tomorrow.day, 19);
     const tomorrowTwentyHoursThirtyMinutes = DateTime.local(tomorrow.year, tomorrow.month, tomorrow.day, 20, 30);
@@ -91,9 +90,10 @@ describe('Scheduling in a given range', function() {
     const event = await GOOGLE.getEvent(testToken, meetingSlot.start);
 
     assert.notStrictEqual(event, null, 'event should exist, i.e. not be null');
-    assert.strictEqual(TIME
-        .isBetweenTimes(event.start.dateTime, tomorrowNinteenHours, tomorrowTwentyHoursThirtyMinutes), true);
-    assert.strictEqual(TIME.getDurationInMinutes(event.start.dateTime, event.end.dateTime), HALF_HOUR);
+    assert.strictEqual(TIME.isBetweenTimes(event.start.dateTime, tomorrowNinteenHours, tomorrowTwentyHoursThirtyMinutes),
+        true, 'start time of event should be between 7pm and 8:30pm');
+    assert.strictEqual(TIME.getDurationInMinutes(event.start.dateTime, event.end.dateTime), HALF_HOUR,
+        'event should be half an hour long, as specified.');
   });
 
   after(async () => {
