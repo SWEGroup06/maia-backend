@@ -53,6 +53,12 @@ p {
     left: 38px;
     top: 4px;
 }
+
+#funfact {
+    position: absolute;
+
+}
+
 .p-2 #mayan-img{
     padding: 10px;
 }
