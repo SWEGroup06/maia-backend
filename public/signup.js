@@ -24,6 +24,12 @@ $(function() {
     alert(res.error);
     return true;
   });
+  // Position of the header in the webpage
+  const position = $('h1').position();
+  const padding = 10; // Padding set to the header
+  const left = position.left + padding;
+  const top = position.top + padding;
+  $('h1').find('span').css('background-position', '-'+left+'px -'+top+'px');
 });
 
 $('.scroll-down').click(function() {
