@@ -3,7 +3,6 @@ const router = express.Router();
 
 const GOOGLE = require('../lib/google.js');
 const DATABASE = require('../lib/database.js');
-const MEETINGS = require('../lib/meetings.js');
 
 router.use('/success', express.static('public'));
 
@@ -62,7 +61,7 @@ router.get('/callback', async function(req, res) {
     const googleEmail = await GOOGLE.getEmail(tokens);
     await DATABASE.createNewUser(googleEmail, JSON.stringify(tokens), state.slackEmail, state.slackId);
 
-    setTimeout(() => MEETINGS.generatePreferences(googleEmail, tokens), 0);
+    // setTimeout(() => MEETINGS.generatePreferences(googleEmail, tokens), 0);
 
     // Redirect to success page
     res.redirect('success/login.html');
