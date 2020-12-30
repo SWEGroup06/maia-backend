@@ -213,17 +213,16 @@ const context = {
         const end = timeSlot[1];
         // breakLength represents how well clustered this event is/break time between meetings --
         // if want back-to-back then wanna minimise this value whilst being at least the minimum required by user
-        // console.log('begin: ', begin.toString(), ' end: ', end.toString(), ' \t\tbreaklength: ', breakLength.minutes);
-        // console.log('begin: ', begin.toString(), '\t\tend: ', end.toString(), '\t\tbestTimeSlot: ', bestTimeSlot + clusterVal.values.minutes);
         const p1 = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
         const p2 = context.getTimeSlotValue(end, end.plus(duration), historyFreq);
+        // console.log('p1: ', begin.toString(), ' v1: ', p1, ' p2: ', end.toString(), ' v2: ', p2, ' best: ', bestP);
         if (bestP < p1) {
           bestP = p1;
           bestTimeSlot = new DateTime(begin);
-          if (bestP < p2) {
-            bestP = p2;
-            bestTimeSlot = new DateTime(end);
-          }
+        }
+        if (bestP < p2) {
+          bestP = p2;
+          bestTimeSlot = new DateTime(end);
         }
       }
     }
@@ -244,7 +243,8 @@ const context = {
     workDays = workDays.map((day) => {
       return (day.length > 0 ? [DateTime.fromISO(day[0].startTime), DateTime.fromISO(day[0].endTime)] : []);
     });
-    console.log('workdays: ', workDays);
+    // console.log('workdays: ', workDays);
+    // console.log('workdays: ', workDays.map((interval) => (interval ? [interval[0].toString(), interval[1].toString()] : [])));
 
     // If there are no busy slots return entire search period
     const searchStart = DateTime.fromISO(startISO);
