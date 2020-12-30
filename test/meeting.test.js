@@ -44,7 +44,7 @@ const {describe, it, before, after} = mocha;
 //   });
 // });
 
-describe('Scheduling in a given range', function() {
+describe('Scheduling within a given time range', function() {
   const tomorrow = DateTime.local().plus({days: 1});
   const ONE_HOUR = 60;
   const HALF_HOUR = 30;
@@ -84,9 +84,11 @@ describe('Scheduling in a given range', function() {
     const testEmails = ['syedalimehdinaoroseabidi@gmail.com']; // TODO: Change to a test email account
     const testToken = JSON.parse(await DATABASE.getTokenFromGoogleEmail(testEmails[0]));
 
+    // Using the scheduler, find an appropriate slot for this half an hour meeting.
     const meetingSlot = await MEETINGS.schedule(undefined, testEmails, tomorrowNinteenHours.toISO(),
         tomorrowTwentyHoursThirtyMinutes.toISO(), true, HALF_HOUR);
 
+    // Check the Google Calendar for an event starting at the slot time given by the scheduler.
     const event = await GOOGLE.getEvent(testToken, meetingSlot.start);
 
     assert.notStrictEqual(event, null, 'event should exist, i.e. not be null');
@@ -95,6 +97,24 @@ describe('Scheduling in a given range', function() {
     assert.strictEqual(TIME.getDurationInMinutes(event.start.dateTime, event.end.dateTime), HALF_HOUR,
         'event should be half an hour long, as specified.');
   });
+
+  after(async () => {
+    await DATABASE.closeDatabaseConnection();
+  });
+});
+
+/**
+ * Set of tests relating to scheduling an event over a range of dates rather than a range of times.
+ * e.g. rescheduling to next week, next month, March, etc.
+ */
+describe('Scheduling within a given date range', function() {
+  before(async () => {
+    await DATABASE.getDatabaseConnection();
+    const token = JSON.parse(await DATABASE.getTokenFromGoogleEmail('syedalimehdinaoroseabidi@gmail.com'));
+    await GOOGLE.clearCalendar(token);
+  });
+
+  // TODO:
 
   after(async () => {
     await DATABASE.closeDatabaseConnection();
