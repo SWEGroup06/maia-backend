@@ -294,7 +294,8 @@ router.get('/tp', async function(req, res) {
   let oldTitle = JSON.parse(decodeURIComponent(req.query.oldTitle));
   oldTitle = oldTitle.substring(1, oldTitle.length - 1);
 
-  const oldDateTime = TIME.maintainLocalTimeZone(JSON.parse(decodeURIComponent(req.query.oldDateTime)));
+  const oldDateTimeParse = JSON.parse(decodeURIComponent(req.query.oldDateTime));
+  const oldDateTime = (oldDateTimeParse ? TIME.maintainLocalTimeZone(oldDateTimeParse) : null);
   const newStartDateRange = TIME.maintainLocalTimeZone(JSON.parse(decodeURIComponent(req.query.newStartDateRange)));
   const newEndDateRange = TIME.maintainLocalTimeZone(JSON.parse(decodeURIComponent(req.query.newEndDateRange)));
   const newStartTimeRange = TIME.maintainLocalTimeZone(JSON.parse(decodeURIComponent(req.query.newStartTimeRange)));
