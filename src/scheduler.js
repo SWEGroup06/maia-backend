@@ -231,6 +231,7 @@ const context = {
     }
     return bestTimeSlot;
   },
+  // eslint-disable-next-line valid-jsdoc
   /**
    * @param { String } startISO
    * @param { String } endISO
@@ -332,6 +333,7 @@ const context = {
 
     return freeSlots;
   },
+  // eslint-disable-next-line valid-jsdoc
   /**
    *
    * @param { DateTime } start
