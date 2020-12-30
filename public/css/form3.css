@@ -3,9 +3,10 @@
 /*}*/
 
 html, body {
-    /*width: 100%;*/
-    /*height: 100%;*/
-    background: black;
+    width: 100%;
+    height: 100%;
+    background: #272727;
+    color: white;
     /*background: white;*/
     /*background-image: linear-gradient(to bottom right, #f4f60e 0%, #21a9d0 100%);*/
     /*font-family: "Lato", sans-serif;*/
@@ -18,61 +19,36 @@ body {
 }
 
 h1 {
-    background-color: black;
-    /*background-color: white;*/
-    overflow:hidden;
-    display:inline-block;
-    padding:10px;
-    font-weight: 900;
-    /*position: fixed;*/
-    color:transparent;
-}
-
-.intro h1 {
-    font-size: 100px;
+    font-size: 80px;
     margin: 0 0 5% 0;
 }
 
-.intro p {
+p {
     color: white;
     font-size: 22px;
 }
 
-#calendar-img {
-    width: 900px;
-    bottom: 0;
+.cont {
     position: absolute;
-    bottom: 0;
-    right: -208px;
-
+    top: 50%;
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
 }
 
-span {
-    background: url(https://c.tadst.com/gfx/600x337/istock-545593812.jpg?1);
-    -webkit-text-fill-color: transparent;
-    -webkit-background-clip: text;
-    display:block;
+.p-2 #mayan-img{
+    padding: 10px;
 }
 
-
-.intro {
-    height: 100vh;
-    /*font-family:  monospace;*/
-    font-family: "Lato", sans-serif;
-    position: relative;
-    overflow: hidden;
+#mayan-img {
+    width: 280px;
 }
 
-#desc {
+.p-2 #desc {
+    padding: 10px;
     width: 400px;
     text-align: left;
     color: white;
-    position: absolute;
-    top: 260px;
-    /*top: 40%;*/
-    left: 260px;
-    -ms-transform: translate(-50%, -50%);
-    transform: translate(-50%, -50%);
 }
 
 #questionsContainer {
@@ -509,3 +485,4 @@ input[type="radio"]:checked + label {
     pointer-events: none;
     transition: all 0.4s cubic-bezier(0.4, 0.25, 0.8, 0.3) 0.05s;
 }
+
