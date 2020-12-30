@@ -28,23 +28,20 @@ p {
     font-size: 22px;
 }
 
-.cont {
-    position: absolute;
+#mayan {
+    position: fixed;
     top: 50%;
-    left: 50%;
+    left: 20%;
     -ms-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
-}
 
-#mayan {
-    position: relative;
 }
 
 #spinner {
     position: absolute;
     width: 205px;
-    left: 46px;
-    top: 12px;
+    left: 38px;
+    top: 4px;
 }
 .p-2 #mayan-img{
     padding: 10px;
@@ -54,11 +51,16 @@ p {
     width: 280px;
 }
 
-.p-2 #desc {
+#desc {
+    position: absolute;
+    right: 8%;
     padding: 10px;
     width: 400px;
     text-align: left;
     color: white;
+    top: 50%;
+    /*-ms-transform: translate(-50%, -50%);*/
+    transform: translate(0, 24%);
 }
 
 #questionsContainer {
@@ -150,7 +152,7 @@ form fieldset .icon {
     transition: all 0.4s ease;
 }
 form fieldset .icon i {
-    position: absolute;
+    /*position: absolute;*/
     display: block;
 }
 form fieldset .icon i::before, form fieldset .icon i::after {
@@ -215,110 +217,20 @@ body.error fieldset {
  * * Icons in CSS, long as f****
  * */
 .icon .arrow {
-    width: 2px;
     height: 17px;
     right: 19px;
-    bottom: -1px;
     background: #333333;
 }
 
 .icon .arrow::before {
     width: 6px;
     height: 6px;
-    bottom: -1px;
-    left: -3px;
+    /*bottom: -1px;*/
+    /*left: -3px;*/
     /*border-color: #333333;*/
     border-right: 2px solid;
     border-bottom: 2px solid;
     transform: rotate(45deg);
-}
-
-.icon .user {
-    width: 20px;
-    height: 10px;
-    bottom: 25px;
-    left: 15px;
-    box-shadow: 0 0 0 2px #333333 inset;
-    border-radius: 6px 6px 3px 3px;
-}
-.icon .user::before {
-    width: 10px;
-    height: 10px;
-    top: -9px;
-    left: 5px;
-    box-shadow: 0 0 0 2px #333333 inset;
-    border-radius: 50%;
-}
-
-.icon .letter {
-    width: 20px;
-    height: 12px;
-    top: 29px;
-    left: 16px;
-    box-shadow: 0 0 0 2px #333333 inset;
-    border-radius: 3px;
-}
-.icon .letter::before, .icon .letter::after {
-    width: 11px;
-    height: 2px;
-    top: 4px;
-    background: #333333;
-}
-.icon .letter::before {
-    left: 0;
-    transform: rotate(30deg);
-}
-.icon .letter::after {
-    right: 0;
-    transform: rotate(-30deg);
-}
-
-.icon .lock {
-    width: 20px;
-    height: 16px;
-    top: 9px;
-    left: 5px;
-    box-shadow: 0 0 0 2px #333333 inset;
-    border-radius: 3px;
-}
-.icon .lock::before {
-    width: 8px;
-    height: 8px;
-    top: -4px;
-    left: 4px;
-    border: 2px solid transparent;
-    border-top: 2px solid #333333;
-    border-right: 2px solid #333333;
-    border-radius: 50%;
-    transform: rotate(-45deg);
-}
-.icon .lock::after {
-    width: 6px;
-    height: 7px;
-    top: 4px;
-    left: 7px;
-    box-shadow: 0 0 0 2px #333333 inset;
-}
-
-.icon .heart {
-    width: 10px;
-    height: 10px;
-    top: 11px;
-    left: 7px;
-    background: #ff5233;
-    transform: rotate(45deg);
-}
-.icon .heart::before, .icon .heart::after {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #ff5233;
-}
-.icon .heart::before {
-    left: -6px;
-}
-.icon .heart::after {
-    top: -6px;
 }
 
 
@@ -339,14 +251,10 @@ html {
 }
 
 .scroll-down {
-    position: absolute;
-    bottom: 30px;
-    left: 50%;
-    margin-left: -16px;
     display: block;
     width: 32px;
     height: 32px;
-    border: 2px solid red;
+    border: 2px solid #7e7f80;
     background-size: 14px auto;
     border-radius: 50%;
     z-index: 2;
@@ -365,7 +273,7 @@ html {
     width: 12px;
     height: 12px;
     content: "";
-    border: 2px solid red;
+    border: 2px solid #7b7c7d;
     border-width: 0px 0 2px 2px;
 }
 
@@ -448,8 +356,12 @@ html {
     position: relative;
 }
 .formInput {
-    position: relative;
+    /*position: relative;*/
     padding: 5px;
+}
+
+.breakQuestion {
+
 }
 
 /* radio text button */
@@ -465,17 +377,17 @@ label {
     height: 50px;
     justify-content: center;
     align-items: center;
-    border: solid 2px red;
+    /*border: solid 2px white;*/
 }
 
 input[type="radio"] {
-    border: 3px red solid;
+    /*border-bottom: 3px #7f7f7f solid;*/
     display: none;
 }
 
 input[type="radio"]:checked + label {
-    color: orangered;
-    background: yellow;
+    color: #ffffff;
+    border-bottom: 3px #ffffff solid;
 }
 /* end of radio text button */
 
@@ -484,7 +396,7 @@ input[type="radio"]:checked + label {
     /*top: calc(50% - 4rem);*/
     /*left: 50%;*/
     /*transform: translate(-50%, -300%);*/
-    width: 25vw;
+    /*width: 25vw;*/
     /*padding: 3.125rem 0 1.5rem;*/
     text-transform: uppercase;
     color: #fff;

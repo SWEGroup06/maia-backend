@@ -11,6 +11,12 @@ $(window).scroll(function() {
   $('#spinner').css({transform: 'rotate(' + theta + 'rad)'});
 });
 
+// eslint-disable-next-line require-jsdoc
+function spin(x) {
+  const theta = x*10 % Math.PI;
+  $('#spinner').css({transform: 'rotate(' + theta + 'rad)'});
+}
+
 // wait for the DOM to be loaded
 $(function() {
   // bind 'myForm' and provide a simple callback function
@@ -57,6 +63,8 @@ function init() {
   ul.firstChild.classList.add('active');
 }
 
+let idx = 1;
+
 // eslint-disable-next-line require-jsdoc
 function next(target) {
   const input = target.previousElementSibling;
@@ -65,6 +73,8 @@ function next(target) {
   if (input.value === '') {
     body.classList.add('error');
   } else {
+    idx++;
+    spin(idx);
     body.classList.remove('error');
 
     const enable = document.querySelector('form fieldset.enable');
@@ -79,6 +89,25 @@ function next(target) {
     active.classList.remove('active');
     nextActive.classList.add('active');
   }
+}
+// eslint-disable-next-line require-jsdoc
+function back(target) {
+  // Check if input is empty
+  idx--;
+  spin(idx);
+  body.classList.remove('error');
+
+  const enable = document.querySelector('form fieldset.enable');
+  const nextEnable = enable.previousElementSibling;
+  enable.classList.remove('enable');
+  nextEnable.classList.remove('disable');
+  nextEnable.classList.add('enable');
+
+  // Switch active class on left list
+  const active = document.querySelector('ul.items li.active');
+  const nextActive = active.previousElementSibling;
+  active.classList.remove('active');
+  nextActive.classList.add('active');
 }
 
 // eslint-disable-next-line require-jsdoc
@@ -97,6 +126,13 @@ var count = form.querySelectorAll('fieldset').length;
 window.onload = init;
 document.body.onmouseup = function(event) {
   const target = event.target || event.toElement;
-  if (target.classList.contains('button')) next(target);
+  if (target.classList.contains('next')) {
+    console.log('target', target, ' id', target.id);
+    next(target);
+  }
+  if (target.classList.contains('back')) {
+    console.log('target', target, ' id', target.id);
+    back(target);
+  }
 };
 document.addEventListener('keydown', keyDown, false);

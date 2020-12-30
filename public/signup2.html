@@ -14,56 +14,52 @@
 <body>
 <!-- partial:index.partial.html -->
 
-<div class="d-flex justify-content-center align-items-center cont" >
-        <div class="p-2" id="mayan">
+<div class="cont">
+        <div id="mayan">
             <img id="mayan-img" src="./images/background.png" alt="calendar">
             <img id="spinner" src="./images/top%20dial.png" alt="mayan spinner">
         </div>
-        <div class="p-2">
-            <div id="desc">
-                <h1>NEARLY THERE</h1>
-                <p>To best calibrate Maia to your daily needs, swipe down and answer as many questions as you can.</p>
-<!--                <p>To best calibrate Maia to your daily needs, swipe down and answer as many questions as you can.</p>-->
-<!--                <p>To best calibrate Maia to your daily needs, swipe down and answer as many questions as you can.</p>-->
-<!--                <p>To best calibrate Maia to your daily needs, swipe down and answer as many questions as you can.</p>-->
-<!--                <p>To best calibrate Maia to your daily needs, swipe down and answer as many questions as you can.</p>-->
-<!--                <p>To best calibrate Maia to your daily needs, swipe down and answer as many questions as you can.</p>-->
-<!--                <p>To best calibrate Maia to your daily needs, swipe down and answer as many questions as you can.</p>-->
-<!--                <p>To best calibrate Maia to your daily needs, swipe down and answer as many questions as you can.</p>-->
-            </div>
+        <div id="desc">
+            <h1>NEARLY THERE</h1>
+            <p>To best calibrate Maia to your daily needs, scroll down and answer a couple questions.</p>
+<!--            <a href="#questionsContainer" class="scroll-down" address="true"></a>-->
+
+            <section id="questionsContainer">
+                <form class="centered" id="signUpForm" action="./login.html">
+                    <ul class="items"></ul>
+                    <fieldset class="formInput scheduleBreaks enable">
+                        <h1 class="question">Do you pre schedule breaks?</h1>
+                        <div class="radio">
+                            <input type="radio" id="test" name="preScheduleBreaks" checked>
+                            <label for="test">I DO</label>
+                            <input type="radio" id="test2" name="preScheduleBreaks">
+                            <label for="test2">I DON'T</label>
+                        </div>
+                        <div class="icon right next">next</div>
+                    </fieldset>
+                    <fieldset class="formInput breakQuestion">
+                        <h1 class="question">How long would you like at minimum between meetings?</h1>
+                        <input type="number" id="breakLength" name="breakLength" min="1" max="5">
+                        <div class="icon right back">back</div>
+                        <div class="icon right next">next</div>
+                    </fieldset>
+                    <fieldset class="formInput password">
+                        <div class="icon left"><i class="lock"></i></div>
+                        <input type="password" name="password" placeholder="Password"/>
+                        <div class="icon right back">back</div>
+                        <div class="icon right next">next</div>
+                    </fieldset>
+                    <fieldset class="formInput thanks">
+                        <div class="icon left"><i class="heart"></i></div>
+                        <p>Thanks for your time</p>
+                        <div class="icon right back">back</div>
+                        <div class="icon right"><i class="heart"></i></div>
+                    </fieldset>
+                </form>
+            </section>
         </div>
 </div>
-<!--<section id="questionsContainer">-->
 
-<!--    <form class="centered" id="signUpForm" action="./login.html">-->
-<!--        <ul class="items"></ul>-->
-<!--        <fieldset class="formInput scheduleBreaks enable">-->
-<!--            <h1 class="question">Do you pre schedule breaks?</h1>-->
-<!--            <div class="radio">-->
-<!--                <input type="radio" id="test" name="jeff" checked>-->
-<!--                <label for="test">I DO</label>-->
-<!--                <input type="radio" id="test2" name="jeff">-->
-<!--                <label for="test2">I DON'T</label>-->
-<!--                <div class="icon right button"><i class="arrow"></i></div>-->
-<!--            </div>-->
-<!--        </fieldset>-->
-<!--        <fieldset class="formInput email">-->
-<!--            <div class="icon left"><i class="letter"></i></div>-->
-<!--            <input type="mail" name="email" placeholder="Email"/>-->
-<!--            <div class="icon right button"><i class="arrow"></i></div>-->
-<!--        </fieldset>-->
-<!--        <fieldset class="formInput password">-->
-<!--            <div class="icon left"><i class="lock"></i></div>-->
-<!--            <input type="password" name="password" placeholder="Password"/>-->
-<!--            <div class="icon right button"><i class="arrow"></i></div>-->
-<!--        </fieldset>-->
-<!--        <fieldset class="formInput thanks">-->
-<!--            <div class="icon left"><i class="heart"></i></div>-->
-<!--            <p>Thanks for your time</p>-->
-<!--            <div class="icon right"><i class="heart"></i></div>-->
-<!--        </fieldset>-->
-<!--    </form>-->
-<!--</section>-->
 <script  src="./signup.js"></script>
 </body>
 </html>
