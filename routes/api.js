@@ -60,6 +60,41 @@ router.get('/schedule', async function(req, res) {
   }
 });
 
+// TODO: Temporary Schedule a new meeting
+router.get('/sp', async function(req, res) {
+  if (!req.query.slackEmails && !req.query.googleEmails) {
+    res.json({error: 'No emails'});
+    return;
+  }
+
+  let title = JSON.parse(decodeURIComponent(req.query.title));
+  title = title.substring(1, title.length - 1);
+
+  const duration = JSON.parse(decodeURIComponent(req.query.duration));
+  const startDateRange = JSON.parse(decodeURIComponent(req.query.startDateRange));
+  const endDateRange = JSON.parse(decodeURIComponent(req.query.endDateRange));
+  const startTimeRange = JSON.parse(decodeURIComponent(req.query.startTimeRange));
+  const endTimeRange = JSON.parse(decodeURIComponent(req.query.endTimeRange));
+  const flexible = JSON.parse(decodeURIComponent(req.query.flexible));
+  const dayOfWeek = JSON.parse(decodeURIComponent(req.query.endTimeRange));
+
+  let googleEmails;
+  if (req.query.googleEmails) {
+    googleEmails = JSON.parse(decodeURIComponent(req.query.googleEmails));
+  } else {
+    const slackEmails = JSON.parse(decodeURIComponent(req.query.slackEmails));
+    googleEmails = await DATABASE.getGoogleEmailsFromSlackEmails(slackEmails);
+  }
+
+  try {
+    const chosenSlot = await MEETINGS.sp(googleEmails, title, duration, startDateRange, endDateRange, startTimeRange, endTimeRange, flexible, dayOfWeek);
+    res.json(chosenSlot);
+  } catch (error) {
+    console.error(error);
+    res.send({error: error.toString()});
+  }
+});
+
 // Reschedule an existing meeting
 router.get('/reschedule', async function(req, res) {
   if (!req.query.slackEmail && !req.query.googleEmail) {
