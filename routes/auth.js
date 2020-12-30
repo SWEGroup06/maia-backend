@@ -74,7 +74,7 @@ router.get('/callback', async function(req, res) {
 });
 
 // Logout
-router.get('/login', async function(req, res) {
+router.get('/logout', async function(req, res) {
   if (!req.query.googleEmail && !req.query.slackEmail) {
     res.json({error: 'No email provided'});
     return;
