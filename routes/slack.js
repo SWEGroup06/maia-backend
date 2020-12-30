@@ -37,7 +37,7 @@ const postMessage = async function(channelId, text) {
 /* Open a Modal View on the Slack App via Slack API */
 const openView = async function(view) {
   console.log('DEBUG: OPENVIEW REACHED');
-  await fetch('https://slack.com/api/views.open', {
+  const res = await fetch('https://slack.com/api/views.open', {
     method: 'POST',
     headers: {
       'Content-type': 'application/json; charset=utf-8',
@@ -45,6 +45,7 @@ const openView = async function(view) {
     },
     body: JSON.stringify(view),
   });
+  console.log(res);
   console.log('DEBUG: posted view');
 };
 
