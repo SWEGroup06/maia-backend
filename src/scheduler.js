@@ -184,7 +184,6 @@ const context = {
    */
   _chooseFromHistory: ({freeTimes, historyFreqs, duration, cluster}) => {
     // sum history freqs together to make one for everyone
-    // console.log('freetimes: ', freeTimes[0]);
     if (historyFreqs.length < 1) {
       console.log('error in _chooseFromHistory: no history freqs given');
       return null;
@@ -262,7 +261,7 @@ const context = {
       return x;
     });
     busySlots.push([searchEnd, searchEnd.endOf('day')]);
-    console.log('parsed busySlots: ', busySlots.map((slot) => [slot[0].toString(), slot[1].toString()]));
+    // console.log('parsed busySlots: ', busySlots.map((slot) => [slot[0].toString(), slot[1].toString()]));
 
     // Initialise variables for generating free slots
     const fiveSeconds = Duration.fromObject({seconds: 5});
@@ -278,19 +277,17 @@ const context = {
       currDayBegin = DateTime.max(context.combine(searchStart, workDays[initialDay][0]), searchStart);
       currDayEnd = DateTime.min(context.combine(searchStart, workDays[initialDay][1]), searchEnd);
     }
-    console.log('currDayBegin: ', currDayBegin.toString());
-    console.log('currDayEnd: ', currDayEnd.toString());
 
     // Generate free time slots
     for (let i = 0; i < busySlots.length; i++) {
       const busyTimeSlot = busySlots[i];
       const day = busyTimeSlot[0].weekday - 1;
 
-      console.log('\n\nbusytimeslot: ', busyTimeSlot[0].toString(), busyTimeSlot[1].toString());
+      // console.log('\n\nbusytimeslot: ', busyTimeSlot[0].toString(), busyTimeSlot[1].toString());
 
       // If we are on a new day, update the begin and end for that day.
       const daysApart = busyTimeSlot[0].startOf('day').diff(prevBusySlotEnd.startOf('day'), 'days');
-      console.log('days apart: ', daysApart.values.days);
+      // console.log('days apart: ', daysApart.values.days);
       if (daysApart.days > 0) {
         // generates the rest of the current working day
         if (currDayBegin && currDayEnd - currDayBegin > fiveSeconds) {
@@ -298,12 +295,10 @@ const context = {
           freeSlots.push([currDayBegin, currDayEnd]);
         }
         // updates begin and end for current busy slot's day
-        console.log('workdays[', day, '] ', workDays[day].toString());
+        // console.log('workdays[', day, '] ', workDays[day].toString());
         if (workDays[day].length > 0) {
           currDayBegin = context.combine(busyTimeSlot[0], workDays[day][0]);
           currDayEnd = context.combine(busyTimeSlot[0], workDays[day][1]);
-          console.log('currDayBegin: ', currDayBegin.toString());
-          console.log('currDayEnd: ', currDayEnd.toString());
         } else {
           currDayBegin = null;
           currDayEnd = null;
@@ -353,7 +348,7 @@ const context = {
       }
       start = start.plus(oneDay);
     }
-    console.log('mappp', freeSlots.map((slot) => [slot[0].toString(), slot[1].toString()]));
+    // console.log('mappp', freeSlots.map((slot) => [slot[0].toString(), slot[1].toString()]));
     return freeSlots;
   },
   /**
@@ -378,7 +373,7 @@ const context = {
     //   });
     // }
     const timeSlots = context._schedule(freeTimes, duration, constraints);
-    console.log('free times ', freeTimes[0].map((interval) => [interval[0].toString(), interval[1].toString()]));
+    // console.log('free times ', freeTimes[0].map((interval) => [interval[0].toString(), interval[1].toString()]));
     console.log('free timeslots ', timeSlots.map((interval) => [interval[0].toString(), interval[1].toString()]));
     const choice = context._chooseFromHistory({
       freeTimes: timeSlots,
