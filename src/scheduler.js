@@ -118,7 +118,7 @@ const context = {
       !schedules.length ||
       !duration) return null;
 
-    if (constraints.length > 0) schedules = schedules.concat(constraints);
+    if (constraints && constraints.length > 0) schedules = schedules.concat(constraints);
 
     // find intersection of all the given schedules
     let ans = schedules[0];
