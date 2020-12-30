@@ -88,7 +88,9 @@ p {
     [class*="col-"] {
         width: 100%;
     }
-
+    #funfact {
+        opacity: 0;
+    }
     #mayan {
         top: 35%;
         left: 50%;
