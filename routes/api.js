@@ -300,6 +300,7 @@ router.get('/tp', async function(req, res) {
   const newStartTimeRange = TIME.maintainLocalTimeZone(JSON.parse(decodeURIComponent(req.query.newStartTimeRange)));
   const newEndTimeRange = TIME.maintainLocalTimeZone(JSON.parse(decodeURIComponent(req.query.newEndTimeRange)));
   const newDayOfWeek = JSON.parse(decodeURIComponent(req.query.newDayOfWeek));
+  const timeRangeSpecified = JSON.parse(decodeURIComponent(req.query.timeRangeSpecified));
 
   if (!oldDateTime && !oldTitle) {
     res.json({error: 'You must specify the event title or date and time'});
@@ -308,7 +309,7 @@ router.get('/tp', async function(req, res) {
 
   try {
     const chosenSlotToRescheduleTo = await MEETINGS.tp(googleEmail, oldTitle, oldDateTime, newStartDateRange,
-        newEndDateRange, newStartTimeRange, newEndTimeRange, newDayOfWeek);
+        newEndDateRange, newStartTimeRange, newEndTimeRange, newDayOfWeek, timeRangeSpecified);
     res.json(chosenSlotToRescheduleTo);
   } catch (error) {
     console.error(error);
