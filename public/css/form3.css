@@ -50,17 +50,52 @@ p {
 #mayan-img {
     width: 280px;
 }
-
+.right {
+    height: 100vh;
+}
 #desc {
-    position: absolute;
-    right: 8%;
+    /*right: 8%;*/
     padding: 10px;
-    width: 400px;
     text-align: left;
     color: white;
-    top: 50%;
-    /*-ms-transform: translate(-50%, -50%);*/
-    transform: translate(0, 24%);
+    position: absolute;
+    top: 36%;
+    max-width: 450px;
+    /*transform: translateY(-50%);*/
+}
+
+#top {
+}
+
+
+@media only screen and (max-width: 576px) {
+    [class*="col-"] {
+        width: 100%;
+    }
+
+    #mayan {
+        top: 35%;
+        left: 50%;
+        -ms-transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%);
+        /*background-color: lightblue;*/
+    }
+    #desc {
+        position: relative;
+        text-align: center;
+        /*color: yellow;*/
+        margin-top: 30%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    form fieldset {
+        margin-top: 50px;
+    }
+
+    ul {
+        margin-top: 70px;
+    }
 }
 
 #questionsContainer {
@@ -354,6 +389,7 @@ html {
 }
 .cont {
     position: relative;
+    padding: 5px;
 }
 .formInput {
     /*position: relative;*/
