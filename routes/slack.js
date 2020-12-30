@@ -7,7 +7,7 @@ const router = express.Router();
 const TIME = require('../lib/time.js');
 const DATABASE = require('../lib/database.js');
 const MEETINGS = require('../lib/meetings.js');
-const EDIT_MEETING_VIEW = require('../lib/editMeetingView.json');
+const EDIT_MEETING_VIEW = require('../blocks/edit-meeting-view.json');
 const CONFIG = require('../config.js');
 
 router.use('/actions', bodyParser.urlencoded({extended: true}));
@@ -113,7 +113,7 @@ const actionHandlers = {
     try {
       const slackEmail = JSON.parse(action.action_id);
       if (await DATABASE.userExists(slackEmail)) {
-        const googleEmail = DATABASE.getGoogleEmailFromSlackEmail(slackEmail);
+        const googleEmail = await DATABASE.getGoogleEmailFromSlackEmail(slackEmail);
         await DATABASE.deleteUser(googleEmail);
         await submitResponse(payload, {text: `*Sign out with ${googleEmail} was successful*`});
       } else {

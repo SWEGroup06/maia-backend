@@ -3,7 +3,6 @@ const router = express.Router();
 
 const GOOGLE = require('../lib/google.js');
 const DATABASE = require('../lib/database.js');
-const MEETINGS = require('../lib/meetings.js');
 
 router.use('/success', express.static('public'));
 
@@ -21,7 +20,7 @@ router.get('/login', async function(req, res) {
 
       // Check if a user with the provided details existing in the database
       if (await DATABASE.userExists(data.googleEmail)) {
-        res.json({exists: true, email: data.email});
+        res.json({exists: true, email: data.googleEmail});
         return;
       }
     } else {
@@ -30,8 +29,8 @@ router.get('/login', async function(req, res) {
 
       // Check if a user with the provided details existing in the database
       if (await DATABASE.userExists(data.slackEmail)) {
-        const email = await DATABASE.getGoogleEmailFromSlackEmail(data.slackEmail);
-        res.json({exists: true, email});
+        const googleEmail = await DATABASE.getGoogleEmailFromSlackEmail(data.slackEmail);
+        res.json({exists: true, email: googleEmail});
         return;
       }
     }
@@ -62,7 +61,7 @@ router.get('/callback', async function(req, res) {
     const googleEmail = await GOOGLE.getEmail(tokens);
     await DATABASE.createNewUser(googleEmail, JSON.stringify(tokens), state.slackEmail, state.slackId);
 
-    setTimeout(() => MEETINGS.generatePreferences(googleEmail, tokens), 0);
+    // setTimeout(() => MEETINGS.generatePreferences(googleEmail, tokens), 0);
 
     // Redirect to success page
     res.redirect('success/login.html');
@@ -74,6 +73,31 @@ router.get('/callback', async function(req, res) {
   }
 });
 
-// Logout (handled in slack.js)
+// Logout
+router.get('/logout', async function(req, res) {
+  if (!req.query.googleEmail && !req.query.slackEmail) {
+    res.json({error: 'No email provided'});
+    return;
+  }
+
+  try {
+    let googleEmail;
+    if (req.query.googleEmail) {
+      googleEmail = JSON.parse(decodeURIComponent(req.query.googleEmail));
+    } else {
+      const slackEmail = JSON.parse(decodeURIComponent(req.query.slackEmail));
+      googleEmail = await DATABASE.getGoogleEmailFromSlackEmail(slackEmail);
+    }
+
+    // Delete account
+    await DATABASE.deleteUser(googleEmail);
+
+    // Send success
+    await res.json({text: `*Sign out with ${googleEmail} was successful*`});
+  } catch (error) {
+    console.error(error);
+    res.send({error: error.toString()});
+  }
+});
 
 module.exports = router;

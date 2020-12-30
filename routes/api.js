@@ -221,6 +221,7 @@ router.get('/constraints', async function(req, res) {
   }
 });
 
+// Cancel event
 router.get('/cancel', async function(req, res) {
   if (!req.query.slackEmail && !req.query.googleEmail) {
     res.json({error: 'Email not found'});
@@ -303,6 +304,22 @@ router.get('/tp', async function(req, res) {
     const chosenSlotToRescheduleTo = await MEETINGS.tp(googleEmail, oldTitle, oldDateTime, newStartDateRange, newEndDateRange, newStartTimeRange, newEndTimeRange, newDayOfWeek);
     res.json(chosenSlotToRescheduleTo);
   } catch (error) {
+    console.error(error);
+    res.send({error: error.toString()});
+  }
+});
+
+router.get('/preferences', async function(req, res) {
+  res.sendStatus(200);
+  return;
+  try {
+    const googleEmail = 'kpal81xd@gmail.com';
+    const tokens = JSON.parse(await DATABASE.getTokenFromGoogleEmail(googleEmail));
+
+    await MEETINGS.generatePreferences(googleEmail, tokens);
+
+    res.send({status: 'ok'});
+  } catch (err) {
     console.error(error);
     res.send({error: error.toString()});
   }

@@ -227,7 +227,6 @@ const context = {
    */
   _chooseFromHistory: ({freeTimes, historyFreqs, duration, cluster}) => {
     // sum history freqs together to make one for everyone
-    console.log('---_chooseFromHistory---');
     // console.log('freetimes: ', freeTimes[0]);
     if (historyFreqs.length < 1) {
       console.log('error in _chooseFromHistory: no history freqs given');
