@@ -34,7 +34,17 @@ p {
     left: 20%;
     -ms-transform: translate(-50%, -50%);
     transform: translate(-50%, -50%);
+    z-index: 1;
+}
 
+#mayan p {
+    max-width: 300px;
+    color: #555555;
+    font-size: small;
+    font-style: italic;
+}
+#mayan a {
+    color: #6c6c6c;
 }
 
 #spinner {

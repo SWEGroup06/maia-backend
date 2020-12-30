@@ -13,7 +13,7 @@ $(window).scroll(function() {
 
 // eslint-disable-next-line require-jsdoc
 function spin(x) {
-  const theta = x*10 % Math.PI;
+  const theta = (x+1)*10 % Math.PI;
   $('#spinner').css({transform: 'rotate(' + theta + 'rad)'});
 }
 
