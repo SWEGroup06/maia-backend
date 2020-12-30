@@ -6,6 +6,11 @@ const email = params.get('email');
 const token = params.get('token');
 console.log('---email---', email);
 
+$(window).scroll(function() {
+  const theta = $(window).scrollTop() / 100 % Math.PI;
+  $('#spinner').css({transform: 'rotate(' + theta + 'rad)'});
+});
+
 // wait for the DOM to be loaded
 $(function() {
   // bind 'myForm' and provide a simple callback function

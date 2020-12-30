@@ -36,6 +36,16 @@ p {
     transform: translate(-50%, -50%);
 }
 
+#mayan {
+    position: relative;
+}
+
+#spinner {
+    position: absolute;
+    width: 205px;
+    left: 46px;
+    top: 12px;
+}
 .p-2 #mayan-img{
     padding: 10px;
 }
