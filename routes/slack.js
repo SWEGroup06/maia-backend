@@ -36,6 +36,7 @@ const postMessage = async function(channelId, text) {
 
 /* Open a Modal View on the Slack App via Slack API */
 const openView = async function(view) {
+  console.log('DEBUG: OPENVIEW REACHED');
   await fetch('https://slack.com/api/views.open', {
     method: 'POST',
     headers: {
@@ -44,6 +45,7 @@ const openView = async function(view) {
     },
     body: JSON.stringify(view),
   });
+  console.log('DEBUG: posted view');
 };
 
 
@@ -136,6 +138,7 @@ const actionHandlers = {
         const text = 'Your meeting booking has been cancelled';
         await submitResponse(payload, {text});
       } else if (action.action_id == 'edit') {
+        console.log('DEBUG: CONFIRM REACHED');
         EDIT_MEETING_VIEW.trigger_id = payload.trigger_id;
         openView(EDIT_MEETING_VIEW);
       }
@@ -165,7 +168,6 @@ const actionHandlers = {
 // Handles Block-kit UI actions
 router.post('/actions', async function(req, res) {
   const payload = JSON.parse(req.body.payload);
-  console.log(payload);
 
   let handler = null;
   let action = null;
