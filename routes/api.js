@@ -302,6 +302,7 @@ router.get('/cancel', async function(req, res) {
   }
 });
 
+// TODO: Temporary until we finish
 router.get('/tp', async function(req, res) {
   if (!req.query.slackEmail && !req.query.googleEmail) {
     res.json({error: 'Email not found'});
@@ -328,15 +329,23 @@ router.get('/tp', async function(req, res) {
   let oldTitle = JSON.parse(decodeURIComponent(req.query.oldTitle));
   oldTitle = oldTitle.substring(1, oldTitle.length - 1);
 
-  const oldDateTime = JSON.parse(decodeURIComponent(req.query.oldDateTime));
-  const newStartDateRange = JSON.parse(decodeURIComponent(req.query.newStartDateRange));
-  const newEndDateRange = JSON.parse(decodeURIComponent(req.query.newEndDateRange));
-  const newStartTimeRange = JSON.parse(decodeURIComponent(req.query.newStartTimeRange));
-  const newEndTimeRange = JSON.parse(decodeURIComponent(req.query.newEndTimeRange));
+  const oldDateTimeParse = JSON.parse(decodeURIComponent(req.query.oldDateTime));
+  const oldDateTime = (oldDateTimeParse ? TIME.maintainLocalTimeZone(oldDateTimeParse) : null);
+  const newStartDateRange = TIME.maintainLocalTimeZone(JSON.parse(decodeURIComponent(req.query.newStartDateRange)));
+  const newEndDateRange = TIME.maintainLocalTimeZone(JSON.parse(decodeURIComponent(req.query.newEndDateRange)));
+  const newStartTimeRange = TIME.maintainLocalTimeZone(JSON.parse(decodeURIComponent(req.query.newStartTimeRange)));
+  const newEndTimeRange = TIME.maintainLocalTimeZone(JSON.parse(decodeURIComponent(req.query.newEndTimeRange)));
   const newDayOfWeek = JSON.parse(decodeURIComponent(req.query.newDayOfWeek));
+  const timeRangeSpecified = JSON.parse(decodeURIComponent(req.query.timeRangeSpecified));
+
+  if (!oldDateTime && !oldTitle) {
+    res.json({error: 'You must specify the event title or date and time'});
+    return;
+  }
 
   try {
-    const chosenSlotToRescheduleTo = await MEETINGS.tp(googleEmail, oldTitle, oldDateTime, newStartDateRange, newEndDateRange, newStartTimeRange, newEndTimeRange, newDayOfWeek);
+    const chosenSlotToRescheduleTo = await MEETINGS.tp(googleEmail, oldTitle, oldDateTime, newStartDateRange,
+        newEndDateRange, newStartTimeRange, newEndTimeRange, newDayOfWeek, timeRangeSpecified);
     res.json(chosenSlotToRescheduleTo);
   } catch (error) {
     console.error(error);
