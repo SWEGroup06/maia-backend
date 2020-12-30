@@ -131,7 +131,7 @@ const actionHandlers = {
       // Save the channel id
       channelId = payload.channel.id;
       if (action.action_id == 'cancel') {
-        const email = await DATABASE.getEmailFromID(payload.user.id);
+        const email = await DATABASE.getGoogleEmailFromSlackId(payload.user.id);
         await MEETINGS.cancelLastBookedMeeting(email);
         const text = 'Your meeting booking has been cancelled';
         await submitResponse(payload, {text});
@@ -150,7 +150,7 @@ const actionHandlers = {
       const date = values.date['datepicker-action'].selected_date;
       const startTime = values.startTime['timepicker-action'].selected_time;
       const endTime = values.endTime['timepicker-action'].selected_time;
-      const email = await DATABASE.getEmailFromID(payload.user.id);
+      const email = await DATABASE.getGoogleEmailFromSlackId(payload.user.id);
       await MEETINGS.rescheduleToSpecificDateTime(email, name, date, startTime, endTime);
       // Send 200 OK response with empty body to close view
       res.send();
