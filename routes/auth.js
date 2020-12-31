@@ -74,7 +74,7 @@ router.get("/callback", async function (req, res) {
     // setTimeout(() => MEETINGS.generatePreferences(googleEmail, tokens), 0);
 
     // Redirect to success page
-    res.post(`success/signup2.html`, function(req, res) {
+    router.post('success/signup2.html', function(req, res) {
       res.send(encodeURIComponent(JSON.stringify(state.email)), encodeURIComponent(JSON.stringify(tokens)))
     });
 
