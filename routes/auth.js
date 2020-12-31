@@ -1,90 +1,80 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 
-const {DateTime, Duration} = require('luxon');
-const GOOGLE = require('../lib/google.js');
-const DATABASE = require('../lib/database');
-const SCHEDULER = require('../src/scheduler');
+const GOOGLE = require("../lib/google.js");
+const DATABASE = require("../lib/database.js");
 
-const NUM_CATEGORIES = 2;
-const today = DateTime.local();
-const oneMonthAgo = today.minus(Duration.fromObject({days: 30}));
-
-router.use('/success', express.static('public'));
+router.use("/success", express.static("public"));
 
 // Login
-router.get('/login', async function(req, res) {
-  if (!req.query.email) {
-    res.json({error: 'No email provided'});
-    return;
-  }
-
-  if (!req.query.userID) {
-    res.json({error: 'No ID provided'});
+router.get("/login", async function (req, res) {
+  if (
+    !req.query.googleEmail &&
+    !!req.query.slackId + !!req.query.slackEmail < 2
+  ) {
+    res.json({ error: "No email provided" });
     return;
   }
 
   try {
-    const userID = JSON.parse(decodeURIComponent(req.query.userID));
-    const email = JSON.parse(decodeURIComponent(req.query.email));
+    const data = {};
+    if (req.query.googleEmail) {
+      data.googleEmail = JSON.parse(decodeURIComponent(req.query.googleEmail));
 
-    // Check if a user with the provided details existing in the database
-    if (await DATABASE.userExists(email)) {
-      res.json({exists: true, email});
-      return;
+      // Check if a user with the provided details existing in the database
+      if (await DATABASE.userExists(data.googleEmail)) {
+        res.json({ exists: true, email: data.googleEmail });
+        return;
+      }
+    } else {
+      data.slackId = JSON.parse(decodeURIComponent(req.query.slackId));
+      data.slackEmail = JSON.parse(decodeURIComponent(req.query.slackEmail));
+
+      // Check if a user with the provided details existing in the database
+      if (await DATABASE.userExists(data.slackEmail)) {
+        const googleEmail = await DATABASE.getGoogleEmailFromSlackEmail(
+          data.slackEmail
+        );
+        res.json({ exists: true, email: googleEmail });
+        return;
+      }
     }
 
     // If no details were found send URL
-    await res.json({url: GOOGLE.generateAuthUrl(userID, email)});
+    await res.json({ url: GOOGLE.generateAuthUrl(data) });
   } catch (error) {
     console.error(error);
-    res.send({error: error.toString()});
+    res.send({ error: error.toString() });
   }
 });
 
-// eslint-disable-next-line require-jsdoc
-async function generateHistFreqForCategory(categorisedSchedule, slackEmail, category) {
-  console.log('categoryy: ', category);
-  const histFreq = await SCHEDULER.generateUserHistory(categorisedSchedule, category);
-  await DATABASE.setFrequenciesByCategory(slackEmail, category, histFreq);
-  console.log('-------history frequency ', category, ' completed -------');
-}
-
-// eslint-disable-next-line require-jsdoc
-async function generatePreferences(tokens, slackEmail) {
-  let lastMonthHist = await GOOGLE.getMeetings(tokens, oneMonthAgo.toISO(), today.toISO());
-  lastMonthHist = lastMonthHist.map((e) => [e.start.dateTime, e.end.dateTime, e.summary]);
-  const categorisedSchedule = await SCHEDULER.getCategorisedSchedule(lastMonthHist);
-  console.log('---generating history frequencies---');
-  for (let category=0; category < NUM_CATEGORIES; category++) {
-    setTimeout(() => generateHistFreqForCategory(categorisedSchedule, slackEmail, category), 0);
-  }
-  console.log('---generating meeting cluster preferences---');
-  // TODO: ...
-}
-
 // Google OAuth2 callback
-router.get('/callback', async function(req, res) {
+router.get("/callback", async function (req, res) {
   if (!req.query.code) {
-    await res.json({error: 'No code provided'});
+    await res.json({ error: "No code provided" });
     return;
   }
   if (!req.query.state) {
-    await res.json({error: 'No state provided'});
+    await res.json({ error: "No state provided" });
     return;
   }
 
   try {
     const state = JSON.parse(decodeURIComponent(req.query.state));
 
-    const tokens = await GOOGLE.getTokens(req.query.code);
+    const tokens = await GOOGLE.getToken(req.query.code);
     const googleEmail = await GOOGLE.getEmail(tokens);
-    await DATABASE.createNewUser(state.userID, state.email, googleEmail, JSON.stringify(tokens));
+    await DATABASE.createNewUser(
+      googleEmail,
+      JSON.stringify(tokens),
+      state.slackEmail,
+      state.slackId
+    );
 
-    setTimeout(() => generatePreferences(tokens, state.email), 0);
+    // setTimeout(() => MEETINGS.generatePreferences(googleEmail, tokens), 0);
 
     // Redirect to success page
-    res.redirect(`success/signup.html?email=${encodeURIComponent(JSON.stringify(state.email))}
+    res.redirect(`success/signup2.html?email=${encodeURIComponent(JSON.stringify(state.email))}
                     &token=${encodeURIComponent(JSON.stringify(tokens))}`);
 
     console.log('**********');
@@ -96,10 +86,35 @@ router.get('/callback', async function(req, res) {
     // res.json({userID: state.userID, teamID: state.teamID, tokens});
   } catch (error) {
     console.error(error);
-    res.send({error: error.toString()});
+    res.send({ error: error.toString() });
   }
 });
 
-// Logout (handled in slack.js)
+// Logout
+router.get("/logout", async function (req, res) {
+  if (!req.query.googleEmail && !req.query.slackEmail) {
+    res.json({ error: "No email provided" });
+    return;
+  }
+
+  try {
+    let googleEmail;
+    if (req.query.googleEmail) {
+      googleEmail = JSON.parse(decodeURIComponent(req.query.googleEmail));
+    } else {
+      const slackEmail = JSON.parse(decodeURIComponent(req.query.slackEmail));
+      googleEmail = await DATABASE.getGoogleEmailFromSlackEmail(slackEmail);
+    }
+
+    // Delete account
+    await DATABASE.deleteUser(googleEmail);
+
+    // Send success
+    await res.json({ text: `*Sign out with ${googleEmail} was successful*` });
+  } catch (error) {
+    console.error(error);
+    res.send({ error: error.toString() });
+  }
+});
 
 module.exports = router;

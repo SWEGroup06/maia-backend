@@ -1,11 +1,11 @@
-const {DateTime, Duration} = require('luxon');
+const { DateTime, Duration } = require("luxon");
 
-const DIALOGFLOW = require('../lib/dialogflow.js');
+const DIALOGFLOW = require("../lib/dialogflow.js");
 // const PLOT = require('plotter').plot;
 
 /* CONSTANTS */
 const halfHoursInDay = 24 * 2;
-const halfHour = Duration.fromObject({minutes: 30});
+const halfHour = Duration.fromObject({ minutes: 30 });
 const LEISURE = 0;
 const UNKNOWN = -1;
 const WORK = 1;
@@ -14,21 +14,25 @@ const context = {
   /**
    * Internal function that takes two datetime objects and returns their intersection, if that
    * intersection is of a minimum size
+   *
    * @param { datetime } slot1
    * @param { datetime } slot2
    * @param { duration } duration minimum size of interction is given by duration
    * @return { datetime } intersection of slot1 and slot2 or null
    */
   intersection: (slot1, slot2, duration) => {
-    const newSlot = [DateTime.max(slot1[0], slot2[0]),
-      DateTime.min(slot1[1], slot2[1])];
+    const newSlot = [
+      DateTime.max(slot1[0], slot2[0]),
+      DateTime.min(slot1[1], slot2[1]),
+    ];
     return newSlot[0].plus(duration) <= newSlot[1] ? newSlot : null;
   },
   /**
    * Internal function that takes two objects, one for date info and one for time info, and returns
    * a datetime based on it
-   * @param { Object } date object with year, month and day fields
-   * @param { Object } time object with hour and minute fields
+   *
+   * @param {object} date object with year, month and day fields
+   * @param {object} time object with hour and minute fields
    * @return { datetime }
    */
   combine: (date, time) => {
@@ -44,18 +48,21 @@ const context = {
    * Takes in days of the week to produce availablities for, indicated by weekdayAvailable array. The
    * available times are passed in the availableTimes array. The function will produce availablities
    * for a number of weeks, specified by the weeks parameter
+   *
    * @param { Array } weekdayAvailable array of boolean flags [1,0,1,0,0,0,0]
    * @param { Array } availableTimes [{startTime: x, endtime: y}], where startTime < endtime
    * @param { Int } weeks number of weeks to produce availablity for
    * @return { Array } [[ dateTime, dateTime ], ...],
    * [[{startTime: X, endTime: Y},...],...]
    */
-  oldGenerateConstraints: (weekdayAvailable, availableTimes, weeks=1) => {
+  oldGenerateConstraints: (weekdayAvailable, availableTimes, weeks = 1) => {
     // bad input
-    if (!weekdayAvailable ||
+    if (
+      !weekdayAvailable ||
       !availableTimes ||
       !availableTimes.length ||
-      weeks < 1) {
+      weeks < 1
+    ) {
       return null;
     }
 
@@ -64,19 +71,22 @@ const context = {
     availableTimes = availableTimes.map((x) => {
       const z = DateTime.fromISO(x.startTime);
       const y = DateTime.fromISO(x.endTime);
-      return {'start': z, 'end': y};
+      return { start: z, end: y };
     });
     const res = [];
     for (let days = 0; days < weeks * 7; days++) {
       // generate available times for only days of the weekday that are specified
       if (weekdayAvailable[weekday]) {
         for (const time of availableTimes) {
-          res.push([context.combine(date, time.start.c), context.combine(date, time.end.c)]);
+          res.push([
+            context.combine(date, time.start.c),
+            context.combine(date, time.end.c),
+          ]);
         }
       }
       // increment to the next day
       weekday = (weekday + 1) % 7;
-      date = date.plus({days: 1});
+      date = date.plus({ days: 1 });
     }
 
     return res;
@@ -89,15 +99,15 @@ const context = {
   merge: (ranges) => {
     const result = [];
     let last = null;
-    ranges.forEach(function(r) {
+    ranges.forEach(function (r) {
       if (last) {
         if (r[0] > last[1]) {
-          result.push(last = r);
+          result.push((last = r));
         } else if (r[1] > last[1]) {
           last[1] = r[1];
         }
       } else {
-        result.push(last = r);
+        result.push((last = r));
       }
     });
     return result;
@@ -110,17 +120,25 @@ const context = {
    * @return { Array } [[ dateTime, dateTime ], ...]
    */
   generateConstraints: (weekAvailability, _start, _end) => {
-    if (weekAvailability == null ||
-        weekAvailability.length < 1 || weekAvailability.flat(1) < 1) {
+    if (
+      weekAvailability == null ||
+      weekAvailability.length < 1 ||
+      weekAvailability.flat(1) < 1
+    ) {
       return [];
     }
     // merge overlapping intervals + sort
     weekAvailability = weekAvailability.map((dayAvailabilities) => {
-      return context.merge(dayAvailabilities
-          .map((a) => [DateTime.fromISO(a.startTime), DateTime.fromISO(a.endTime)])
-          .sort(function(a, b) {
+      return context.merge(
+        dayAvailabilities
+          .map((a) => [
+            DateTime.fromISO(a.startTime),
+            DateTime.fromISO(a.endTime),
+          ])
+          .sort(function (a, b) {
             return a[0] - b[0] || a[1] - b[1];
-          }));
+          })
+      );
     });
 
     let start = DateTime.fromISO(_start);
@@ -133,20 +151,24 @@ const context = {
       //     context.combine(start, DateTime.fromObject({hour: 23, minute: 59, second: 59, millisecond: 999}))]);
       // }
       if (weekAvailability[day].length > 0) {
-        weekAvailability[day].forEach(function(timeSlot) {
-          if (timeSlot[0] !== '' && timeSlot[1] !== '') {
-            res.push([context.combine(start, timeSlot[0]), context.combine(start, timeSlot[1])]);
+        weekAvailability[day].forEach(function (timeSlot) {
+          if (timeSlot[0] !== "" && timeSlot[1] !== "") {
+            res.push([
+              context.combine(start, timeSlot[0]),
+              context.combine(start, timeSlot[1]),
+            ]);
           }
         });
       }
       day = (day + 1) % 7;
-      start = start.plus({days: 1});
+      start = start.plus({ days: 1 });
     }
     return res;
   },
   /**
    * Takes in a team's schedules, the duration of the event and any other constraints, and will
    * return all possible times that the event can take place.
+   *
    * @param { Array } schedules array of array of array of 2 datetimes [[[startTime
    * , endtime], ...]]
    * @param { Duration } duration duration of the event
@@ -156,28 +178,24 @@ const context = {
    * , endtime]]
    */
   _schedule: (schedules, duration, constraints = null) => {
-    console.log('---schedule---');
-
     // handle invalid input
-    if (!schedules ||
-      !schedules.length ||
-      !duration) return null;
+    if (!schedules || !schedules.length || !duration) return null;
 
-    // console.log('free time schedules ', schedules.map((schedule)=> schedule.map((interval)=>[interval[0].toString(), interval[1].toString()])));
-    // console.log('constraints ', constraints.map((person)=>person.map((interval)=>[interval[0].toString(), interval[1].toString()])));
-    // include availability constraints
     if (constraints.length > 0) schedules = schedules.concat(constraints);
-    // console.log(schedules[0][0][0].toString(), schedules[0][0][1].toString(), schedules[0][1][0].toString(), schedules[0][1][1].toString(), );
-    // console.log('schedules: ', schedules.map((schedule)=>{schedule.map((freeTime)=>[freeTime[0], freeTime[1]])}));
 
     // find intersection of all the given schedules
     let ans = schedules[0];
     schedules.forEach((schedule) => {
       const curr = [];
-      let i = 0; let j = 0;
+      let i = 0;
+      let j = 0;
       while (i < ans.length && j < schedule.length) {
         // find intersection
-        const intersection = context.intersection(ans[i], schedule[j], duration);
+        const intersection = context.intersection(
+          ans[i],
+          schedule[j],
+          duration
+        );
         if (intersection != null) {
           curr.push(intersection);
         }
@@ -196,15 +214,15 @@ const context = {
   },
   /**
    * Chooses a time period, preferencing time slots which are smaller
+   *
    * @param { Array } freeTimes times that event could be scheduled
    * @return { datetime } chosen time for the event
    */
   _choose: (freeTimes) => {
     const choices = freeTimes.map((xs) => [xs[0], xs[1].diff(xs[0])]);
-    console.log('choices: ', choices);
+    console.log("choices: ", choices);
     choices.sort((a, b) => a[1] - b[1]);
     if (choices.length === 0) {
-      console.log('here');
       return null;
     }
     return choices[0][0];
@@ -226,25 +244,29 @@ const context = {
   /**
    * chooses the best time slot out of list of free times considering the user's history of most
    * common busy times
+   *
+   * @param freeTimes.freeTimes
    * @param {Array} freeTimes -- array returned by _schedule [[start1, start2]]
    * @param {Array} historyFreqs -- array of arrays returned by userHistory()
    * @param {Duration} duration -- event's duration
-   * @param {Boolean} cluster
+   * @param {boolean} cluster
+   * @param freeTimes.historyFreqs
+   * @param freeTimes.duration
+   * @param freeTimes.cluster
    * @return {DateTime} -- best start date time for event
    * @private
    */
-  _chooseFromHistory: ({freeTimes, historyFreqs, duration, cluster}) => {
+  _chooseFromHistory: ({ freeTimes, historyFreqs, duration, cluster }) => {
     // sum history freqs together to make one for everyone
-    console.log('---_chooseFromHistory---');
     // console.log('freetimes: ', freeTimes[0]);
     if (historyFreqs.length < 1) {
-      console.log('error in _chooseFromHistory: no history freqs given');
+      console.log("error in _chooseFromHistory: no history freqs given");
       return null;
     }
     const historyFreq = historyFreqs[0];
     if (historyFreqs.length > 1) {
       for (let i = 0; i < 7; i++) {
-        for (let j = 0; j < 24*2; j++) {
+        for (let j = 0; j < 24 * 2; j++) {
           for (const h of historyFreqs) {
             historyFreq[i][j] += h[i][j];
           }
@@ -268,8 +290,16 @@ const context = {
         // if want back-to-back then wanna minimise this value whilst being at least the minimum required by user
         // console.log('begin: ', begin.toString(), ' end: ', end.toString(), ' \t\tbreaklength: ', breakLength.minutes);
         // console.log('begin: ', begin.toString(), '\t\tend: ', end.toString(), '\t\tbestTimeSlot: ', bestTimeSlot + clusterVal.values.minutes);
-        const p1 = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
-        const p2 = context.getTimeSlotValue(end, end.plus(duration), historyFreq);
+        const p1 = context.getTimeSlotValue(
+          begin,
+          begin.plus(duration),
+          historyFreq
+        );
+        const p2 = context.getTimeSlotValue(
+          end,
+          end.plus(duration),
+          historyFreq
+        );
         if (bestP < p1) {
           bestP = p1;
           bestTimeSlot = new DateTime(begin);
@@ -292,13 +322,17 @@ const context = {
   /**
    *
    * @param { Array } busySlots
-   * @param { String } startISO
-   * @param { String } endISO
+   * @param {string} startISO
+   * @param {string} endISO
    * @param { Duration } minBreakLength // array of every user's minimum break length
    * @return {[]|DateTime[][]}
    */
-  getFreeSlots: (busySlots, startISO, endISO, minBreakLength=Duration.fromObject({minutes: 0})) => {
-    console.log('---getFreeSlots---');
+  getFreeSlots: (
+    busySlots,
+    startISO,
+    endISO,
+    minBreakLength = Duration.fromObject({ minutes: 0 })
+  ) => {
     // Parse start and end times
     let begin = DateTime.fromISO(startISO);
     const end = DateTime.fromISO(endISO);
@@ -324,8 +358,11 @@ const context = {
       const busyTimeSlot = busySlots[i];
       // console.log('busytimeslot[', i, ']', ' ', busyTimeSlot[0].toISO(), busyTimeSlot[1].toISO(), freeSlots.length);
       // If start time is within a slot move start time to end of slot
-      if (begin >= busyTimeSlot[0].minus(minBreakLength) && begin < busyTimeSlot[1].plus(minBreakLength)) {
-        begin = (busyTimeSlot[1]).plus(minBreakLength);
+      if (
+        begin >= busyTimeSlot[0].minus(minBreakLength) &&
+        begin < busyTimeSlot[1].plus(minBreakLength)
+      ) {
+        begin = busyTimeSlot[1].plus(minBreakLength);
       }
       // console.log('begin minus', busyTimeSlot[0].minus(minBreakLength).toISO(), busyTimeSlot[0].toISO());
       if (begin <= busyTimeSlot[0].minus(minBreakLength)) {
@@ -339,7 +376,7 @@ const context = {
         begin = busyTimeSlot[1].plus(minBreakLength);
       }
     }
-    if (end - begin > Duration.fromObject({seconds: 5})) {
+    if (end - begin > Duration.fromObject({ seconds: 5 })) {
       freeSlots.push([begin, end]);
     }
     // console.log('xxx');
@@ -352,13 +389,17 @@ const context = {
    * @param { Duration } duration
    * @param { Array } constraints
    * @param { Array } historyFreqs
-   * @param { Boolean } cluster // whether the user would like their meetings clustered or not
+   * @param {boolean} cluster // whether the user would like their meetings clustered or not
    * @return {null|{start: string, end: string}}
    */
-  findMeetingSlot(freeTimes, duration, constraints = null, historyFreqs, cluster = true) {
-    console.log('---findMeetingSlot---');
+  findMeetingSlot(
+    freeTimes,
+    duration,
+    constraints = null,
+    historyFreqs,
+    cluster = true
+  ) {
     if (!freeTimes || freeTimes.length === 0) {
-      console.log('nothing found: ', freeTimes);
       // no free time slot found
       return null;
     }
@@ -403,26 +444,26 @@ const context = {
       for (let i = 0; i < 5; i++) {
         const vals = Array(halfHoursInDay).fill(0);
         for (let i = 0; i <= 8; i++) vals[i] = -5;
-        for (let i = 9; i <= 18; i++) vals[i] = -8.2+0.4*i;
+        for (let i = 9; i <= 18; i++) vals[i] = -8.2 + 0.4 * i;
         for (let i = 19; i < 24; i++) vals[i] = -1;
         for (let i = 24; i < 28; i++) vals[i] = -2;
         for (let i = 28; i <= 34; i++) vals[i] = -1;
         for (let i = 35; i <= 36; i++) vals[i] = -35 + i;
         for (let i = 37; i <= 42; i++) vals[i] = 1;
-        for (let i = 43; i < 48; i++) vals[i] = 43-i;
-        frequencies[i]=vals;
+        for (let i = 43; i < 48; i++) vals[i] = 43 - i;
+        frequencies[i] = vals;
       }
       // weekend days are more popular
       for (let i = 5; i < 7; i++) {
         const vals = Array(halfHoursInDay).fill(0);
         for (let i = 0; i <= 8; i++) vals[i] = -5;
-        for (let i = 9; i <= 16; i++) vals[i] = -10 + 0.625*i;
+        for (let i = 9; i <= 16; i++) vals[i] = -10 + 0.625 * i;
         for (let i = 17; i <= 21; i++) vals[i] = 0;
         for (let i = 22; i <= 23; i++) vals[i] = 1;
         for (let i = 24; i <= 27; i++) vals[i] = -1;
         for (let i = 28; i <= 40; i++) vals[i] = 1;
-        for (let i = 41; i < 48; i++) vals[i] = 31 - 3/4 * i;
-        frequencies[i]=vals;
+        for (let i = 41; i < 48; i++) vals[i] = 31 - (3 / 4) * i;
+        frequencies[i] = vals;
       }
     }
     // default work hist freq:
@@ -431,24 +472,24 @@ const context = {
       for (let i = 5; i < 7; i++) {
         const vals = Array(halfHoursInDay).fill(0);
         for (let i = 0; i <= 8; i++) vals[i] = -5;
-        for (let i = 9; i <= 20; i++) vals[i] = -5 - 8/3 + 1/3*i;
+        for (let i = 9; i <= 20; i++) vals[i] = -5 - 8 / 3 + (1 / 3) * i;
         for (let i = 21; i < 24; i++) vals[i] = -1;
         for (let i = 24; i < 28; i++) vals[i] = -2;
         for (let i = 28; i <= 38; i++) vals[i] = -1;
-        for (let i = 39; i < 48; i++) vals[i] = 14.2-0.4*i;
-        frequencies[i]=vals;
+        for (let i = 39; i < 48; i++) vals[i] = 14.2 - 0.4 * i;
+        frequencies[i] = vals;
       }
       // week days are MORE popular
       for (let i = 0; i < 5; i++) {
         const vals = Array(halfHoursInDay).fill(0);
         for (let i = 0; i <= 8; i++) vals[i] = -5;
-        for (let i = 9; i < 18; i++) vals[i] = -9.8 + 0.6*i;
+        for (let i = 9; i < 18; i++) vals[i] = -9.8 + 0.6 * i;
         for (let i = 18; i < 24; i++) vals[i] = 1;
         for (let i = 24; i <= 27; i++) vals[i] = -2;
         for (let i = 28; i <= 34; i++) vals[i] = 1;
         for (let i = 35; i <= 42; i++) vals[i] = 0;
-        for (let i = 43; i < 48; i++) vals[i] = 35-5/6*i;
-        frequencies[i]=vals;
+        for (let i = 43; i < 48; i++) vals[i] = 35 - (5 / 6) * i;
+        frequencies[i] = vals;
       }
     }
     return frequencies;
@@ -460,8 +501,6 @@ const context = {
    * @return {[]} array of frequencies for each half hour time slot for this user
    */
   async generateUserHistory(categorisedSchedule, category) {
-    console.log('---generateUserHistory---');
-    console.log('category: ', category);
     let frequencies = this.initialiseHistFreqs(category);
     for (const timeSlotCategory of categorisedSchedule) {
       const timeSlot = timeSlotCategory[0];
@@ -497,7 +536,9 @@ const context = {
         }
       }
     }
-    frequencies = frequencies.map((arr)=>arr.map((a) => (a+Math.abs(smallest))/(largest-smallest)));
+    frequencies = frequencies.map((arr) =>
+      arr.map((a) => (a + Math.abs(smallest)) / (largest - smallest))
+    );
     return frequencies;
   },
 };

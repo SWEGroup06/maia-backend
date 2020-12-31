@@ -1,26 +1,30 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const Schema = mongoose.Schema;
 
 const GoogleAccountSchema = new Schema({
-  email: String, // Email associated with Google Calendar account
-  token: String, // Authorisation token per user for Google Calendar
+  email: { type: String, unique: true, required: true }, // Email associated with Google Calendar account
+  token: { type: String, required: true }, // Authorisation token per user for Google Calendar
+});
+
+const SlackAccountSchema = new Schema({
+  id: { type: String }, // ID associated with Slack account
+  email: { type: String, unique: true }, // Email associated with Slack account
+});
+
+const SchedulingPreferencesSchema = new Schema({
+  minBreakLength: { type: Number }, // Minimum length of a break a user wants.
+  autoReschedulingInterval: { type: Number }, // Minimum time before the auto-rescheduler should acknowledge event.
+  clustering: { type: Boolean }, // Whether the user prefers clustering of events or not.
 });
 
 const UserSchema = new Schema({
-  id: {
-    type: String,
-    unique: true,
-  },
-  email: {
-    type: String,
-    unique: true,
-    required: true,
-  },
   google: GoogleAccountSchema,
-  constraints: [[{startTime: String, endTime: String}]],
-  frequencies: [{histFreq: [[Number]], timestamp: String}],
+  slack: SlackAccountSchema,
+  schedulingPreferences: SchedulingPreferencesSchema,
+  constraints: [[{ startTime: String, endTime: String }]],
+  frequencies: [{ histFreq: [[Number]], timestamp: String }],
 });
 
-const User = mongoose.model('User', UserSchema);
+const User = mongoose.model("User", UserSchema);
 module.exports = User;
