@@ -133,8 +133,15 @@ const actionHandlers = {
       if (action.action_id != "submit") return;
 
       // Set constraint
-      const googleEmail = await DATABASE.getGoogleEmailFromSlackId(payload.user.id);
-      await DATABASE.setConstraintForDayFromGoogleEmail(googleEmail, startTime, endTime, day);
+      const googleEmail = await DATABASE.getGoogleEmailFromSlackId(
+        payload.user.id
+      );
+      await DATABASE.setConstraintForDayFromGoogleEmail(
+        googleEmail,
+        startTime,
+        endTime,
+        day
+      );
 
       // Send response
       await submitResponse(payload, {
