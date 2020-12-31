@@ -20,19 +20,43 @@ function spin(x) {
 // wait for the DOM to be loaded
 $(function() {
   // bind 'myForm' and provide a simple callback function
-  $('#signUpForm').submit(async function() {
-    const url = `http://localhost:3000/api/signup?email=${email}
-                        &token=${token}
-                        &name=${encodeURIComponent(JSON.stringify(document.getElementById('input-1').value))}`;
-    // fetch(url).then((data) => data.json()).then(resolve);
-    console.log('Fetching:', url);
-    const res = await fetch(url).then((resp) => resp.json()).catch((err) => console.log(`Error: ${err}`));
-    if (res.error !== null) {
-      console.log(this.action);
-      this.action = `./signupError.html?error=${res.error}`;
-      console.log(this.action);
-    }
-    alert(res.error);
+  $('#signUpForm').submit(function() {
+    const answers = $('form').serializeArray();
+    const data = {email: email, answers: answers, token: token};
+    console.log('form', data);
+
+    fetch('../signup', {
+      method: 'post',
+      headers: {
+        'Accept': 'application/json, text/plain, */*',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    }).then((res)=>res.json())
+        .then((res) => console.log(res));
+
+
+    //   const url = `../signup`;
+    //   // ?email=${encodeURIComponent(email)}&token=${encodeURIComponent(token)}&${x}`;
+    //
+    //   // ?email=${email}
+    //   //                     &token=${token}
+    //   //                     &${x}`;
+    //   // fetch(url).then((data) => data.json()).then(resolve);
+    //   console.log('posting to:', url);
+    //   await fetch(url, {
+    //     method: 'post',
+    //     body: JSON.stringify({start: 'hello', end: 'bye'}),
+    //   }).then(function(response) {
+    //     return response.json();
+    //   });
+
+    // if (res.error !== null) {
+    //   console.log(this.action);
+    //   this.action = `./signupError.html?error=${res.error}`;
+    //   console.log(this.action);
+    // }
+    // alert(res.error);
     return true;
   });
   // Position of the header in the webpage

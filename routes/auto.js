@@ -60,4 +60,86 @@ router.post('/webhook', async function(req, res) {
   res.sendStatus(200);
 });
 
+
+// Handles setting up user preferences on sign up
+router.post('/signup', async function(req, res) {
+  console.log('...signup...', req.body);
+  if (!req.query.email) {
+    console.log('No email given');
+    res.json({error: 'No email given'});
+  }
+  if (!req.query.token) {
+    console.log('No token given');
+    res.json({error: 'No token given'});
+  }
+
+  try {
+    const email = JSON.parse(decodeURIComponent(req.query.email));
+    console.log(email);
+    const providedToken = JSON.parse(decodeURIComponent(req.query.token));
+    console.log(providedToken);
+    const preScheduleBreaks = JSON.parse(decodeURIComponent(req.query.preScheduleBreaks));
+    console.log(preScheduleBreaks);
+    const correctToken = await DATABASE.getToken(email);
+    console.log(correctToken);
+
+    if (correctToken !== providedToken) {
+      res.json({error: 'incorrect token given'});
+    }
+
+    // Redirect to success page
+    res.redirect('./success/login.html');
+  } catch (error) {
+    console.error(error);
+    res.send({error: error.toString()});
+  }
+  // if (!payload || !payload.actions || !payload.actions[0]) {
+  //   res.sendStatus(200);
+  //   return;
+  // }
+  //
+  // // Delegate specific tasks to action handler
+  // const action = payload.actions[0];
+  // const handler = actionHandlers[action.block_id];
+  // if (handler) {
+  //   const error = await handler(payload, action);
+  //   if (error) {
+  //     console.log(error);
+  //     await submitResponse(payload, {
+  //       response_type: 'ephemeral',
+  //       replace_original: false,
+  //       text: error,
+  //     });
+  //   } else {
+  //     res.sendStatus(200);
+  //   }
+  // } else {
+  //   res.sendStatus(200);
+  // }
+  // if (!req.query.email) {
+  //   res.json({error: 'No email found'});
+  // }
+  //
+  // if (!req.query.busyTimes) {
+  //   res.json({error: 'Busy times not found'});
+  // }
+  //
+  // if (!req.query.busyDays) {
+  //   res.json({error: 'Busy days not found'});
+  //   return;
+  // }
+  //
+  // try {
+  //   const email = JSON.parse(decodeURIComponent(req.query.email));
+  //   const days = JSON.parse(decodeURIComponent(req.query.busyDays));
+  //   const times = JSON.parse(decodeURIComponent(req.query.busyTimes));
+  //
+  //   await MEETINGS.setContraints(email, days, times);
+  //
+  //   res.send({success: true});
+  // } catch (error) {
+  //   console.error(error);
+  //   res.send({error: error.toString()});
+  // }
+});
 module.exports = router;
