@@ -3,13 +3,25 @@
         "browser": true,
         "es2021": true
     },
+    "plugins": [
+        "jsdoc"
+    ],
+    "extends": [
+        "google",
+        "plugin:jsdoc/recommended",
+        "prettier"
+    ],
     "parserOptions": {
         "ecmaVersion": 12,
         "sourceType": "module"
     },
-    "extends": "google",
     "rules": {
-        "new-cap": "off",
-        "max-len": "off"
+    },
+    "settings": {
+        "jsdoc": {
+            "tagNamePreference": {
+                "returns": "return"
+            }
+        }
     }
 }

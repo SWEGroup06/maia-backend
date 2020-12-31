@@ -6,16 +6,17 @@ orbs:
   eslint: arrai/eslint@2.0.0
 
 jobs:
-  build-and-test:
+  build:
     executor:
       name: node/default
     steps:
-      - checkout
-      - node/with-cache:
-          steps:
-            - run: npm install
-            - run: npm run lint
-  #            - run: npm test
+    - run: npm install
+    - run: npm run lint
+  test:
+    executor:
+      name: node/default
+    steps:
+    - run: npm run test
   deploy:
     executor:
       name: heroku/default
@@ -25,7 +26,10 @@ jobs:
 workflows:
   main:
     jobs:
-      - build-and-test
+      - build
+      - test:
+        requires:
+          - build
       - deploy:
           requires:
-            - build-and-test
+            - build
