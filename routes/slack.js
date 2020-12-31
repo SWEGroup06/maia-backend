@@ -99,7 +99,7 @@ const actionHandlers = {
 
       // Set constraint
       const googleEmail = await DATABASE.getGoogleEmailFromSlackId(payload.user.id);
-      await DATABASE.setConstraintFromGoogleEmail(googleEmail, startTime, endTime, day);
+      await DATABASE.setConstraintForDayFromGoogleEmail(googleEmail, startTime, endTime, day);
 
       // Send response
       await submitResponse(payload, {text: 'Okay, cool! :thumbsup::skin-tone-3: I\'ll keep this in mind.'});
