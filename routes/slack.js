@@ -2,6 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const fetch = require("node-fetch");
 const { DateTime } = require("luxon");
+// eslint-disable-next-line new-cap
 const router = express.Router();
 
 const TIME = require("../lib/time.js");
@@ -132,15 +133,8 @@ const actionHandlers = {
       if (action.action_id != "submit") return;
 
       // Set constraint
-      const googleEmail = await DATABASE.getGoogleEmailFromSlackId(
-        payload.user.id
-      );
-      await DATABASE.setConstraintFromGoogleEmail(
-        googleEmail,
-        startTime,
-        endTime,
-        day
-      );
+      const googleEmail = await DATABASE.getGoogleEmailFromSlackId(payload.user.id);
+      await DATABASE.setConstraintForDayFromGoogleEmail(googleEmail, startTime, endTime, day);
 
       // Send response
       await submitResponse(payload, {
