@@ -11,6 +11,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="http://malsup.github.com/jquery.form.js"></script>
     <link rel="stylesheet" href="./css/form3.css">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <link rel="stylesheet" href="/resources/demos/style.css">
+    <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 </head>
 <body>
 <!-- partial:index.partial.html -->
@@ -37,28 +41,71 @@
                             <form class="centered" id="signUpForm" action="./login.html">
                                 <ul class="items"></ul>
                                 <fieldset class="formInput scheduleBreaks enable">
-                                    <h1 class="question">Do you pre schedule breaks?</h1>
+                                    <h1 class="question">Do you like your meetings clustered together or spaced out?</h1>
                                     <div class="radio">
-                                        <input type="radio" id="doPreScheduleBreaks" name="preScheduleBreaks" value="1" checked>
-                                        <label for="doPreScheduleBreaks">I DO</label>
-                                        <input type="radio" id="dontPreScheduleBreaks" name="preScheduleBreaks" value="0">
-                                        <label for="dontPreScheduleBreaks">I DON'T</label>
+                                        <input type="radio" id="cluster" name="clustering" value="1" checked>
+                                        <label for="cluster">Clustered</label>
+                                        <input type="radio" id="spaceOut" name="clustering" value="0">
+                                        <label for="spaceOut">Spaced out</label>
                                     </div>
-<!--                                    <button>submit</button>-->
+                                    <!--                                    <button>submit</button>-->
                                     <div class="icon right next">next</div>
                                 </fieldset>
-<!--                                <fieldset class="formInput breakQuestion">-->
-<!--                                    <h1 class="question">How long would you like at minimum between meetings?</h1>-->
-<!--                                    <input type="number" id="breakLength" placeholder="1" name="breakLength" min="1" max="5">-->
-<!--                                    <div class="icon right back">back</div>-->
-<!--                                    <div class="icon next">next</div>-->
-<!--                                </fieldset>-->
-<!--                                <fieldset class="formInput workHours">-->
-<!--                                    <h1 class="question">Select your working hours</h1>-->
-<!--                                    <input type="number" id="workHours" placeholder="1" name="workHours" min="1" max="5">-->
-<!--                                    <div class="icon right back">back</div>-->
-<!--                                    <div class="icon next">next</div>-->
-<!--                                </fieldset>-->
+                                <fieldset class="formInput breakQuestion">
+                                    <h1 class="question">How many minutes would you like at minimum between meetings?
+                                        <span style="text-transform: none">(0 if you don't pre schedule breaks)</span></h1>
+                                    <input type="number" id="breakLength" value="15" name="breakLength" min="0" max="180">
+                                    <div class="icon right back">back</div>
+                                    <div class="icon next">next</div>
+                                </fieldset>
+                                <fieldset class="formInput workHours">
+                                    <h1 class="question">Select your working hours</h1>
+                                    <label for="day0">Monday:</label>
+                                    <input type="text" name="mon" id="day0" class="time" readonly>
+                                    <div id="slider-range0"></div>
+
+                                    <label for="day1">Tuesday:</label>
+                                    <input type="text" name="tues" id="day1" readonly class="time">
+                                    <div id="slider-range1"></div>
+
+                                    <label for="day2">Wednesday:</label>
+                                    <input type="text" name="wed" id="day2" readonly class="time">
+                                    <div id="slider-range2"></div>
+
+                                    <label for="day3">Thursday:</label>
+                                    <input type="text" name="thurs" id="day3" readonly class="time">
+                                    <div id="slider-range3"></div>
+
+                                    <label for="day4">Friday:</label>
+                                    <input type="text" name="fri" id="day4" readonly class="time">
+                                    <div id="slider-range4"></div>
+
+                                    <label for="day5">Saturday:</label>
+                                    <input type="text" name="sat" id="day5" readonly class="time">
+                                    <div id="slider-range5"></div>
+
+                                    <label for="day6">Sunday:</label>
+                                    <input type="text" name="sun" id="day6" readonly class="time">
+                                    <div id="slider-range6"></div>
+
+                                    <div class="icon right back">back</div>
+                                    <div class="icon next">next</div>
+                                </fieldset>
+                                <fieldset class="formInput timeBeforeAutoReschedule">
+                                    <h1 class="question">How far in advance would you mind events being automatically rescheduled by Maia to optimise your productivity?</h1>
+                                    <div class="radio">
+                                        <input type="radio" id="anytime" name="timeBeforeAutoReschedule" value="0">
+                                        <label for="anytime">anytime</label>
+                                        <input type="radio" id="2hours" name="timeBeforeAutoReschedule" value="1" checked>
+                                        <label for="2hours">2 hours</label>
+                                        <input type="radio" id="24hours" name="timeBeforeAutoReschedule" value="2">
+                                        <label for="24hours">1 day</label>
+                                        <input type="radio" id="1week" name="timeBeforeAutoReschedule" value="3">
+                                        <label for="1week">1 week</label>
+                                    </div>
+                                    <!--                                    <button>submit</button>-->
+                                    <div class="icon right next">next</div>
+                                </fieldset>
 <!--                                <fieldset class="formInput password">-->
 <!--                                    <div class="icon left"><i class="lock"></i></div>-->
 <!--                                    <input type="password" name="password" placeholder="Password"/>-->
@@ -67,7 +114,7 @@
 <!--                                </fieldset>-->
                                 <fieldset class="formInput thanks">
                                     <div class="icon left"><i class="heart"></i></div>
-                                    <p>Thanks for your time</p>
+                                    <p>Thanks for your time!</p>
                                     <div class="icon right back">back</div>
                                     <button>submit</button>
                                 </fieldset>

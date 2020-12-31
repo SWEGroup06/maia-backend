@@ -17,12 +17,17 @@ function spin(x) {
   $('#spinner').css({transform: 'rotate(' + theta + 'rad)'});
 }
 
+// eslint-disable-next-line require-jsdoc
+function getTime(time) {
+  return time % 2 === 0 ? time/2 : Math.floor(time/2) + ':30';
+}
+
 // wait for the DOM to be loaded
 $(function() {
   // bind 'myForm' and provide a simple callback function
   $('#signUpForm').submit(function() {
     const answers = $('form').serializeArray();
-    const data = {email: email, answers: answers, token: token};
+    const data = {email: encodeURIComponent(email), answers: answers, token: encodeURIComponent(token)};
     console.log('form', data);
 
     fetch('../signup', {
@@ -34,31 +39,40 @@ $(function() {
       body: JSON.stringify(data),
     }).then((res)=>res.json())
         .then((res) => console.log(res));
-
-
-    //   const url = `../signup`;
-    //   // ?email=${encodeURIComponent(email)}&token=${encodeURIComponent(token)}&${x}`;
-    //
-    //   // ?email=${email}
-    //   //                     &token=${token}
-    //   //                     &${x}`;
-    //   // fetch(url).then((data) => data.json()).then(resolve);
-    //   console.log('posting to:', url);
-    //   await fetch(url, {
-    //     method: 'post',
-    //     body: JSON.stringify({start: 'hello', end: 'bye'}),
-    //   }).then(function(response) {
-    //     return response.json();
-    //   });
-
-    // if (res.error !== null) {
-    //   console.log(this.action);
-    //   this.action = `./signupError.html?error=${res.error}`;
-    //   console.log(this.action);
-    // }
-    // alert(res.error);
     return true;
   });
+
+  for (let i = 0; i < 5; i++) {
+    $(`#slider-range${i}`).slider({
+      range: true,
+      min: 0,
+      max: 48,
+      values: [18, 34],
+      slide: function(event, ui) {
+        const t1 = getTime(ui.values[0]);
+        const t2 = getTime(ui.values[1]);
+        $(`#day${i}`).val(t1 === t2 ? 'None' : t1 + ' - ' + t2);
+      },
+    });
+    const t1 = getTime($(`#slider-range${i}`).slider('values', 0));
+    const t2 = getTime($(`#slider-range${i}`).slider('values', 1));
+    $(`#day${i}`).val(t1 + ' - ' + t2);
+  }
+  for (let i = 5; i < 7; i++) {
+    $(`#slider-range${i}`).slider({
+      range: true,
+      min: 0,
+      max: 48,
+      values: [24, 24],
+      slide: function(event, ui) {
+        const t1 = getTime(ui.values[0]);
+        const t2 = getTime(ui.values[1]);
+        $(`#day${i}`).val(t1 === t2 ? 'None' : t1 + ' - ' + t2);
+      },
+    });
+    $(`#day${i}`).val('None');
+  }
+
   // Position of the header in the webpage
   const position = $('h1').position();
   const padding = 10; // Padding set to the header

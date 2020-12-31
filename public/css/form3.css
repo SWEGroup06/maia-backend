@@ -18,13 +18,13 @@ body {
     margin:10px;
 }
 
-h1 {
+#top h1 {
     font-size: 80px;
-    margin: 0 0 0 0;
+    margin: 0 0 3% 0;
     line-height: 0.9;
 }
 
-p {
+#top p {
     color: white;
     font-size: 22px;
     font-family: "Helvetica Neue";
@@ -94,17 +94,18 @@ ul {
         opacity: 0;
     }
     #mayan {
-        top: 35%;
+        top: 20%;
         left: 50%;
         -ms-transform: translate(-50%, -50%);
         transform: translate(-50%, -50%);
         /*background-color: lightblue;*/
+        z-index: 0;
     }
     #desc {
         position: relative;
         text-align: center;
         /*color: yellow;*/
-        margin-top: 30%;
+        margin-top: 10%;
         margin-left: auto;
         margin-right: auto;
     }
@@ -464,3 +465,6 @@ input[type="radio"]:checked + label {
     transition: all 0.4s cubic-bezier(0.4, 0.25, 0.8, 0.3) 0.05s;
 }
 
+.time {
+    border:0; color:#f6931f; font-weight:bold; max-width: 140px; text-align: center;
+}
