@@ -74,14 +74,13 @@ function parseTime(time) {
 // eslint-disable-next-line require-jsdoc
 function parseTimeRange(timeRange) {
   if (timeRange === 'None') {
-    const now = DateTime.local().toISO();
-    return {startTime: now, endTime: now};
+    return [];
   }
   const regex1 = /\w[^-]*/g;
   const times = timeRange.match(regex1);
   const t1 = parseTime(times[0]);
   const t2 = parseTime(times[1]);
-  return {startTime: t1, endTime: t2};
+  return [{startTime: t1, endTime: t2}];
 }
 
 // Handles setting up user preferences on sign up
