@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const {DateTime} = require('luxon');
 
 const GOOGLE = require('../lib/google.js');
 const DATABASE = require('../lib/database.js');
@@ -60,6 +61,28 @@ router.post('/webhook', async function(req, res) {
   res.sendStatus(200);
 });
 
+// eslint-disable-next-line require-jsdoc
+function parseTime(time) {
+  const regex2 = /\s*([^:]*?)\s*:\s*([^:\s]*)/g;
+  const t = regex2.exec(time);
+  if (t === null) {
+    return DateTime.fromObject({hour: parseInt(time)}).toISO();
+  }
+  return DateTime.fromObject({hour: parseInt(t[1]),
+    minute: parseInt(t[2])}).toISO();
+}
+// eslint-disable-next-line require-jsdoc
+function parseTimeRange(timeRange) {
+  if (timeRange === 'None') {
+    const now = DateTime.local().toISO();
+    return {startTime: now, endTime: now};
+  }
+  const regex1 = /\w[^-]*/g;
+  const times = timeRange.match(regex1);
+  const t1 = parseTime(times[0]);
+  const t2 = parseTime(times[1]);
+  return {startTime: t1, endTime: t2};
+}
 
 // Handles setting up user preferences on sign up
 router.post('/signup', async function(req, res) {
@@ -74,7 +97,6 @@ router.post('/signup', async function(req, res) {
   }
 
   try {
-
     const email = JSON.parse(decodeURIComponent(req.body.email));
     console.log(email);
     const providedToken = JSON.parse(decodeURIComponent(req.body.token));
@@ -92,59 +114,20 @@ router.post('/signup', async function(req, res) {
       // res.json({error: 'incorrect token given'});
       console.log('incorrect token');
     }
-
+    const constraints = [
+      parseTimeRange(values.mon),
+      parseTimeRange(values.tues),
+      parseTimeRange(values.wed),
+      parseTimeRange(values.thurs),
+      parseTimeRange(values.fri),
+      parseTimeRange(values.sat),
+      parseTimeRange(values.sun),
+    ];
+    console.log(constraints);
     // Redirect to success page
   } catch (error) {
     console.error(error);
     res.send({error: error.toString()});
   }
-  // if (!payload || !payload.actions || !payload.actions[0]) {
-  //   res.sendStatus(200);
-  //   return;
-  // }
-  //
-  // // Delegate specific tasks to action handler
-  // const action = payload.actions[0];
-  // const handler = actionHandlers[action.block_id];
-  // if (handler) {
-  //   const error = await handler(payload, action);
-  //   if (error) {
-  //     console.log(error);
-  //     await submitResponse(payload, {
-  //       response_type: 'ephemeral',
-  //       replace_original: false,
-  //       text: error,
-  //     });
-  //   } else {
-  //     res.sendStatus(200);
-  //   }
-  // } else {
-  //   res.sendStatus(200);
-  // }
-  // if (!req.query.email) {
-  //   res.json({error: 'No email found'});
-  // }
-  //
-  // if (!req.query.busyTimes) {
-  //   res.json({error: 'Busy times not found'});
-  // }
-  //
-  // if (!req.query.busyDays) {
-  //   res.json({error: 'Busy days not found'});
-  //   return;
-  // }
-  //
-  // try {
-  //   const email = JSON.parse(decodeURIComponent(req.query.email));
-  //   const days = JSON.parse(decodeURIComponent(req.query.busyDays));
-  //   const times = JSON.parse(decodeURIComponent(req.query.busyTimes));
-  //
-  //   await MEETINGS.setContraints(email, days, times);
-  //
-  //   res.send({success: true});
-  // } catch (error) {
-  //   console.error(error);
-  //   res.send({error: error.toString()});
-  // }
 });
 module.exports = router;

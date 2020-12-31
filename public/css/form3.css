@@ -161,7 +161,6 @@ ul.items li {
     background: white;
     border-radius: 50%;
     opacity: 0.4;
-    cursor: pointer;
 }
 ul.items li.active {
     opacity: 1;

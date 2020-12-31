@@ -40,7 +40,7 @@
                         <section id="questionsContainer">
                             <form class="centered" id="signUpForm" action="./login.html">
                                 <ul class="items"></ul>
-                                <fieldset class="formInput scheduleBreaks enable">
+                                <fieldset class="formInput scheduleBreaks">
                                     <h1 class="question">Do you like your meetings clustered together or spaced out?</h1>
                                     <div class="radio">
                                         <input type="radio" id="cluster" name="clustering" value="1" checked>
@@ -49,6 +49,7 @@
                                         <label for="spaceOut">Spaced out</label>
                                     </div>
                                     <!--                                    <button>submit</button>-->
+                                    <div class="icon right back">back</div>
                                     <div class="icon right next">next</div>
                                 </fieldset>
                                 <fieldset class="formInput breakQuestion">
@@ -58,7 +59,7 @@
                                     <div class="icon right back">back</div>
                                     <div class="icon next">next</div>
                                 </fieldset>
-                                <fieldset class="formInput workHours">
+                                <fieldset class="formInput workHour enable">
                                     <h1 class="question">Select your working hours</h1>
                                     <label for="day0">Monday:</label>
                                     <input type="text" name="mon" id="day0" class="time" readonly>
@@ -103,7 +104,7 @@
                                         <input type="radio" id="1week" name="timeBeforeAutoReschedule" value="3">
                                         <label for="1week">1 week</label>
                                     </div>
-                                    <!--                                    <button>submit</button>-->
+                                    <div class="icon right back">back</div>
                                     <div class="icon right next">next</div>
                                 </fieldset>
 <!--                                <fieldset class="formInput password">-->
