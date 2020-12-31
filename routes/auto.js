@@ -64,31 +64,36 @@ router.post('/webhook', async function(req, res) {
 // Handles setting up user preferences on sign up
 router.post('/signup', async function(req, res) {
   console.log('...signup...', req.body);
-  if (!req.query.email) {
+  if (!req.body.email) {
     console.log('No email given');
     res.json({error: 'No email given'});
   }
-  if (!req.query.token) {
+  if (!req.body.token) {
     console.log('No token given');
     res.json({error: 'No token given'});
   }
 
   try {
-    const email = JSON.parse(decodeURIComponent(req.query.email));
+
+    const email = JSON.parse(decodeURIComponent(req.body.email));
     console.log(email);
-    const providedToken = JSON.parse(decodeURIComponent(req.query.token));
+    const providedToken = JSON.parse(decodeURIComponent(req.body.token));
     console.log(providedToken);
-    const preScheduleBreaks = JSON.parse(decodeURIComponent(req.query.preScheduleBreaks));
-    console.log(preScheduleBreaks);
+    const answers = req.body.answers;
+    const values = {};
+    for (const a of answers) {
+      values[a.name] = a.value;
+    }
+    console.log(values);
     const correctToken = await DATABASE.getToken(email);
-    console.log(correctToken);
+    // console.log(correctToken);
 
     if (correctToken !== providedToken) {
-      res.json({error: 'incorrect token given'});
+      // res.json({error: 'incorrect token given'});
+      console.log('incorrect token');
     }
 
     // Redirect to success page
-    res.redirect('./success/login.html');
   } catch (error) {
     console.error(error);
     res.send({error: error.toString()});
