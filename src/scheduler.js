@@ -247,8 +247,7 @@ const context = {
    * @param {[{ String, String }]}  timeConstraints
    * @return {[]|DateTime[][]}
    */
-  getFreeSlots: (busySlots, startISO, endISO,
-      minBreakLength=Duration.fromObject({minutes: 0}), timeConstraints) => {
+  getFreeSlots: (busySlots, startISO, endISO, minBreakLength=Duration.fromObject({minutes: 0}), timeConstraints) => {
     console.log('---getFreeSlots---');
     // Parse workDays into a usable format
     timeConstraints = timeConstraints.map((day) => {

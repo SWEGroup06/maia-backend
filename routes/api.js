@@ -76,7 +76,8 @@ router.get('/sp', async function(req, res) {
   const startTimeRange = JSON.parse(decodeURIComponent(req.query.startTimeRange));
   const endTimeRange = JSON.parse(decodeURIComponent(req.query.endTimeRange));
   const flexible = JSON.parse(decodeURIComponent(req.query.flexible));
-  const dayOfWeek = JSON.parse(decodeURIComponent(req.query.endTimeRange));
+  const dayOfWeek = JSON.parse(decodeURIComponent(req.query.dayOfWeek));
+  const timeRangeSpecified = JSON.parse(decodeURIComponent(req.query.timeRangeSpecified));
 
   let googleEmails;
   if (req.query.googleEmails) {
@@ -87,7 +88,18 @@ router.get('/sp', async function(req, res) {
   }
 
   try {
-    const chosenSlot = await MEETINGS.sp(googleEmails, title, duration, startDateRange, endDateRange, startTimeRange, endTimeRange, flexible, dayOfWeek);
+    const chosenSlot = await MEETINGS.sp(
+        googleEmails,
+        title,
+        duration,
+        startDateRange,
+        endDateRange,
+        startTimeRange,
+        endTimeRange,
+        flexible,
+        dayOfWeek,
+        timeRangeSpecified,
+    );
     res.json(chosenSlot);
   } catch (error) {
     console.error(error);
@@ -329,8 +341,7 @@ router.get('/tp', async function(req, res) {
   let oldTitle = JSON.parse(decodeURIComponent(req.query.oldTitle));
   oldTitle = oldTitle.substring(1, oldTitle.length - 1);
 
-  const oldDateTimeParse = JSON.parse(decodeURIComponent(req.query.oldDateTime));
-  const oldDateTime = (oldDateTimeParse ? TIME.maintainLocalTimeZone(oldDateTimeParse) : null);
+  const oldDateTime = TIME.maintainLocalTimeZone(JSON.parse(decodeURIComponent(req.query.oldDateTime)));
   const newStartDateRange = TIME.maintainLocalTimeZone(JSON.parse(decodeURIComponent(req.query.newStartDateRange)));
   const newEndDateRange = TIME.maintainLocalTimeZone(JSON.parse(decodeURIComponent(req.query.newEndDateRange)));
   const newStartTimeRange = TIME.maintainLocalTimeZone(JSON.parse(decodeURIComponent(req.query.newStartTimeRange)));
