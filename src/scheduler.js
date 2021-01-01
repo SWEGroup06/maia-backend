@@ -208,7 +208,7 @@ const context = {
     let bestPTimeSlot = null;
     const thirtyMin = Duration.fromObject({minutes: 30});
 
-    const clusterBias = category === WORK ? 1.3 : 1;
+    const clusterBias = (category === WORK || category === UNKNOWN) ? 1.3 : 1;
     // if free time period covers the whole working day (for all members of the group) then choose the time that maximises p not clustering
 
     // add a value to each p according to clusterdness => bias towards better clustered times
@@ -490,7 +490,7 @@ const context = {
    * @return {[]} array of frequencies for each half hour time slot for this user
    */
   async generateUserHistory(categorisedSchedule, category) {
-    let frequencies = this.initialiseHistFreqs(category);
+    const frequencies = this.initialiseHistFreqs(category);
     for (const timeSlotCategory of categorisedSchedule) {
       const timeSlot = timeSlotCategory[0];
       const c = timeSlotCategory[1];
