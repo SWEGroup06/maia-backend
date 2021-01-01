@@ -269,7 +269,7 @@ const context = {
     });
 
     // console.log('workdays: ', workDays);
-    // console.log('workdays: ', workDays.map((interval) => (interval ? [interval[0].toString(), interval[1].toString()] : [])));
+    console.log('workdays: ', timeConstraints.map((interval) => (interval ? [interval[0].toString(), interval[1].toString()] : [])));
 
     // If there are no busy slots return entire search period
     const searchStart = DateTime.fromISO(startISO);
@@ -524,7 +524,7 @@ const context = {
         }
       }
     }
-    frequencies = frequencies.map((arr)=>arr.map((a) => (a+Math.abs(smallest))/(largest-smallest)));
+    // frequencies = frequencies.map((arr)=>arr.map((a) => (a+Math.abs(smallest))/(largest-smallest)));
     return frequencies;
   },
 };
