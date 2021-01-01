@@ -234,7 +234,7 @@ router.get('/tp', async function(req, res) {
         newDayOfWeek,
         dateRangeSpecified,
         timeRangeSpecified,
-        flexible
+        flexible,
     );
     res.json(chosenSlotToRescheduleTo);
   } catch (error) {
