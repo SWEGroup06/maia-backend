@@ -182,7 +182,7 @@ const context = {
    * @return {DateTime} -- best start date time for event
    * @private
    */
-  _chooseFromHistory: ({freeTimes, historyFreqs, duration, cluster}) => {
+  _chooseFromHistory: ({freeTimes, historyFreqs, duration, cluster, constraintsSet}) => {
     // sum history freqs together to make one for everyone
     if (historyFreqs.length < 1) {
       console.log('error in _chooseFromHistory: no history freqs given');
@@ -206,7 +206,10 @@ const context = {
     let bestP = -1000;
     let bestTimeSlot = null;
 
-    if (cluster) {
+    if (!constraintsSet) {
+      // must go through every free time period and choose best!
+    } else if (cluster) {
+      // TODO: this will never consider choosing a time in the middle of the day even if that's the most preferred
       // minimise the break val whilst being at least the minBreakLength
       for (const timeSlot of freeTimes) {
         const begin = timeSlot[0];
@@ -215,7 +218,7 @@ const context = {
         // if want back-to-back then wanna minimise this value whilst being at least the minimum required by user
         const p1 = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
         const p2 = context.getTimeSlotValue(end, end.plus(duration), historyFreq);
-        // console.log('p1: ', begin.toString(), ' v1: ', p1, ' p2: ', end.toString(), ' v2: ', p2, ' best: ', bestP);
+        console.log('p1: ', begin.toString(), ' v1: ', p1, ' p2: ', end.toString(), ' v2: ', p2, ' best: ', bestP);
         if (bestP < p1) {
           bestP = p1;
           bestTimeSlot = new DateTime(begin);
@@ -225,6 +228,8 @@ const context = {
           bestTimeSlot = new DateTime(end);
         }
       }
+    } else {
+      // pick unclustered!
     }
     return bestTimeSlot;
   },
@@ -233,14 +238,14 @@ const context = {
    * @param { String } startISO
    * @param { String } endISO
    * @param { Duration } minBreakLength // array of every user's minimum break length
-   * @param {[{ String, String }]}  workDays
+   * @param {[{ String, String }]}  timeConstraints
    * @return {[]|DateTime[][]}
    */
   getFreeSlots: (busySlots, startISO, endISO,
-      minBreakLength=Duration.fromObject({minutes: 0}), workDays) => {
+      minBreakLength=Duration.fromObject({minutes: 0}), timeConstraints) => {
     console.log('---getFreeSlots---');
     // Parse workDays into a usable format
-    workDays = workDays.map((day) => {
+    timeConstraints = timeConstraints.map((day) => {
       return (day.length > 0 ? [DateTime.fromISO(day[0].startTime), DateTime.fromISO(day[0].endTime)] : []);
     });
     // console.log('workdays: ', workDays);
@@ -251,7 +256,7 @@ const context = {
     const searchEnd = DateTime.fromISO(endISO);
     if (!busySlots.length) {
       console.log('no busy slots found -- return whole period');
-      return context.freeSlotsAux(searchStart, searchEnd, workDays);
+      return context.freeSlotsAux(searchStart, searchEnd, timeConstraints);
     }
 
     // Parse busy slots as DateTime objects
@@ -273,9 +278,9 @@ const context = {
 
     // Set initial values if possible
     const initialDay = searchStart.weekday - 1;
-    if (workDays[initialDay].length > 0) {
-      currDayBegin = DateTime.max(context.combine(searchStart, workDays[initialDay][0]), searchStart);
-      currDayEnd = DateTime.min(context.combine(searchStart, workDays[initialDay][1]), searchEnd);
+    if (timeConstraints[initialDay].length > 0) {
+      currDayBegin = DateTime.max(context.combine(searchStart, timeConstraints[initialDay][0]), searchStart);
+      currDayEnd = DateTime.min(context.combine(searchStart, timeConstraints[initialDay][1]), searchEnd);
     }
 
     // Generate free time slots
@@ -296,9 +301,9 @@ const context = {
         }
         // updates begin and end for current busy slot's day
         // console.log('workdays[', day, '] ', workDays[day].toString());
-        if (workDays[day].length > 0) {
-          currDayBegin = context.combine(busyTimeSlot[0], workDays[day][0]);
-          currDayEnd = context.combine(busyTimeSlot[0], workDays[day][1]);
+        if (timeConstraints[day].length > 0) {
+          currDayBegin = context.combine(busyTimeSlot[0], timeConstraints[day][0]);
+          currDayEnd = context.combine(busyTimeSlot[0], timeConstraints[day][1]);
         } else {
           currDayBegin = null;
           currDayEnd = null;
@@ -307,7 +312,7 @@ const context = {
         if (daysApart.days > 1) {
           const endDate = busyTimeSlot[0].minus(oneDay);
           prevBusySlotEnd = prevBusySlotEnd.plus(oneDay);
-          freeSlots = freeSlots.concat(context.freeSlotsAux(prevBusySlotEnd, endDate, workDays));
+          freeSlots = freeSlots.concat(context.freeSlotsAux(prevBusySlotEnd, endDate, timeConstraints));
         }
         // console.log('mappp', freeSlots.map((slot) => [slot[0].toString(), slot[1].toString()]));
       }
@@ -332,19 +337,19 @@ const context = {
    *
    * @param { DateTime } start
    * @param { DateTime } end
-   * @param { [{DateTime, DateTime}] }workDays
+   * @param { [{DateTime, DateTime}] } timeConstraints
    * return { [[DateTime]] }
    */
-  freeSlotsAux: (start, end, workDays) => {
+  freeSlotsAux: (start, end, timeConstraints) => {
     const oneDay = Duration.fromObject({days: 1});
     const freeSlots = [];
     start = start.startOf('day');
     end = end.endOf('day');
     while (start <= end) {
       const day = start.weekday-1;
-      if (workDays[day].length > 0) {
-        freeSlots.push([context.combine(start, workDays[day][0]),
-          context.combine(start, workDays[day][1])]);
+      if (timeConstraints[day].length > 0) {
+        freeSlots.push([context.combine(start, timeConstraints[day][0]),
+          context.combine(start, timeConstraints[day][1])]);
       }
       start = start.plus(oneDay);
     }
@@ -360,7 +365,8 @@ const context = {
    * @param { Boolean } cluster // whether the user would like their meetings clustered or not
    * @return {null|{start: string, end: string}}
    */
-  findMeetingSlot(freeTimes, duration, constraints = null, historyFreqs, cluster = true) {
+  findMeetingSlot(freeTimes, duration, constraints = null, historyFreqs,
+      cluster = true, constraintsSet) {
     if (!freeTimes || freeTimes.length === 0) {
       console.log('nothing found: ', freeTimes);
       return null;
@@ -380,6 +386,7 @@ const context = {
       historyFreqs: historyFreqs,
       duration: duration,
       cluster: cluster,
+      constraintsSet: constraintsSet,
     });
     if (choice) {
       return {
