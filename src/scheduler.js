@@ -224,7 +224,8 @@ const context = {
       // if want back-to-back then wanna minimise this value whilst being at least the minimum required by user
       const p1 = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
       const p2 = context.getTimeSlotValue(end, end.plus(duration), historyFreq);
-      console.log('p1: ', begin.toString(), ' v1: ', p1, ' p2: ', end.toString(), ' v2: ', p2, ' best: ', bestP);
+      // console.log('p1: ', begin.toString(), ' v1: ', p1, ' p2: ', end.toString(), ' v2: ', p2, ' best: ', bestP);
+      // if (timeSlot[0].diff(timeSlot[1]) > duration * 1.5) {
       if (clusterP < p1) {
         clusterP = p1;
         bestClusterTimeSlot = new DateTime(begin);
@@ -233,7 +234,8 @@ const context = {
         clusterP = p2;
         bestClusterTimeSlot = new DateTime(end);
       }
-      console.log('begin: ', begin.toString(), ' -> ', p1, ' end: ', end.toString(), ' -> ', p2, ' bestCluster', bestClusterTimeSlot.toString(), ' -> ', clusterP);
+      // }
+      // console.log('begin: ', begin.toString(), ' -> ', p1, ' end: ', end.toString(), ' -> ', p2, ' bestCluster', bestClusterTimeSlot.toString(), ' -> ', clusterP);
       begin = begin.plus(thirtyMin);
       while (begin < end) {
         const p3 = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
@@ -241,7 +243,7 @@ const context = {
           bestP = p3;
           bestPTimeSlot = new DateTime(begin);
         }
-        console.log('time: ', begin.toString(), ' -> ', p3, ' bestPTimeSlot ', bestPTimeSlot.toString(), ' -> ', bestP);
+        // console.log('time: ', begin.toString(), ' -> ', p3, ' bestPTimeSlot ', bestPTimeSlot.toString(), ' -> ', bestP);
         begin = begin.plus(thirtyMin);
       }
     }
@@ -268,8 +270,7 @@ const context = {
     timeConstraints = timeConstraints.map((day) =>
       (day.length > 0 ? [DateTime.fromISO(day[0].startTime), DateTime.fromISO(day[0].endTime)] : []));
 
-    // console.log('workdays: ', timeConstraints);
-    // console.log('workinghours: ', timeConstraints.map((interval) => (interval.length > 0 ? [interval[0].toString, interval[1].toString] : [])));
+    // console.log('timeConstraints: ', timeConstraints.map((interval) => (interval.length > 0 ? [interval[0].toString(), interval[1].toString()] : [])));
 
     // If there are no busy slots return entire search period
     const searchStart = DateTime.fromISO(startISO);
@@ -382,13 +383,11 @@ const context = {
    *
    * @param { Array } freeTimes
    * @param { Duration } duration
-   * @param { Array } constraints
    * @param { Array } historyFreqs
-   * @param { Boolean } cluster // whether the user would like their meetings clustered or not
    * @param {Number} category
    * @return {null|{start: string, end: string}}
    */
-  findMeetingSlot(freeTimes, duration, constraints = null, historyFreqs, category) {
+  findMeetingSlot(freeTimes, duration, historyFreqs, category) {
     if (!freeTimes || freeTimes.length === 0) {
       console.log('nothing found: ', freeTimes);
       return null;
@@ -400,7 +399,7 @@ const context = {
     //     format: 'svg',
     //   });
     // }
-    const timeSlots = context._schedule(freeTimes, duration, constraints);
+    const timeSlots = context._schedule(freeTimes, duration);
     console.log('free times ', freeTimes[0].map((interval) => [interval[0].toString(), interval[1].toString()]));
     console.log('free timeslots ', timeSlots.map((interval) => [interval[0].toString(), interval[1].toString()]));
     const choice = context._chooseFromHistory({
