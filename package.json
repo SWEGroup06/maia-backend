@@ -12,7 +12,6 @@
     "prod": "node server.js",
     "test": "mocha --timeout 10000 test -r dotenv/config",
     "lint": "eslint . --fix",
-    "prettier": "prettier --write \"**/*.js\"",
     "logs": "heroku logs -a maia-server"
   },
   "repository": {
@@ -24,6 +23,7 @@
   "dependencies": {
     "@google-cloud/dialogflow": "^3.3.0",
     "dotenv": "^8.2.0",
+    "eslint-plugin-prettier": "^3.3.0",
     "express": "^4.17.1",
     "googleapis": "^61.0.0",
     "jest": "^26.6.1",
