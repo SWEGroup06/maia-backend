@@ -203,9 +203,10 @@ const context = {
     // choices.sort((a, b) => a[1] - b[1]);
     // choices = choices.map((timeSlot) => [timeSlot[0], timeSlot[1], timeSlot[1].diff(timeSlot[0]).minutes]);
     // console.log(choices);
+    let clusterP = -1000;
+    let bestClusterTimeSlot = null;
     let bestP = -1000;
-    let bestTimeSlot = null;
-
+    let bestPTimeSlot = null;
     // if free time period covers the whole working day (for all members of the group) then choose the time that maximises p not clustering
 
     // sort the free time periods by duration
