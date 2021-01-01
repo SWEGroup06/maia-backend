@@ -206,31 +206,37 @@ const context = {
     let bestP = -1000;
     let bestTimeSlot = null;
 
-    if (!constraintsSet) {
-      // must go through every free time period and choose best!
-    } else if (cluster) {
-      // TODO: this will never consider choosing a time in the middle of the day even if that's the most preferred
-      // minimise the break val whilst being at least the minBreakLength
-      for (const timeSlot of freeTimes) {
-        const begin = timeSlot[0];
-        const end = timeSlot[1];
-        // breakLength represents how well clustered this event is/break time between meetings --
-        // if want back-to-back then wanna minimise this value whilst being at least the minimum required by user
-        const p1 = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
-        const p2 = context.getTimeSlotValue(end, end.plus(duration), historyFreq);
-        console.log('p1: ', begin.toString(), ' v1: ', p1, ' p2: ', end.toString(), ' v2: ', p2, ' best: ', bestP);
-        if (bestP < p1) {
-          bestP = p1;
-          bestTimeSlot = new DateTime(begin);
-        }
-        if (bestP < p2) {
-          bestP = p2;
-          bestTimeSlot = new DateTime(end);
-        }
+    // if free time period covers the whole working day (for all members of the group) then choose the time that maximises p not clustering
+
+    // sort the free time periods by duration
+    // go through these time periods until reach one which is > 2 * duration => pick if p > 0 (ie not lunchtime)
+    // if none found => choose by p purely by going through periods in 30 min intervals
+
+    // add a value to each p according to clusterdness => bias towards better clustered times
+    // go through free time slots in 30 min intervals
+    // keep track of best p time slot
+    // return best one
+
+    // TODO: this will never consider choosing a time in the middle of the day even if that's the most preferred
+    // minimise the break val whilst being at least the minBreakLength
+    for (const timeSlot of freeTimes) {
+      const begin = timeSlot[0];
+      const end = timeSlot[1];
+      // breakLength represents how well clustered this event is/break time between meetings --
+      // if want back-to-back then wanna minimise this value whilst being at least the minimum required by user
+      const p1 = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
+      const p2 = context.getTimeSlotValue(end, end.plus(duration), historyFreq);
+      console.log('p1: ', begin.toString(), ' v1: ', p1, ' p2: ', end.toString(), ' v2: ', p2, ' best: ', bestP);
+      if (bestP < p1) {
+        bestP = p1;
+        bestTimeSlot = new DateTime(begin);
       }
-    } else {
-      // pick unclustered!
+      if (bestP < p2) {
+        bestP = p2;
+        bestTimeSlot = new DateTime(end);
+      }
     }
+
     return bestTimeSlot;
   },
   // eslint-disable-next-line valid-jsdoc
