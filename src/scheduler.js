@@ -182,7 +182,7 @@ const context = {
    * @return {DateTime} -- best start date time for event
    * @private
    */
-  _chooseFromHistory: ({freeTimes, historyFreqs, duration, cluster, constraintsSet}) => {
+  _chooseFromHistory: ({freeTimes, historyFreqs, duration, cluster}) => {
     // sum history freqs together to make one for everyone
     if (historyFreqs.length < 1) {
       console.log('error in _chooseFromHistory: no history freqs given');
@@ -219,7 +219,6 @@ const context = {
     // keep track of best p time slot
     // return best one
 
-    // TODO: this will never consider choosing a time in the middle of the day even if that's the most preferred
     // minimise the break val whilst being at least the minBreakLength
     for (const timeSlot of freeTimes) {
       let begin = timeSlot[0];
@@ -263,6 +262,10 @@ const context = {
    */
   getFreeSlots: (busySlots, startISO, endISO, minBreakLength=Duration.fromObject({minutes: 0}), timeConstraints) => {
     console.log('---getFreeSlots---');
+    if (timeConstraints === []) {
+      const fullDay = [{startTime: DateTime.local().startOf('day').toISO(), endTime: DateTime.local().endOf('day').toISO()}];
+      timeConstraints = [fullDay, fullDay, fullDay, fullDay, fullDay, fullDay, fullDay];
+    }
     // Parse workDays into a usable format
     timeConstraints = timeConstraints.map((day) => {
       return (day.length > 0 ? [DateTime.fromISO(day[0].startTime), DateTime.fromISO(day[0].endTime)] : []);
@@ -301,7 +304,6 @@ const context = {
       currDayBegin = DateTime.max(context.combine(searchStart, timeConstraints[initialDay][0]), searchStart);
       currDayEnd = DateTime.min(context.combine(searchStart, timeConstraints[initialDay][1]), searchEnd);
     }
-    q;
     // Generate free time slots
     for (let i = 0; i < busySlots.length; i++) {
       const busyTimeSlot = busySlots[i];
