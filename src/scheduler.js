@@ -246,10 +246,10 @@ const context = {
       }
     }
     if (clusterBias * clusterP < bestP) {
-      console.log('--p wins-- bestP: ', bestPTimeSlot.toString(), ' -> ', bestP, '  clusterP: ', bestClusterTimeSlot.toString(), ' -> ', clusterP);
+      // console.log('--p wins-- bestP: ', bestPTimeSlot.toString(), ' -> ', bestP, '  clusterP: ', bestClusterTimeSlot.toString(), ' -> ', clusterP);
       return bestPTimeSlot;
     } else {
-      console.log('--cluster wins-- bestClusterP: ', bestClusterTimeSlot.toString(), ' -> ', clusterP, ' bestP: ', bestPTimeSlot.toString(), ' -> ', bestP);
+      // console.log('--cluster wins-- bestClusterP: ', bestClusterTimeSlot.toString(), ' -> ', clusterP, ' bestP: ', bestPTimeSlot.toString(), ' -> ', bestP);
       return bestClusterTimeSlot;
     }
   },
@@ -264,12 +264,12 @@ const context = {
   getFreeSlots: (busySlots, startISO, endISO, minBreakLength=Duration.fromObject({minutes: 0}), timeConstraints) => {
     console.log('---getFreeSlots---');
     // Parse workDays into a usable format
-    timeConstraints = timeConstraints.map((day) => {
-      return (day.length > 0 ? [DateTime.fromISO(day[0].startTime), DateTime.fromISO(day[0].endTime)] : []);
-    });
+    console.log(timeConstraints);
+    timeConstraints = timeConstraints.map((day) =>
+      (day.length > 0 ? [DateTime.fromISO(day[0].startTime), DateTime.fromISO(day[0].endTime)] : []));
 
-    // console.log('workdays: ', workDays);
-    console.log('workdays: ', timeConstraints.map((interval) => (interval ? [interval[0].toString(), interval[1].toString()] : [])));
+    console.log('workdays: ', timeConstraints);
+    // console.log('workinghours: ', timeConstraints.map((interval) => (interval.length > 0 ? [interval[0].toString, interval[1].toString] : [])));
 
     // If there are no busy slots return entire search period
     const searchStart = DateTime.fromISO(startISO);
@@ -322,6 +322,8 @@ const context = {
         // updates begin and end for current busy slot's day
         // console.log('workdays[', day, '] ', workDays[day].toString());
         if (timeConstraints[day].length > 0) {
+          // console.log('currDayBegin b[0]', busyTimeSlot[0] );
+          // console.log('currDayBegin td0', timeConstraints[day]);
           currDayBegin = context.combine(busyTimeSlot[0], timeConstraints[day][0]);
           currDayEnd = context.combine(busyTimeSlot[0], timeConstraints[day][1]);
         } else {
@@ -524,7 +526,8 @@ const context = {
         }
       }
     }
-    // frequencies = frequencies.map((arr)=>arr.map((a) => (a+Math.abs(smallest))/(largest-smallest)));
+    // TODO: fix this!
+    // frequencies = frequencies.map((arr)=>arr.map((a) => (a+Math.abs(smallest))));
     return frequencies;
   },
 };
