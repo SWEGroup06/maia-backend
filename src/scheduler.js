@@ -207,6 +207,7 @@ const context = {
     let bestClusterTimeSlot = null;
     let bestP = -1000;
     let bestPTimeSlot = null;
+    const thirtyMin = Duration.fromObject({minutes: 30});
     // if free time period covers the whole working day (for all members of the group) then choose the time that maximises p not clustering
 
     // sort the free time periods by duration
@@ -221,24 +222,36 @@ const context = {
     // TODO: this will never consider choosing a time in the middle of the day even if that's the most preferred
     // minimise the break val whilst being at least the minBreakLength
     for (const timeSlot of freeTimes) {
-      const begin = timeSlot[0];
+      let begin = timeSlot[0];
       const end = timeSlot[1];
       // breakLength represents how well clustered this event is/break time between meetings --
       // if want back-to-back then wanna minimise this value whilst being at least the minimum required by user
       const p1 = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
       const p2 = context.getTimeSlotValue(end, end.plus(duration), historyFreq);
-      console.log('p1: ', begin.toString(), ' v1: ', p1, ' p2: ', end.toString(), ' v2: ', p2, ' best: ', bestP);
-      if (bestP < p1) {
-        bestP = p1;
-        bestTimeSlot = new DateTime(begin);
+      // console.log('p1: ', begin.toString(), ' v1: ', p1, ' p2: ', end.toString(), ' v2: ', p2, ' best: ', bestP);
+      if (clusterP < p1) {
+        clusterP = p1;
+        bestClusterTimeSlot = new DateTime(begin);
       }
-      if (bestP < p2) {
-        bestP = p2;
-        bestTimeSlot = new DateTime(end);
+      if (clusterP < p2) {
+        clusterP = p2;
+        bestClusterTimeSlot = new DateTime(end);
+      }
+      begin = begin.plus(thirtyMin);
+      while (begin < end) {
+        const p3 = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
+        if (bestP < p3) {
+          bestP = p3;
+          bestPTimeSlot = new DateTime(begin);
+        }
+        begin = begin.plus(thirtyMin);
       }
     }
-
-    return bestTimeSlot;
+    if (1.5 * clusterP < bestP) {
+      return bestPTimeSlot;
+    } else {
+      return bestClusterTimeSlot;
+    }
   },
   // eslint-disable-next-line valid-jsdoc
   /**
@@ -288,7 +301,7 @@ const context = {
       currDayBegin = DateTime.max(context.combine(searchStart, timeConstraints[initialDay][0]), searchStart);
       currDayEnd = DateTime.min(context.combine(searchStart, timeConstraints[initialDay][1]), searchEnd);
     }
-
+    q;
     // Generate free time slots
     for (let i = 0; i < busySlots.length; i++) {
       const busyTimeSlot = busySlots[i];
