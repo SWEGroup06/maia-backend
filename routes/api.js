@@ -71,10 +71,10 @@ router.get('/sp', async function(req, res) {
   title = title.substring(1, title.length - 1);
 
   const duration = JSON.parse(decodeURIComponent(req.query.duration));
-  const startDateRange = JSON.parse(decodeURIComponent(req.query.startDateRange));
-  const endDateRange = JSON.parse(decodeURIComponent(req.query.endDateRange));
-  const startTimeRange = JSON.parse(decodeURIComponent(req.query.startTimeRange));
-  const endTimeRange = JSON.parse(decodeURIComponent(req.query.endTimeRange));
+  const startDateRange = TIME.maintainLocalTimeZone(JSON.parse(decodeURIComponent(req.query.startDateRange)));
+  const endDateRange = TIME.maintainLocalTimeZone(JSON.parse(decodeURIComponent(req.query.endDateRange)));
+  const startTimeRange = TIME.maintainLocalTimeZone(JSON.parse(decodeURIComponent(req.query.startTimeRange)));
+  const endTimeRange = TIME.maintainLocalTimeZone(JSON.parse(decodeURIComponent(req.query.endTimeRange)));
   const flexible = JSON.parse(decodeURIComponent(req.query.flexible));
   const dayOfWeek = JSON.parse(decodeURIComponent(req.query.dayOfWeek));
   const timeRangeSpecified = JSON.parse(decodeURIComponent(req.query.timeRangeSpecified));
