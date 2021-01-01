@@ -268,7 +268,7 @@ const context = {
     timeConstraints = timeConstraints.map((day) =>
       (day.length > 0 ? [DateTime.fromISO(day[0].startTime), DateTime.fromISO(day[0].endTime)] : []));
 
-    console.log('workdays: ', timeConstraints);
+    // console.log('workdays: ', timeConstraints);
     // console.log('workinghours: ', timeConstraints.map((interval) => (interval.length > 0 ? [interval[0].toString, interval[1].toString] : [])));
 
     // If there are no busy slots return entire search period
