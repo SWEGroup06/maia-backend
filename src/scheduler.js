@@ -236,6 +236,7 @@ const context = {
         clusterP = p2;
         bestClusterTimeSlot = new DateTime(end);
       }
+      // console.log('begin: ', begin.toString(), ' -> ', p1, ' end: ', end.toString(), ' -> ', p2, ' bestCluster', bestClusterTimeSlot.toString(), ' -> ', clusterP);
       begin = begin.plus(thirtyMin);
       while (begin < end) {
         const p3 = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
@@ -243,12 +244,15 @@ const context = {
           bestP = p3;
           bestPTimeSlot = new DateTime(begin);
         }
+        // console.log('time: ', begin.toString(), ' -> ', p3, ' bestPTimeSlot ', bestPTimeSlot.toString(), ' -> ', bestP);
         begin = begin.plus(thirtyMin);
       }
     }
     if (1.5 * clusterP < bestP) {
+      // console.log('--p wins-- bestP: ', bestPTimeSlot.toString(), ' -> ', bestP, '  clusterP: ', bestClusterTimeSlot.toString(), ' -> ', clusterP);
       return bestPTimeSlot;
     } else {
+      // console.log('--cluster wins-- bestClusterP: ', bestClusterTimeSlot.toString(), ' -> ', clusterP, ' bestP: ', bestPTimeSlot.toString(), ' -> ', bestP);
       return bestClusterTimeSlot;
     }
   },
