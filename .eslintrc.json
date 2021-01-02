@@ -18,7 +18,8 @@
     },
     "rules": {
         "prettier/prettier": "error",
-        "valid-jsdoc": "error"
+        "valid-jsdoc": "error",
+        "new-cap": "off"
     },
     "settings": {
         "jsdoc": {

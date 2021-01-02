@@ -1,15 +1,12 @@
 const express = require("express");
-// eslint-disable-next-line new-cap
 const router = express.Router();
-
-const { DateTime } = require("luxon");
 
 const GOOGLE = require("../lib/google.js");
 const DATABASE = require("../lib/database");
 const MEETINGS = require("../lib/meetings.js");
 const TIME = require("../lib/time.js");
 
-// Schedule a new meeting
+// TODO: Temporary Schedule a new meeting
 router.get("/schedule", async function (req, res) {
   if (!req.query.slackEmails && !req.query.googleEmails) {
     res.json({ error: "No emails" });
@@ -19,36 +16,24 @@ router.get("/schedule", async function (req, res) {
   let title = JSON.parse(decodeURIComponent(req.query.title));
   title = title.substring(1, title.length - 1);
 
-  const flexible = JSON.parse(decodeURIComponent(req.query.flexible));
   const duration = JSON.parse(decodeURIComponent(req.query.duration));
-
-  let startDateTimeOfRange;
-  if (!req.query.startDateTimeOfRange) {
-    startDateTimeOfRange = DateTime.local();
-  } else {
-    startDateTimeOfRange = DateTime.fromISO(
-      JSON.parse(decodeURIComponent(req.query.startDateTimeOfRange))
-    );
-  }
-
-  let endDateTimeOfRange;
-  if (!req.query.endDateTimeOfRange) {
-    endDateTimeOfRange = startDateTimeOfRange.plus({ days: 14 });
-  } else {
-    endDateTimeOfRange = DateTime.fromISO(
-      JSON.parse(decodeURIComponent(req.query.endDateTimeOfRange))
-    );
-  }
-
-  if (req.query.beforeAfterKey) {
-    const startEndTimes = TIME.parseBeforeAfter(
-      JSON.parse(decodeURIComponent(req.query.beforeAfterKey)),
-      startDateTimeOfRange,
-      endDateTimeOfRange
-    );
-    startDateTimeOfRange = startEndTimes.startDateTimeOfRange;
-    endDateTimeOfRange = startEndTimes.endDateTimeOfRange;
-  }
+  const startDateRange = TIME.maintainLocalTimeZone(
+    JSON.parse(decodeURIComponent(req.query.startDateRange))
+  );
+  const endDateRange = TIME.maintainLocalTimeZone(
+    JSON.parse(decodeURIComponent(req.query.endDateRange))
+  );
+  const startTimeRange = TIME.maintainLocalTimeZone(
+    JSON.parse(decodeURIComponent(req.query.startTimeRange))
+  );
+  const endTimeRange = TIME.maintainLocalTimeZone(
+    JSON.parse(decodeURIComponent(req.query.endTimeRange))
+  );
+  const flexible = JSON.parse(decodeURIComponent(req.query.flexible));
+  const dayOfWeek = JSON.parse(decodeURIComponent(req.query.dayOfWeek));
+  const timeRangeSpecified = JSON.parse(
+    decodeURIComponent(req.query.timeRangeSpecified)
+  );
 
   let googleEmails;
   if (req.query.googleEmails) {
@@ -60,12 +45,16 @@ router.get("/schedule", async function (req, res) {
 
   try {
     const chosenSlot = await MEETINGS.schedule(
-      title,
       googleEmails,
-      startDateTimeOfRange.toISO(),
-      endDateTimeOfRange.toISO(),
+      title,
+      duration,
+      startDateRange,
+      endDateRange,
+      startTimeRange,
+      endTimeRange,
       flexible,
-      duration
+      dayOfWeek,
+      timeRangeSpecified
     );
     res.json(chosenSlot);
   } catch (error) {
@@ -74,50 +63,22 @@ router.get("/schedule", async function (req, res) {
   }
 });
 
-// Reschedule an existing meeting
+// TODO: Temporary until we finish
 router.get("/reschedule", async function (req, res) {
   if (!req.query.slackEmail && !req.query.googleEmail) {
-    res.json({ error: "Organiser's email not found" });
+    res.json({ error: "Email not found" });
     return;
   }
 
-  if (!req.query.meetingTitle) {
-    res.json({ error: "No Title Provided" });
-    return;
+  console.log("\nTP REQ.QUERY************");
+  console.log(req.query);
+  console.log("**************************\n");
+
+  // Check that either an event time or title has been specified.
+  if (!req.query.oldDateTime && !req.query.oldTitle) {
+    res.json({ error: "No event time or title specified for rescheduling." });
   }
 
-  // check if event to be reschedule has been specified
-  if (!req.query.startDateTime) {
-    res.json({ error: "No event start time specified for rescheduling" });
-  }
-
-  let meetingTitle = JSON.parse(decodeURIComponent(req.query.meetingTitle));
-  meetingTitle = meetingTitle.substring(1, meetingTitle.length - 1);
-
-  let startDateTimeOfRange;
-  let specificTimeGiven = false;
-  if (!req.query.newStartDateTime) {
-    startDateTimeOfRange = DateTime.local();
-  } else {
-    startDateTimeOfRange = DateTime.fromISO(
-      JSON.parse(decodeURIComponent(req.query.newStartDateTime))
-    );
-    specificTimeGiven = true;
-  }
-
-  let endDateTimeOfRange;
-  if (!req.query.newEndDateTime) {
-    // If no end date is specified, set a default range of two weeks from the given start range date
-    endDateTimeOfRange = DateTime.local().plus({ days: 14 });
-  } else {
-    endDateTimeOfRange = DateTime.fromISO(
-      JSON.parse(decodeURIComponent(req.query.newEndDateTime))
-    );
-  }
-
-  const currEventStartTime = JSON.parse(
-    decodeURIComponent(req.query.startDateTime)
-  );
   let googleEmail;
   if (req.query.googleEmail) {
     googleEmail = JSON.parse(decodeURIComponent(req.query.googleEmail));
@@ -126,36 +87,53 @@ router.get("/reschedule", async function (req, res) {
     googleEmail = await DATABASE.getGoogleEmailFromSlackEmail(slackEmail);
   }
 
-  if (req.query.beforeAfterKey) {
-    const startEndTimes = TIME.parseBeforeAfter(
-      JSON.parse(decodeURIComponent(req.query.beforeAfterKey)),
-      startDateTimeOfRange,
-      endDateTimeOfRange
-    );
-    startDateTimeOfRange = startEndTimes.startDateTimeOfRange;
-    endDateTimeOfRange = startEndTimes.endDateTimeOfRange;
+  let oldTitle = JSON.parse(decodeURIComponent(req.query.oldTitle));
+  oldTitle = oldTitle.substring(1, oldTitle.length - 1);
+
+  const oldDateTime = TIME.maintainLocalTimeZone(
+    JSON.parse(decodeURIComponent(req.query.oldDateTime))
+  );
+  const newStartDateRange = TIME.maintainLocalTimeZone(
+    JSON.parse(decodeURIComponent(req.query.newStartDateRange))
+  );
+  const newEndDateRange = TIME.maintainLocalTimeZone(
+    JSON.parse(decodeURIComponent(req.query.newEndDateRange))
+  );
+  const newStartTimeRange = TIME.maintainLocalTimeZone(
+    JSON.parse(decodeURIComponent(req.query.newStartTimeRange))
+  );
+  const newEndTimeRange = TIME.maintainLocalTimeZone(
+    JSON.parse(decodeURIComponent(req.query.newEndTimeRange))
+  );
+  const newDayOfWeek = JSON.parse(decodeURIComponent(req.query.newDayOfWeek));
+  const dateRangeSpecified = JSON.parse(
+    decodeURIComponent(req.query.dateRangeSpecified)
+  );
+  const timeRangeSpecified = JSON.parse(
+    decodeURIComponent(req.query.timeRangeSpecified)
+  );
+  const flexible = JSON.parse(decodeURIComponent(req.query.flexible));
+
+  if (!oldDateTime && !oldTitle) {
+    res.json({ error: "You must specify the event title or date and time" });
+    return;
   }
 
   try {
-    // TODO: Delete these
-    // console.log('PARAMETERS FOR MEETINGS.RESCHEDULE****');
-    // console.log(meetingTitle);
-    // console.log(currEventStartTime);
-    // console.log(email);
-    // console.log(startDateTimeOfRange.toISO());
-    // console.log(endDateTimeOfRange.toISO());
-    // console.log('**************************************');
-
-    const chosenSlot = await MEETINGS.reschedule(
-      currEventStartTime,
-      meetingTitle,
+    const chosenSlotToRescheduleTo = await MEETINGS.reschedule(
       googleEmail,
-      startDateTimeOfRange.toISO(),
-      endDateTimeOfRange.toISO(),
-      specificTimeGiven
+      oldTitle,
+      oldDateTime,
+      newStartDateRange,
+      newEndDateRange,
+      newStartTimeRange,
+      newEndTimeRange,
+      newDayOfWeek,
+      dateRangeSpecified,
+      timeRangeSpecified,
+      flexible
     );
-
-    res.json(chosenSlot);
+    res.json(chosenSlotToRescheduleTo);
   } catch (error) {
     console.error(error);
     res.send({ error: error.toString() });
@@ -310,65 +288,7 @@ router.get("/cancel", async function (req, res) {
   }
 });
 
-router.get("/tp", async function (req, res) {
-  if (!req.query.slackEmail && !req.query.googleEmail) {
-    res.json({ error: "Email not found" });
-    return;
-  }
-
-  console.log("\nTP REQ.QUERY************");
-  console.log(req.query);
-  console.log("**************************\n");
-
-  // Check that either an event time or title has been specified.
-  if (!req.query.oldDateTime && !req.query.oldTitle) {
-    res.json({ error: "No event time or title specified for rescheduling." });
-  }
-
-  let googleEmail;
-  if (req.query.googleEmail) {
-    googleEmail = JSON.parse(decodeURIComponent(req.query.googleEmail));
-  } else {
-    const slackEmail = JSON.parse(decodeURIComponent(req.query.slackEmail));
-    googleEmail = await DATABASE.getGoogleEmailFromSlackEmail(slackEmail);
-  }
-
-  let oldTitle = JSON.parse(decodeURIComponent(req.query.oldTitle));
-  oldTitle = oldTitle.substring(1, oldTitle.length - 1);
-
-  const oldDateTime = JSON.parse(decodeURIComponent(req.query.oldDateTime));
-  const newStartDateRange = JSON.parse(
-    decodeURIComponent(req.query.newStartDateRange)
-  );
-  const newEndDateRange = JSON.parse(
-    decodeURIComponent(req.query.newEndDateRange)
-  );
-  const newStartTimeRange = JSON.parse(
-    decodeURIComponent(req.query.newStartTimeRange)
-  );
-  const newEndTimeRange = JSON.parse(
-    decodeURIComponent(req.query.newEndTimeRange)
-  );
-  const newDayOfWeek = JSON.parse(decodeURIComponent(req.query.newDayOfWeek));
-
-  try {
-    const chosenSlotToRescheduleTo = await MEETINGS.tp(
-      googleEmail,
-      oldTitle,
-      oldDateTime,
-      newStartDateRange,
-      newEndDateRange,
-      newStartTimeRange,
-      newEndTimeRange,
-      newDayOfWeek
-    );
-    res.json(chosenSlotToRescheduleTo);
-  } catch (error) {
-    console.error(error);
-    res.send({ error: error.toString() });
-  }
-});
-
+// TODO: Amelia + Hasan?
 router.get("/preferences", async function (req, res) {
   res.sendStatus(200);
   return;
