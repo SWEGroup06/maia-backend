@@ -178,6 +178,7 @@ const context = {
    * @param {Array} freeTimes -- array returned by _schedule [[start1, start2]]
    * @param {Array} historyFreqs -- array of arrays returned by userHistory()
    * @param {Duration} duration -- event's duration
+   * @param {number} category
    * @return {DateTime} -- best start date time for event
    * @private
    */
@@ -206,26 +207,24 @@ const context = {
     let bestClusterTimeSlot = null;
     let bestP = -1000;
     let bestPTimeSlot = null;
-    const thirtyMin = Duration.fromObject({minutes: 30});
+    const fifteenMins = Duration.fromObject({minutes: 15});
+    const day0 = freeTimes.length > 0 ? freeTimes[0][0] : null;
 
+    // console.log('day0', day0?day0.toString(): 'none');
+    // only bias to cluster work events and bias slightly more for tighter spaced:
     const clusterBias = (category === WORK || category === UNKNOWN) ? 1.3 : 1;
-    // if free time period covers the whole working day (for all members of the group) then choose the time that maximises p not clustering
-
-    // add a value to each p according to clusterdness => bias towards better clustered times
-    // go through free time slots in 30 min intervals
-    // keep track of best p time slot
-    // return best one
 
     // minimise the break val whilst being at least the minBreakLength
     for (const timeSlot of freeTimes) {
       let begin = timeSlot[0];
       const end = timeSlot[1];
-      // breakLength represents how well clustered this event is/break time between meetings --
-      // if want back-to-back then wanna minimise this value whilst being at least the minimum required by user
-      const p1 = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
-      const p2 = context.getTimeSlotValue(end, end.plus(duration), historyFreq);
-      // console.log('p1: ', begin.toString(), ' v1: ', p1, ' p2: ', end.toString(), ' v2: ', p2, ' best: ', bestP);
-      // if (timeSlot[0].diff(timeSlot[1]) > duration * 1.5) {
+      const diffInWeeks = Math.floor(begin.diff(day0, ['days']).values.days/7);
+      const distanceWeight = 3*(diffInWeeks+2)/(20*diffInWeeks**2 + 20) + 0.7;
+      // console.log('diffInWeeks', diffInWeeks, ' -> distance weight -> ', distanceWeight, begin.toString());
+
+      const p1 = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq) *distanceWeight;
+      const p2 = context.getTimeSlotValue(end, end.plus(duration), historyFreq) *distanceWeight;
+
       if (clusterP < p1) {
         clusterP = p1;
         bestClusterTimeSlot = new DateTime(begin);
@@ -234,20 +233,19 @@ const context = {
         clusterP = p2;
         bestClusterTimeSlot = new DateTime(end);
       }
-      // }
       // console.log('begin: ', begin.toString(), ' -> ', p1, ' end: ', end.toString(), ' -> ', p2, ' bestCluster', bestClusterTimeSlot.toString(), ' -> ', clusterP);
-      begin = begin.plus(thirtyMin);
+      begin = begin.plus(fifteenMins);
       while (begin < end) {
-        const p3 = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
+        const p3 = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq) *distanceWeight;
         if (bestP < p3) {
           bestP = p3;
           bestPTimeSlot = new DateTime(begin);
         }
         // console.log('time: ', begin.toString(), ' -> ', p3, ' bestPTimeSlot ', bestPTimeSlot.toString(), ' -> ', bestP);
-        begin = begin.plus(thirtyMin);
+        begin = begin.plus(fifteenMins);
       }
     }
-    if (clusterBias * clusterP < bestP) {
+    if (clusterP * clusterBias < bestP) {
       // console.log('--p wins-- bestP: ', bestPTimeSlot.toString(), ' -> ', bestP, '  clusterP: ', bestClusterTimeSlot.toString(), ' -> ', clusterP);
       return bestPTimeSlot;
     } else {
