@@ -253,7 +253,7 @@ router.get("/setMinBreak", async function (req, res) {
 
     const breakMinutes = JSON.parse(decodeURIComponent(req.query.minBreakLength));
 
-    await MEETINGS.setMinBreakLength(googleEmail, breakMinutes);
+    await DATABASE.setMinBreakLength(googleEmail, breakMinutes);
 
     res.send({ success: true });
   } catch (error) {
