@@ -269,7 +269,7 @@ const context = {
       );
       const distanceWeight =
         (3 * (diffInWeeks + 2)) / (20 * diffInWeeks ** 2 + 20) + 0.7;
-      console.log('diffInWeeks', diffInWeeks, ' -> distance weight -> ', distanceWeight, begin.toString());
+      // console.log('diffInWeeks', diffInWeeks, ' -> distance weight -> ', distanceWeight, begin.toString());
 
       let p1 = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
       p1 > 0 ? p1 *= distanceWeight : null;
@@ -304,10 +304,10 @@ const context = {
         1;
 
     if (clusterP * clusterBias < bestP) {
-      console.log('--p wins-- bestP: ', bestPTimeSlot.toString(), ' -> ', bestP, '  clusterP: ', bestClusterTimeSlot.toString(), ' -> ', clusterP);
+      // console.log('--p wins-- bestP: ', bestPTimeSlot.toString(), ' -> ', bestP, '  clusterP: ', bestClusterTimeSlot.toString(), ' -> ', clusterP);
       return bestPTimeSlot;
     } else {
-      console.log('--cluster wins-- bestClusterP: ', bestClusterTimeSlot.toString(), ' -> ', clusterP * clusterBias, ' bestP: ', bestPTimeSlot.toString(), ' -> ', bestP);
+      // console.log('--cluster wins-- bestClusterP: ', bestClusterTimeSlot.toString(), ' -> ', clusterP * clusterBias, ' bestP: ', bestPTimeSlot.toString(), ' -> ', bestP);
       return bestClusterTimeSlot;
     }
   },
