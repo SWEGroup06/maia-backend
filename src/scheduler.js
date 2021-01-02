@@ -288,7 +288,7 @@ const context = {
       return bestClusterTimeSlot;
     }
   },
-  // eslint-disable-next-line valid-jsdoc
+
   /**
    * @param busySlots
    * @param {string} startISO
@@ -417,7 +417,7 @@ const context = {
 
     return freeSlots;
   },
-  // eslint-disable-next-line valid-jsdoc
+
   /**
    *
    * @param { DateTime } start
