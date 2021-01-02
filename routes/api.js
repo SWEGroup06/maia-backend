@@ -290,16 +290,23 @@ router.get("/cancel", async function (req, res) {
 
 // TODO: Amelia + Hasan?
 router.get("/preferences", async function (req, res) {
-  res.sendStatus(200);
-  return;
+  if (!req.query.slackEmail && !req.query.googleEmail) {
+    res.json({ error: "Email not found" });
+    return;
+  }
   try {
-    const googleEmail = "kpal81xd@gmail.com";
+    let googleEmail;
+    if (req.query.googleEmail) {
+      googleEmail = JSON.parse(decodeURIComponent(req.query.googleEmail));
+    } else {
+      const slackEmail = JSON.parse(decodeURIComponent(req.query.slackEmail));
+      googleEmail = await DATABASE.getGoogleEmailFromSlackEmail(slackEmail);
+    }
     const tokens = JSON.parse(
       await DATABASE.getTokenFromGoogleEmail(googleEmail)
     );
 
     await MEETINGS.generatePreferences(googleEmail, tokens);
-
     res.send({ status: "ok" });
   } catch (err) {
     console.error(error);
