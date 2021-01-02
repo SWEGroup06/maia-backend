@@ -284,7 +284,8 @@ const context = {
         clusterP = p2;
         bestClusterTimeSlot = new DateTime(end);
       }
-      // console.log('begin: ', begin.toString(), ' -> ', p1, ' end: ', end.toString(), ' -> ', p2, ' bestCluster', bestClusterTimeSlot.toString(), ' -> ', clusterP);
+      // console.log('begin: ', begin.toString(), ' -> ', p1, ' end: ', end.toString(), ' -> ', p2, ' bestCluster',
+      //     (bestClusterTimeSlot ? bestClusterTimeSlot.toString() : 'null'), ' -> ', clusterP);
       begin = begin.plus(fifteenMins);
       while (begin < end) {
         const p3 =
@@ -294,7 +295,7 @@ const context = {
           bestP = p3;
           bestPTimeSlot = new DateTime(begin);
         }
-        // console.log('time: ', begin.toString(), ' -> ', p3, ' bestPTimeSlot ', bestPTimeSlot.toString(), ' -> ', bestP);
+        // console.log('time: ', begin.toString(), ' -> ', p3, ' bestPTimeSlot ',  (bestPTimeSlot ? bestPTimeSlot.toString() : 'null'), ' -> ', bestP);
         begin = begin.plus(fifteenMins);
       }
     }
@@ -304,10 +305,12 @@ const context = {
         1;
 
     if (clusterP * clusterBias < bestP) {
-      // console.log('--p wins-- bestP: ', bestPTimeSlot.toString(), ' -> ', bestP, '  clusterP: ', bestClusterTimeSlot.toString(), ' -> ', clusterP);
+      // console.log('--p wins-- bestP: ', (bestPTimeSlot ? bestPTimeSlot.toString() : 'null'), ' -> ', bestP,
+      //     '  clusterP: ', (bestClusterTimeSlot ? bestClusterTimeSlot.toString() : 'null'), ' -> ', clusterP);
       return bestPTimeSlot;
     } else {
-      // console.log('--cluster wins-- bestClusterP: ', bestClusterTimeSlot.toString(), ' -> ', clusterP * clusterBias, ' bestP: ', bestPTimeSlot.toString(), ' -> ', bestP);
+      // console.log('--cluster wins-- bestClusterP: ', (bestClusterTimeSlot ? bestClusterTimeSlot.toString() : 'null'),
+      //     ' -> ', clusterP * clusterBias, ' bestP: ', (bestPTimeSlot ? bestPTimeSlot.toString() : 'null'), ' -> ', bestP);
       return bestClusterTimeSlot;
     }
   },
