@@ -246,11 +246,6 @@ const context = {
         }
       }
     }
-    // console.log('combined', historyFreq);
-    // let choices = freeTimes.map((xs) => [xs[0], xs[1].diff(xs[0])]);
-    // choices.sort((a, b) => a[1] - b[1]);
-    // choices = choices.map((timeSlot) => [timeSlot[0], timeSlot[1], timeSlot[1].diff(timeSlot[0]).minutes]);
-    // console.log(choices);
     let clusterP = -1000;
     let bestClusterTimeSlot = null;
     let bestP = -1000;
@@ -334,7 +329,6 @@ const context = {
   ) => {
     console.log("---getFreeSlots---");
     // Parse workDays into a usable format
-    console.log(timeConstraints);
     timeConstraints = timeConstraints.map((day) =>
       day.length > 0
         ? [DateTime.fromISO(day[0].startTime), DateTime.fromISO(day[0].endTime)]
@@ -390,13 +384,12 @@ const context = {
 
       // If we are on a new day, update the begin and end for that day.
       const daysApart = busyTimeSlot[0]
-        .startOf("day")
-        .diff(prevBusySlotEnd.startOf("day"), "days");
+        .startOf('day')
+        .diff(prevBusySlotEnd.startOf('day'), 'days');
       // console.log('days apart: ', daysApart.values.days);
       if (daysApart.days > 0) {
         // generates the rest of the current working day
         if (currDayBegin && currDayEnd - currDayBegin > fiveSeconds) {
-          console.log("1");
           freeSlots.push([currDayBegin, currDayEnd]);
         }
         // updates begin and end for current busy slot's day
@@ -457,8 +450,8 @@ const context = {
   freeSlotsAux: (start, end, timeConstraints) => {
     const oneDay = Duration.fromObject({ days: 1 });
     const freeSlots = [];
-    start = start.startOf("day");
-    end = end.endOf("day");
+    start = start.startOf('day');
+    end = end.endOf('day');
     while (start <= end) {
       const day = start.weekday - 1;
       if (timeConstraints[day].length > 0) {
@@ -484,7 +477,7 @@ const context = {
    */
   findMeetingSlot(freeTimes, duration, historyFreqs, category) {
     if (!freeTimes || freeTimes.length === 0) {
-      console.log("nothing found: ", freeTimes);
+      console.log('nothing found: ', freeTimes);
       return null;
     }
     // for (let i = 0; i < 7; i++) {
@@ -496,14 +489,14 @@ const context = {
     // }
     const timeSlots = context._schedule(freeTimes, duration);
     console.log(
-      "free times ",
+      'free times ',
       freeTimes[0].map((interval) => [
         interval[0].toString(),
         interval[1].toString(),
       ])
     );
     console.log(
-      "free timeslots ",
+      'free timeslots ',
       timeSlots.map((interval) => [
         interval[0].toString(),
         interval[1].toString(),
