@@ -15,8 +15,8 @@ const context = {
    * Internal function that takes two datetime objects and returns their intersection, if that
    * intersection is of a minimum size
    *
-   * @param { datetime } slot1
-   * @param { datetime } slot2
+   * @param { datetime } slot1 - TODO: Description
+   * @param { datetime } slot2 - TODO: Description
    * @param { duration } duration minimum size of interction is given by duration
    * @return { datetime } intersection of slot1 and slot2 or null
    */
@@ -27,13 +27,14 @@ const context = {
     ];
     return newSlot[0].plus(duration) <= newSlot[1] ? newSlot : null;
   },
+
   /**
    * Internal function that takes two objects, one for date info and one for time info, and returns
    * a datetime based on it
    *
    * @param {object} date object with year, month and day fields
    * @param {object} time object with hour and minute fields
-   * @return { datetime }
+   * @return { datetime } - TODO: Description
    */
   combine: (date, time) => {
     return DateTime.fromObject({
@@ -44,9 +45,12 @@ const context = {
       minute: time.minute,
     });
   },
+
   /**
-   * @param { Array } ranges
-   * @return { Array }
+   * TODO: Amelia + Hasan: Function description here
+   *
+   * @param { Array } ranges - TODO: Description
+   * @return { Array } - TODO: Description
    */
   merge: (ranges) => {
     const result = [];
@@ -64,7 +68,10 @@ const context = {
     });
     return result;
   },
+
   /**
+   * TODO: Amelia + Hasan: Function description here
+   *
    * @param {Array} weekAvailability [[{startTime: X, endTime: Y}],...]list of time constraints for every day of the week
    * @param { string } _start ISO Date/Time format, represents start DateTime that event can occur
    * @param { string } _end ISO Date/Time format, represents end DateTime
@@ -116,6 +123,7 @@ const context = {
     }
     return res;
   },
+
   /**
    * Takes in a team's schedules, the duration of the event and any other constraints, and will
    * return all possible times that the event can take place.
@@ -164,6 +172,7 @@ const context = {
     // return list of possible starting time slot intervals
     return ans.map((xs) => [xs[0], xs[1].minus(duration)]);
   },
+
   /**
    * Chooses a time period, preferencing time slots which are smaller
    *
@@ -179,6 +188,15 @@ const context = {
     }
     return choices[0][0];
   },
+
+  /**
+   * TODO: Amelia + Hasan: Function description here
+   *
+   * @param begin - TODO: Description
+   * @param end - TODO: Description
+   * @param historyFreq - TODO: Description
+   * @return {number} - TODO: Description
+   */
   getTimeSlotValue: (begin, end, historyFreq) => {
     const startHour = begin.hour;
     const startHalf = begin.minute >= 30 ? 1 : 0;
@@ -193,9 +211,10 @@ const context = {
     }
     return val;
   },
+
   /**
-   * chooses the best time slot out of list of free times considering the user's history of most
-   * common busy times
+   * Chooses the best time slot out of list of free times considering the
+   * user's history of most common busy times
    *
    * @param freeTimes.freeTimes
    * @param {Array} freeTimes -- array returned by _schedule [[start1, start2]]
@@ -290,12 +309,14 @@ const context = {
   },
 
   /**
-   * @param busySlots
-   * @param {string} startISO
-   * @param {string} endISO
+   * TODO: Amelia + Hasan: Function description here
+   *
+   * @param busySlots - TODO: Description
+   * @param {string} startISO - TODO: Description
+   * @param {string} endISO - TODO: Description
    * @param { Duration } minBreakLength // array of every user's minimum break length
-   * @param {[{ String, String }]} timeConstraints
-   * @return {[]|DateTime[][]}
+   * @param {[{ String, String }]} timeConstraints - TODO: Description
+   * @return {[]|DateTime[][]} - TODO: Description
    */
   getFreeSlots: (
     busySlots,
@@ -419,11 +440,12 @@ const context = {
   },
 
   /**
+   * TODO: Amelia + Hasan: Function description here
    *
-   * @param { DateTime } start
-   * @param { DateTime } end
-   * @param { [{DateTime, DateTime}] } timeConstraints
-   * return { [[DateTime]] }
+   * @param { DateTime } start - TODO: Description
+   * @param { DateTime } end - TODO: Description
+   * @param { [{DateTime, DateTime}] } timeConstraints - TODO: Description
+   * return { [[DateTime]] } - TODO: Description
    */
   freeSlotsAux: (start, end, timeConstraints) => {
     const oneDay = Duration.fromObject({ days: 1 });
@@ -443,13 +465,15 @@ const context = {
     // console.log('mappp', freeSlots.map((slot) => [slot[0].toString(), slot[1].toString()]));
     return freeSlots;
   },
+
   /**
+   * TODO: Amelia + Hasan: Function description here
    *
-   * @param { Array } freeTimes
-   * @param { Duration } duration
-   * @param { Array } historyFreqs
-   * @param {number} category
-   * @return {null|{start: string, end: string}}
+   * @param { Array } freeTimes - TODO: Description
+   * @param { Duration } duration - TODO: Description
+   * @param { Array } historyFreqs - TODO: Description
+   * @param {number} category - TODO: Description
+   * @return {null|{start: string, end: string}} - TODO: Description
    */
   findMeetingSlot(freeTimes, duration, historyFreqs, category) {
     if (!freeTimes || freeTimes.length === 0) {
@@ -492,6 +516,13 @@ const context = {
     }
     return null;
   },
+
+  /**
+   *TODO: Amelia + Hasan: Function description here
+   *
+   * @param lastMonthBusySchedule - TODO: Description
+   * @return {Promise<[]>} - TODO: Description
+   */
   async getCategorisedSchedule(lastMonthBusySchedule) {
     const x = [];
     for (const timeSlot of lastMonthBusySchedule) {
@@ -500,6 +531,13 @@ const context = {
     }
     return x;
   },
+
+  /**
+   *TODO: Amelia + Hasan: Function description here
+   *
+   * @param category - TODO: Description
+   * @return {any[]} - TODO: Description
+   */
   initialiseHistFreqs(category) {
     const frequencies = Array(7);
     // // initialise history frequencies to default for this category
@@ -559,10 +597,12 @@ const context = {
     }
     return frequencies;
   },
+  S
   /**
+   * TODO: Amelia + Hasan: Function description here
    *
    * @param { Array } categorisedSchedule [{startTime: ISO String, endTime: ISO String}]
-   * @param { Integer } category
+   * @param { Integer } category - TODO: Description
    * @return {[]} array of frequencies for each half hour time slot for this user
    */
   async generateUserHistory(categorisedSchedule, category) {
