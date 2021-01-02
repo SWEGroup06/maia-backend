@@ -4,10 +4,10 @@ const assert = require("assert");
 
 const { DateTime } = require("luxon");
 
-const GOOGLE = require('../lib/google.js');
-const DATABASE = require('../lib/database.js');
-const MEETINGS = require('../lib/meetings.js');
-const TIME = require('../lib/time.js');
+const GOOGLE = require("../lib/google.js");
+const DATABASE = require("../lib/database.js");
+const MEETINGS = require("../lib/meetings.js");
+const TIME = require("../lib/time.js");
 
 const mocha = require("mocha");
 const { describe, it, before, after } = mocha;
@@ -44,58 +44,119 @@ const { describe, it, before, after } = mocha;
 //   });
 // });
 
-describe('Scheduling within a given time range', function() {
-  const tomorrow = DateTime.local().plus({days: 1});
+describe("Scheduling within a given time range", function () {
+  const tomorrow = DateTime.local().plus({ days: 1 });
   const ONE_HOUR = 60;
   const HALF_HOUR = 30;
 
   before(async () => {
     await DATABASE.getDatabaseConnection();
-    const token = JSON.parse(await DATABASE.getTokenFromGoogleEmail('syedalimehdinaoroseabidi@gmail.com'));
+    const token = JSON.parse(
+      await DATABASE.getTokenFromGoogleEmail(
+        "syedalimehdinaoroseabidi@gmail.com"
+      )
+    );
     await GOOGLE.clearCalendar(token);
   });
 
-  it('should book a single flexible one-hour event between 12pm and 6pm', async () => {
-    const tomorrowTwelveHours = DateTime.local(tomorrow.year, tomorrow.month, tomorrow.day, 12);
-    const tomorrowEighteenHours = DateTime.local(tomorrow.year, tomorrow.month, tomorrow.day, 18);
+  it("should book a single flexible one-hour event between 12pm and 6pm", async () => {
+    const tomorrowTwelveHours = DateTime.local(
+      tomorrow.year,
+      tomorrow.month,
+      tomorrow.day,
+      12
+    );
+    const tomorrowEighteenHours = DateTime.local(
+      tomorrow.year,
+      tomorrow.month,
+      tomorrow.day,
+      18
+    );
 
-    const testEmails = ['syedalimehdinaoroseabidi@gmail.com']; // TODO: Change to a test email account
-    const testToken = JSON.parse(await DATABASE.getTokenFromGoogleEmail(testEmails[0]));
+    const testEmails = ["syedalimehdinaoroseabidi@gmail.com"]; // TODO: Change to a test email account
+    const testToken = JSON.parse(
+      await DATABASE.getTokenFromGoogleEmail(testEmails[0])
+    );
 
     // Using the scheduler, find an appropriate slot for this one hour meeting.
-    const meetingSlot = await MEETINGS.schedule(undefined, testEmails, tomorrowTwelveHours.toISO(),
-        tomorrowEighteenHours.toISO(), true, ONE_HOUR);
+    const meetingSlot = await MEETINGS.schedule(
+      undefined,
+      testEmails,
+      tomorrowTwelveHours.toISO(),
+      tomorrowEighteenHours.toISO(),
+      true,
+      ONE_HOUR
+    );
 
     // Check the Google Calendar for an event starting at the slot time given by the scheduler.
     const event = await GOOGLE.getEvent(testToken, meetingSlot.start);
 
-    assert.notStrictEqual(event, null, 'event should exist, i.e. not be null/');
-    assert.strictEqual(TIME.isBetweenTimes(event.start.dateTime, tomorrowTwelveHours, tomorrowEighteenHours),
-        true, 'start time of the event should be between 12pm and 6pm.');
-    assert.strictEqual(TIME.getDurationInMinutes(event.start.dateTime, event.end.dateTime), ONE_HOUR,
-        'event should be exactly one hour long, as specified.');
+    assert.notStrictEqual(event, null, "event should exist, i.e. not be null/");
+    assert.strictEqual(
+      TIME.isBetweenTimes(
+        event.start.dateTime,
+        tomorrowTwelveHours,
+        tomorrowEighteenHours
+      ),
+      true,
+      "start time of the event should be between 12pm and 6pm."
+    );
+    assert.strictEqual(
+      TIME.getDurationInMinutes(event.start.dateTime, event.end.dateTime),
+      ONE_HOUR,
+      "event should be exactly one hour long, as specified."
+    );
   });
 
   // TODO: Doesn't get correct event because of scheduler.
-  it('should book a single non-flexible half-hour event between 7pm and 8:30pm', async () => {
-    const tomorrowNinteenHours = DateTime.local(tomorrow.year, tomorrow.month, tomorrow.day, 19);
-    const tomorrowTwentyHoursThirtyMinutes = DateTime.local(tomorrow.year, tomorrow.month, tomorrow.day, 20, 30);
+  it("should book a single non-flexible half-hour event between 7pm and 8:30pm", async () => {
+    const tomorrowNinteenHours = DateTime.local(
+      tomorrow.year,
+      tomorrow.month,
+      tomorrow.day,
+      19
+    );
+    const tomorrowTwentyHoursThirtyMinutes = DateTime.local(
+      tomorrow.year,
+      tomorrow.month,
+      tomorrow.day,
+      20,
+      30
+    );
 
-    const testEmails = ['syedalimehdinaoroseabidi@gmail.com']; // TODO: Change to a test email account
-    const testToken = JSON.parse(await DATABASE.getTokenFromGoogleEmail(testEmails[0]));
+    const testEmails = ["syedalimehdinaoroseabidi@gmail.com"]; // TODO: Change to a test email account
+    const testToken = JSON.parse(
+      await DATABASE.getTokenFromGoogleEmail(testEmails[0])
+    );
 
     // Using the scheduler, find an appropriate slot for this half an hour meeting.
-    const meetingSlot = await MEETINGS.schedule(undefined, testEmails, tomorrowNinteenHours.toISO(),
-        tomorrowTwentyHoursThirtyMinutes.toISO(), true, HALF_HOUR);
+    const meetingSlot = await MEETINGS.schedule(
+      undefined,
+      testEmails,
+      tomorrowNinteenHours.toISO(),
+      tomorrowTwentyHoursThirtyMinutes.toISO(),
+      true,
+      HALF_HOUR
+    );
 
     // Check the Google Calendar for an event starting at the slot time given by the scheduler.
     const event = await GOOGLE.getEvent(testToken, meetingSlot.start);
 
-    assert.notStrictEqual(event, null, 'event should exist, i.e. not be null');
-    assert.strictEqual(TIME.isBetweenTimes(event.start.dateTime, tomorrowNinteenHours, tomorrowTwentyHoursThirtyMinutes),
-        true, 'start time of event should be between 7pm and 8:30pm');
-    assert.strictEqual(TIME.getDurationInMinutes(event.start.dateTime, event.end.dateTime), HALF_HOUR,
-        'event should be half an hour long, as specified.');
+    assert.notStrictEqual(event, null, "event should exist, i.e. not be null");
+    assert.strictEqual(
+      TIME.isBetweenTimes(
+        event.start.dateTime,
+        tomorrowNinteenHours,
+        tomorrowTwentyHoursThirtyMinutes
+      ),
+      true,
+      "start time of event should be between 7pm and 8:30pm"
+    );
+    assert.strictEqual(
+      TIME.getDurationInMinutes(event.start.dateTime, event.end.dateTime),
+      HALF_HOUR,
+      "event should be half an hour long, as specified."
+    );
   });
 
   after(async () => {
@@ -107,10 +168,14 @@ describe('Scheduling within a given time range', function() {
  * Set of tests relating to scheduling an event over a range of dates rather than a range of times.
  * e.g. rescheduling to next week, next month, March, etc.
  */
-describe('Scheduling within a given date range', function() {
+describe("Scheduling within a given date range", function () {
   before(async () => {
     await DATABASE.getDatabaseConnection();
-    const token = JSON.parse(await DATABASE.getTokenFromGoogleEmail('syedalimehdinaoroseabidi@gmail.com'));
+    const token = JSON.parse(
+      await DATABASE.getTokenFromGoogleEmail(
+        "syedalimehdinaoroseabidi@gmail.com"
+      )
+    );
     await GOOGLE.clearCalendar(token);
   });
 
