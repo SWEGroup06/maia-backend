@@ -12,13 +12,13 @@ const WORK = 1;
 
 const context = {
   /**
-   * Internal function that takes two datetime objects and returns their intersection, if that
+   * Internal function that takes two DateTime objects and returns their intersection, if that
    * intersection is of a minimum size
    *
-   * @param { datetime } slot1 - TODO: Description
-   * @param { datetime } slot2 - TODO: Description
-   * @param { duration } duration minimum size of interction is given by duration
-   * @return { datetime } intersection of slot1 and slot2 or null
+   * @param { DateTime } slot1 - TODO: Description
+   * @param { DateTime } slot2 - TODO: Description
+   * @param { duration } duration minimum size of intersection
+   * @return { DateTime } intersection of slot1 and slot2 or null
    */
   intersection: (slot1, slot2, duration) => {
     const newSlot = [
@@ -29,12 +29,12 @@ const context = {
   },
 
   /**
-   * Internal function that takes two objects, one for date info and one for time info, and returns
-   * a datetime based on it
+   * Internal function that takes two objects, one for date info and one for
+   * time info, and returns a DateTime based on it
    *
    * @param {object} date object with year, month and day fields
    * @param {object} time object with hour and minute fields
-   * @return { datetime } - TODO: Description
+   * @return { DateTime } - TODO: Description
    */
   combine: (date, time) => {
     return DateTime.fromObject({
@@ -47,7 +47,7 @@ const context = {
   },
 
   /**
-   * TODO: Amelia + Hasan: Function description here
+   * TODO: Amelia + Hasan: Comment and descriptions
    *
    * @param { Array } ranges - TODO: Description
    * @return { Array } - TODO: Description
@@ -70,10 +70,12 @@ const context = {
   },
 
   /**
-   * TODO: Amelia + Hasan: Function description here
+   * TODO: Amelia + Hasan: Comment and descriptions
    *
-   * @param {Array} weekAvailability [[{startTime: X, endTime: Y}],...]list of time constraints for every day of the week
-   * @param { string } _start ISO Date/Time format, represents start DateTime that event can occur
+   * @param {Array} weekAvailability [[{startTime: X, endTime: Y}],...] list
+   * of time constraints for every day of the week
+   * @param { string } _start ISO Date/Time format, represents start
+   * DateTime that event can occur
    * @param { string } _end ISO Date/Time format, represents end DateTime
    * @return { Array } [[ dateTime, dateTime ], ...]
    */
@@ -125,16 +127,17 @@ const context = {
   },
 
   /**
-   * Takes in a team's schedules, the duration of the event and any other constraints, and will
-   * return all possible times that the event can take place.
+   * Takes in a team's schedules, the duration of the event and any other
+   * constraints, and will return all possible times that the event can take
+   * place.
    *
-   * @param { Array } schedules array of array of array of 2 datetimes [[[startTime
-   * , endtime], ...]]
+   * @param { Array } schedules array of array of array of 2 DateTimes
+   * in the format [[[startTime , endTime], ...]]
    * @param { Duration } duration duration of the event
-   * @param { Array } constraints array of array of two datetimes, [[startTime
-   * , endtime]]
-   * @return { Array } array of array of two datetimes, [[startTime
-   * , endtime]]
+   * @param { Array } constraints array of array of two DateTimes, in
+   * the format [[startTime, endTime]]
+   * @return { Array } array of array of two DateTimes, in the format
+   * [[startTime, endTime]]
    */
   _schedule: (schedules, duration, constraints = null) => {
     // handle invalid input
@@ -177,7 +180,7 @@ const context = {
    * Chooses a time period, preferencing time slots which are smaller
    *
    * @param { Array } freeTimes times that event could be scheduled
-   * @return { datetime } chosen time for the event
+   * @return { DateTime } chosen time for the event
    */
   _choose: (freeTimes) => {
     const choices = freeTimes.map((xs) => [xs[0], xs[1].diff(xs[0])]);
@@ -190,11 +193,11 @@ const context = {
   },
 
   /**
-   * TODO: Amelia + Hasan: Function description here
+   * TODO: Amelia + Hasan: Comment and descriptions
    *
-   * @param begin - TODO: Description
-   * @param end - TODO: Description
-   * @param historyFreq - TODO: Description
+   * @param {DateTime} begin - TODO: Description
+   * @param {DateTime} end - TODO: Description
+   * @param {Array} historyFreq - TODO: Description
    * @return {number} - TODO: Description
    */
   getTimeSlotValue: (begin, end, historyFreq) => {
@@ -216,14 +219,14 @@ const context = {
    * Chooses the best time slot out of list of free times considering the
    * user's history of most common busy times
    *
-   * @param freeTimes.freeTimes
+   * @param freeTimes.freeTimes - TODO: Description
    * @param {Array} freeTimes -- array returned by _schedule [[start1, start2]]
    * @param {Array} historyFreqs -- array of arrays returned by userHistory()
    * @param {Duration} duration -- event's duration
-   * @param {number} category
+   * @param {number} category - TODO: Description
    * @param freeTimes.historyFreqs
-   * @param freeTimes.duration
-   * @param freeTimes.category
+   * @param freeTimes.duration - TODO: Description
+   * @param freeTimes.category - TODO: Description
    * @return {DateTime} -- best start date time for event
    * @private
    */
@@ -309,14 +312,14 @@ const context = {
   },
 
   /**
-   * TODO: Amelia + Hasan: Function description here
+   * TODO: Amelia + Hasan: Comment and descriptions
    *
-   * @param busySlots - TODO: Description
+   * @param {Array} busySlots - TODO: Description
    * @param {string} startISO - TODO: Description
    * @param {string} endISO - TODO: Description
-   * @param { Duration } minBreakLength // array of every user's minimum break length
-   * @param {[{ String, String }]} timeConstraints - TODO: Description
-   * @return {[]|DateTime[][]} - TODO: Description
+   * @param {Duration} minBreakLength // array of every user's minimum break length
+   * @param {Array} timeConstraints - TODO: Description [{ String, String }]
+   * @return {Array} - TODO: Description
    */
   getFreeSlots: (
     busySlots,
@@ -440,12 +443,12 @@ const context = {
   },
 
   /**
-   * TODO: Amelia + Hasan: Function description here
+   * TODO: Amelia + Hasan: Comment and descriptions
    *
    * @param { DateTime } start - TODO: Description
    * @param { DateTime } end - TODO: Description
-   * @param { [{DateTime, DateTime}] } timeConstraints - TODO: Description
-   * return { [[DateTime]] } - TODO: Description
+   * @param { Array } timeConstraints - TODO: Description [{DateTime, DateTime}]
+   * @return { Array } - TODO: Description
    */
   freeSlotsAux: (start, end, timeConstraints) => {
     const oneDay = Duration.fromObject({ days: 1 });
@@ -467,7 +470,7 @@ const context = {
   },
 
   /**
-   * TODO: Amelia + Hasan: Function description here
+   * TODO: Amelia + Hasan: Comment and descriptions
    *
    * @param { Array } freeTimes - TODO: Description
    * @param { Duration } duration - TODO: Description
@@ -518,10 +521,10 @@ const context = {
   },
 
   /**
-   *TODO: Amelia + Hasan: Function description here
+   *TODO: Amelia + Hasan: Comment and descriptions
    *
-   * @param lastMonthBusySchedule - TODO: Description
-   * @return {Promise<[]>} - TODO: Description
+   * @param {Array} lastMonthBusySchedule - TODO: Description
+   * @return {Promise} - TODO: Description
    */
   async getCategorisedSchedule(lastMonthBusySchedule) {
     const x = [];
@@ -533,9 +536,9 @@ const context = {
   },
 
   /**
-   *TODO: Amelia + Hasan: Function description here
+   *TODO: Amelia + Hasan: Comment and descriptions
    *
-   * @param category - TODO: Description
+   * @param {number} category - TODO: Description
    * @return {any[]} - TODO: Description
    */
   initialiseHistFreqs(category) {
@@ -597,13 +600,14 @@ const context = {
     }
     return frequencies;
   },
-  S
+
   /**
-   * TODO: Amelia + Hasan: Function description here
+   * TODO: Amelia + Hasan: Comment and descriptions
    *
-   * @param { Array } categorisedSchedule [{startTime: ISO String, endTime: ISO String}]
+   * @param { Array } categorisedSchedule given in the format:
+   * [{startTime: ISO String, endTime: ISO String}]
    * @param { Integer } category - TODO: Description
-   * @return {[]} array of frequencies for each half hour time slot for this user
+   * @return { Array } frequencies for each half hour time slot for this user
    */
   async generateUserHistory(categorisedSchedule, category) {
     const frequencies = this.initialiseHistFreqs(category);
