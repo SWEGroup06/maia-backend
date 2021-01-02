@@ -252,9 +252,14 @@ router.get("/setMinBreak", async function (req, res) {
     }
 
     const breakMinutes = JSON.parse(decodeURIComponent(req.query.minBreakLength));
-
+    if (!breakMinutes) {
+      // break can't be in seconds/milliseconds/... at least minutes
+      res.send({ error: "break must be 0 or more minutes" });
+    } else if (breakMinutes < 0) {
+      console.log('err');
+      res.send({ error: "breaks can't be negative" });
+    }
     await DATABASE.setMinBreakLength(googleEmail, breakMinutes);
-
     res.send({ success: true });
   } catch (error) {
     console.error(error);
