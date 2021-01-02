@@ -219,14 +219,14 @@ const context = {
    * Chooses the best time slot out of list of free times considering the
    * user's history of most common busy times
    *
-   * @param freeTimes.freeTimes - TODO: Description
-   * @param {Array} freeTimes -- array returned by _schedule [[start1, start2]]
+   * @param {Array} freeTimes - returned by _schedule [[start1, start2]]
    * @param {Array} historyFreqs -- array of arrays returned by userHistory()
    * @param {Duration} duration -- event's duration
    * @param {number} category - TODO: Description
-   * @param freeTimes.historyFreqs
-   * @param freeTimes.duration - TODO: Description
-   * @param freeTimes.category - TODO: Description
+   * @param {Array} freeTimes.freeTimes - TODO: Description
+   * @param {Array} freeTimes.historyFreqs - TODO: Description
+   * @param {number} freeTimes.duration - TODO: Description
+   * @param {number} freeTimes.category - TODO: Description
    * @return {DateTime} -- best start date time for event
    * @private
    */
@@ -606,7 +606,7 @@ const context = {
    *
    * @param { Array } categorisedSchedule given in the format:
    * [{startTime: ISO String, endTime: ISO String}]
-   * @param { Integer } category - TODO: Description
+   * @param { number } category - TODO: Description
    * @return { Array } frequencies for each half hour time slot for this user
    */
   async generateUserHistory(categorisedSchedule, category) {
