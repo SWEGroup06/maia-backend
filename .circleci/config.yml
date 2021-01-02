@@ -12,13 +12,13 @@ jobs:
     steps:
     - checkout
     - run: npm install
-    - run: npm run lint
   test:
     executor:
       name: node/default
     steps:
     - checkout
     - run: npm run test
+    - run: npm run lint
   deploy:
     executor:
       name: heroku/default
