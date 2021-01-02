@@ -7,7 +7,7 @@ const MEETINGS = require("../lib/meetings.js");
 const TIME = require("../lib/time.js");
 
 // TODO: Temporary Schedule a new meeting
-router.get("/sp", async function (req, res) {
+router.get("/schedule", async function (req, res) {
   if (!req.query.slackEmails && !req.query.googleEmails) {
     res.json({ error: "No emails" });
     return;
@@ -44,7 +44,7 @@ router.get("/sp", async function (req, res) {
   }
 
   try {
-    const chosenSlot = await MEETINGS.sp(
+    const chosenSlot = await MEETINGS.schedule(
       googleEmails,
       title,
       duration,
@@ -57,6 +57,83 @@ router.get("/sp", async function (req, res) {
       timeRangeSpecified
     );
     res.json(chosenSlot);
+  } catch (error) {
+    console.error(error);
+    res.send({ error: error.toString() });
+  }
+});
+
+// TODO: Temporary until we finish
+router.get("/reschedule", async function (req, res) {
+  if (!req.query.slackEmail && !req.query.googleEmail) {
+    res.json({ error: "Email not found" });
+    return;
+  }
+
+  console.log("\nTP REQ.QUERY************");
+  console.log(req.query);
+  console.log("**************************\n");
+
+  // Check that either an event time or title has been specified.
+  if (!req.query.oldDateTime && !req.query.oldTitle) {
+    res.json({ error: "No event time or title specified for rescheduling." });
+  }
+
+  let googleEmail;
+  if (req.query.googleEmail) {
+    googleEmail = JSON.parse(decodeURIComponent(req.query.googleEmail));
+  } else {
+    const slackEmail = JSON.parse(decodeURIComponent(req.query.slackEmail));
+    googleEmail = await DATABASE.getGoogleEmailFromSlackEmail(slackEmail);
+  }
+
+  let oldTitle = JSON.parse(decodeURIComponent(req.query.oldTitle));
+  oldTitle = oldTitle.substring(1, oldTitle.length - 1);
+
+  const oldDateTime = TIME.maintainLocalTimeZone(
+    JSON.parse(decodeURIComponent(req.query.oldDateTime))
+  );
+  const newStartDateRange = TIME.maintainLocalTimeZone(
+    JSON.parse(decodeURIComponent(req.query.newStartDateRange))
+  );
+  const newEndDateRange = TIME.maintainLocalTimeZone(
+    JSON.parse(decodeURIComponent(req.query.newEndDateRange))
+  );
+  const newStartTimeRange = TIME.maintainLocalTimeZone(
+    JSON.parse(decodeURIComponent(req.query.newStartTimeRange))
+  );
+  const newEndTimeRange = TIME.maintainLocalTimeZone(
+    JSON.parse(decodeURIComponent(req.query.newEndTimeRange))
+  );
+  const newDayOfWeek = JSON.parse(decodeURIComponent(req.query.newDayOfWeek));
+  const dateRangeSpecified = JSON.parse(
+    decodeURIComponent(req.query.dateRangeSpecified)
+  );
+  const timeRangeSpecified = JSON.parse(
+    decodeURIComponent(req.query.timeRangeSpecified)
+  );
+  const flexible = JSON.parse(decodeURIComponent(req.query.flexible));
+
+  if (!oldDateTime && !oldTitle) {
+    res.json({ error: "You must specify the event title or date and time" });
+    return;
+  }
+
+  try {
+    const chosenSlotToRescheduleTo = await MEETINGS.reschedule(
+      googleEmail,
+      oldTitle,
+      oldDateTime,
+      newStartDateRange,
+      newEndDateRange,
+      newStartTimeRange,
+      newEndTimeRange,
+      newDayOfWeek,
+      dateRangeSpecified,
+      timeRangeSpecified,
+      flexible
+    );
+    res.json(chosenSlotToRescheduleTo);
   } catch (error) {
     console.error(error);
     res.send({ error: error.toString() });
@@ -205,83 +282,6 @@ router.get("/cancel", async function (req, res) {
 
     await GOOGLE.cancelEvent(organiserToken, events[0].id);
     res.json({ title: eventTitle, dateTime: eventDateTime });
-  } catch (error) {
-    console.error(error);
-    res.send({ error: error.toString() });
-  }
-});
-
-// TODO: Temporary until we finish
-router.get("/tp", async function (req, res) {
-  if (!req.query.slackEmail && !req.query.googleEmail) {
-    res.json({ error: "Email not found" });
-    return;
-  }
-
-  console.log("\nTP REQ.QUERY************");
-  console.log(req.query);
-  console.log("**************************\n");
-
-  // Check that either an event time or title has been specified.
-  if (!req.query.oldDateTime && !req.query.oldTitle) {
-    res.json({ error: "No event time or title specified for rescheduling." });
-  }
-
-  let googleEmail;
-  if (req.query.googleEmail) {
-    googleEmail = JSON.parse(decodeURIComponent(req.query.googleEmail));
-  } else {
-    const slackEmail = JSON.parse(decodeURIComponent(req.query.slackEmail));
-    googleEmail = await DATABASE.getGoogleEmailFromSlackEmail(slackEmail);
-  }
-
-  let oldTitle = JSON.parse(decodeURIComponent(req.query.oldTitle));
-  oldTitle = oldTitle.substring(1, oldTitle.length - 1);
-
-  const oldDateTime = TIME.maintainLocalTimeZone(
-    JSON.parse(decodeURIComponent(req.query.oldDateTime))
-  );
-  const newStartDateRange = TIME.maintainLocalTimeZone(
-    JSON.parse(decodeURIComponent(req.query.newStartDateRange))
-  );
-  const newEndDateRange = TIME.maintainLocalTimeZone(
-    JSON.parse(decodeURIComponent(req.query.newEndDateRange))
-  );
-  const newStartTimeRange = TIME.maintainLocalTimeZone(
-    JSON.parse(decodeURIComponent(req.query.newStartTimeRange))
-  );
-  const newEndTimeRange = TIME.maintainLocalTimeZone(
-    JSON.parse(decodeURIComponent(req.query.newEndTimeRange))
-  );
-  const newDayOfWeek = JSON.parse(decodeURIComponent(req.query.newDayOfWeek));
-  const dateRangeSpecified = JSON.parse(
-    decodeURIComponent(req.query.dateRangeSpecified)
-  );
-  const timeRangeSpecified = JSON.parse(
-    decodeURIComponent(req.query.timeRangeSpecified)
-  );
-  const flexible = JSON.parse(decodeURIComponent(req.query.flexible));
-
-  if (!oldDateTime && !oldTitle) {
-    res.json({ error: "You must specify the event title or date and time" });
-    return;
-  }
-
-  try {
-    const chosenSlotToRescheduleTo = await MEETINGS.tp(
-      googleEmail,
-      oldTitle,
-      oldDateTime,
-      newStartDateRange,
-      newEndDateRange,
-      newStartTimeRange,
-      newEndTimeRange,
-      newDayOfWeek,
-      dateRangeSpecified,
-      timeRangeSpecified,
-      flexible
-    );
-    res.json(chosenSlotToRescheduleTo);
   } catch (error) {
     console.error(error);
     res.send({ error: error.toString() });
