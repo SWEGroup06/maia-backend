@@ -11,8 +11,7 @@
     "auto": "node server.js --dev --auto",
     "prod": "node server.js",
     "test": "mocha --timeout 10000 test -r dotenv/config",
-    "lint": "eslint . --fix",
-    "logs": "heroku logs -a maia-server"
+    "lint": "eslint . --fix"
   },
   "repository": {
     "type": "git",
@@ -22,26 +21,25 @@
   "license": "Proprietary",
   "dependencies": {
     "@google-cloud/dialogflow": "^3.3.0",
-    "chai": "^4.2.0",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "googleapis": "^61.0.0",
     "jest": "^26.6.1",
     "luxon": "^1.25.0",
-    "mocha": "^8.2.1",
     "mongoose": "^5.10.9",
     "node-fetch": "^2.6.1",
     "nodemailer": "^6.4.16",
     "uuid": "^8.3.1"
   },
   "devDependencies": {
+    "chai": "^4.2.0",
     "eslint": "^7.11.0",
     "eslint-config-google": "^0.14.0",
     "eslint-config-prettier": "^7.1.0",
     "eslint-plugin-jsdoc": "^30.7.9",
     "eslint-plugin-prettier": "^3.3.0",
-    "heroku": "^7.46.2",
     "jest": "^26.6.3",
+    "mocha": "^8.2.1",
     "nyc": "^15.1.0",
     "prettier": "^2.2.1"
   },
