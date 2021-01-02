@@ -231,6 +231,37 @@ router.get("/constraints", async function (req, res) {
   }
 });
 
+// set min break length
+router.get("/setMinBreak", async function (req, res) {
+  if (!req.query.slackEmail && !req.query.googleEmail) {
+    res.json({ error: "Email not found" });
+    return;
+  }
+
+  if (!req.query.minBreakLength) {
+    res.json({ error: "Break length not provided" });
+  }
+
+  try {
+    let googleEmail;
+    if (req.query.googleEmail) {
+      googleEmail = JSON.parse(decodeURIComponent(req.query.googleEmail));
+    } else {
+      const slackEmail = JSON.parse(decodeURIComponent(req.query.slackEmail));
+      googleEmail = await DATABASE.getGoogleEmailFromSlackEmail(slackEmail);
+    }
+
+    const breakMinutes = JSON.parse(decodeURIComponent(req.query.minBreakLength));
+
+    await MEETINGS.setMinBreakLength(googleEmail, breakMinutes);
+
+    res.send({ success: true });
+  } catch (error) {
+    console.error(error);
+    res.send({ error: error.toString() });
+  }
+});
+
 // Cancel event
 router.get("/cancel", async function (req, res) {
   if (!req.query.slackEmail && !req.query.googleEmail) {
