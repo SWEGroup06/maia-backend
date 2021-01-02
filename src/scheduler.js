@@ -259,8 +259,6 @@ const context = {
     const day0 = freeTimes.length > 0 ? freeTimes[0][0] : null;
 
     // console.log('day0', day0?day0.toString(): 'none');
-    // only bias to cluster work events and bias slightly more for tighter spaced:
-    const clusterBias = category === WORK || category === UNKNOWN ? 1.3 : 1;
 
     // minimise the break val whilst being at least the minBreakLength
     for (const timeSlot of freeTimes) {
@@ -271,14 +269,12 @@ const context = {
       );
       const distanceWeight =
         (3 * (diffInWeeks + 2)) / (20 * diffInWeeks ** 2 + 20) + 0.7;
-      // console.log('diffInWeeks', diffInWeeks, ' -> distance weight -> ', distanceWeight, begin.toString());
+      console.log('diffInWeeks', diffInWeeks, ' -> distance weight -> ', distanceWeight, begin.toString());
 
-      const p1 =
-        context.getTimeSlotValue(begin, begin.plus(duration), historyFreq) *
-        distanceWeight;
-      const p2 =
-        context.getTimeSlotValue(end, end.plus(duration), historyFreq) *
-        distanceWeight;
+      let p1 = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
+      p1 > 0 ? p1 *= distanceWeight : null;
+      let p2 = context.getTimeSlotValue(end, end.plus(duration), historyFreq) * distanceWeight;
+      p2 > 0 ? p2 *= distanceWeight : null;
 
       if (clusterP < p1) {
         clusterP = p1;
@@ -302,11 +298,16 @@ const context = {
         begin = begin.plus(fifteenMins);
       }
     }
+    // only bias to cluster work events and bias slightly more for tighter spaced:
+    let clusterBias = category === WORK || category === UNKNOWN ?
+        (clusterP > 0 ? 1.3 : 0.7) :
+        1;
+
     if (clusterP * clusterBias < bestP) {
-      // console.log('--p wins-- bestP: ', bestPTimeSlot.toString(), ' -> ', bestP, '  clusterP: ', bestClusterTimeSlot.toString(), ' -> ', clusterP);
+      console.log('--p wins-- bestP: ', bestPTimeSlot.toString(), ' -> ', bestP, '  clusterP: ', bestClusterTimeSlot.toString(), ' -> ', clusterP);
       return bestPTimeSlot;
     } else {
-      // console.log('--cluster wins-- bestClusterP: ', bestClusterTimeSlot.toString(), ' -> ', clusterP, ' bestP: ', bestPTimeSlot.toString(), ' -> ', bestP);
+      console.log('--cluster wins-- bestClusterP: ', bestClusterTimeSlot.toString(), ' -> ', clusterP * clusterBias, ' bestP: ', bestPTimeSlot.toString(), ' -> ', bestP);
       return bestClusterTimeSlot;
     }
   },
