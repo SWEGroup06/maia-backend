@@ -505,6 +505,7 @@ const context = {
         interval[1].toString(),
       ])
     );
+    // TODO: Amelia + Hasan: Why are the parameters passed as an object?
     const choice = context._chooseFromHistory({
       freeTimes: timeSlots,
       historyFreqs: historyFreqs,
