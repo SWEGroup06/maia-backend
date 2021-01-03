@@ -251,12 +251,14 @@ router.get("/setMinBreak", async function (req, res) {
       googleEmail = await DATABASE.getGoogleEmailFromSlackEmail(slackEmail);
     }
 
-    const breakMinutes = JSON.parse(decodeURIComponent(req.query.minBreakLength));
+    const breakMinutes = JSON.parse(
+      decodeURIComponent(req.query.minBreakLength)
+    );
     if (!breakMinutes) {
       // break can't be in seconds/milliseconds/... at least minutes
       res.send({ error: "break must be 0 or more minutes" });
     } else if (breakMinutes < 0) {
-      console.log('err');
+      console.log("err");
       res.send({ error: "breaks can't be negative" });
     }
     await DATABASE.setMinBreakLength(googleEmail, breakMinutes);

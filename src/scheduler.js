@@ -266,10 +266,16 @@ const context = {
         (3 * (diffInWeeks + 2)) / (20 * diffInWeeks ** 2 + 20) + 0.7;
       // console.log('diffInWeeks', diffInWeeks, ' -> distance weight -> ', distanceWeight, begin.toString());
 
-      let p1 = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
-      p1 > 0 ? p1 *= distanceWeight : null;
-      let p2 = context.getTimeSlotValue(end, end.plus(duration), historyFreq) * distanceWeight;
-      p2 > 0 ? p2 *= distanceWeight : null;
+      let p1 = context.getTimeSlotValue(
+        begin,
+        begin.plus(duration),
+        historyFreq
+      );
+      p1 > 0 ? (p1 *= distanceWeight) : null;
+      let p2 =
+        context.getTimeSlotValue(end, end.plus(duration), historyFreq) *
+        distanceWeight;
+      p2 > 0 ? (p2 *= distanceWeight) : null;
 
       if (clusterP < p1) {
         clusterP = p1;
@@ -295,9 +301,12 @@ const context = {
       }
     }
     // only bias to cluster work events and bias slightly more for tighter spaced:
-    let clusterBias = category === WORK || category === UNKNOWN ?
-        (clusterP > 0 ? 1.3 : 0.7) :
-        1;
+    const clusterBias =
+      category === WORK || category === UNKNOWN
+        ? clusterP > 0
+          ? 1.3
+          : 0.7
+        : 1;
 
     if (clusterP * clusterBias < bestP) {
       // console.log('--p wins-- bestP: ', (bestPTimeSlot ? bestPTimeSlot.toString() : 'null'), ' -> ', bestP,
@@ -384,8 +393,8 @@ const context = {
 
       // If we are on a new day, update the begin and end for that day.
       const daysApart = busyTimeSlot[0]
-        .startOf('day')
-        .diff(prevBusySlotEnd.startOf('day'), 'days');
+        .startOf("day")
+        .diff(prevBusySlotEnd.startOf("day"), "days");
       // console.log('days apart: ', daysApart.values.days);
       if (daysApart.days > 0) {
         // generates the rest of the current working day
@@ -450,8 +459,8 @@ const context = {
   freeSlotsAux: (start, end, timeConstraints) => {
     const oneDay = Duration.fromObject({ days: 1 });
     const freeSlots = [];
-    start = start.startOf('day');
-    end = end.endOf('day');
+    start = start.startOf("day");
+    end = end.endOf("day");
     while (start <= end) {
       const day = start.weekday - 1;
       if (timeConstraints[day].length > 0) {
@@ -477,7 +486,7 @@ const context = {
    */
   findMeetingSlot(freeTimes, duration, historyFreqs, category) {
     if (!freeTimes || freeTimes.length === 0) {
-      console.log('nothing found: ', freeTimes);
+      console.log("nothing found: ", freeTimes);
       return null;
     }
     // for (let i = 0; i < 7; i++) {
@@ -489,14 +498,14 @@ const context = {
     // }
     const timeSlots = context._schedule(freeTimes, duration);
     console.log(
-      'free times ',
+      "free times ",
       freeTimes[0].map((interval) => [
         interval[0].toString(),
         interval[1].toString(),
       ])
     );
     console.log(
-      'free timeslots ',
+      "free timeslots ",
       timeSlots.map((interval) => [
         interval[0].toString(),
         interval[1].toString(),
