@@ -185,6 +185,7 @@ const actionHandlers = {
         await submitResponse(payload, { text });
       } else if (action.action_id == "edit") {
         EDIT_MEETING_VIEW.trigger_id = payload.trigger_id;
+        EDIT_MEETING_VIEW.blocks[0].element.placeholder.text = "kim k bro";
         openView(EDIT_MEETING_VIEW);
       }
     } catch (error) {
@@ -210,6 +211,8 @@ const actionHandlers = {
       res.send();
       const text =
         "Your meeting has been successfully edited to " +
+        name +
+        " on " +
         date +
         " from " +
         startTime +

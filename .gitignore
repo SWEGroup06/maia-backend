@@ -1,5 +1,6 @@
 # Environments
 .env
+venv
 
 # VSCode
 .vscode
@@ -13,5 +14,4 @@ node_modules
 package-lock.json
 
 # Misc
-creds.json
-venv
+*.svg
