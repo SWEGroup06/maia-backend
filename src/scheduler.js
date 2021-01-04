@@ -223,14 +223,10 @@ const context = {
    * @param {Array} historyFreqs -- array of arrays returned by userHistory()
    * @param {Duration} duration -- event's duration
    * @param {number} category - TODO: Description
-   * @param {Array} freeTimes.freeTimes - TODO: Description
-   * @param {Array} freeTimes.historyFreqs - TODO: Description
-   * @param {number} freeTimes.duration - TODO: Description
-   * @param {number} freeTimes.category - TODO: Description
    * @return {DateTime} -- best start date time for event
    * @private
    */
-  _chooseFromHistory: ({ freeTimes, historyFreqs, duration, category }) => {
+  _chooseFromHistory: (freeTimes, historyFreqs, duration, category) => {
     // sum history freqs together to make one for everyone
     if (historyFreqs.length < 1) {
       console.log("error in _chooseFromHistory: no history freqs given");
@@ -266,10 +262,16 @@ const context = {
         (3 * (diffInWeeks + 2)) / (20 * diffInWeeks ** 2 + 20) + 0.7;
       // console.log('diffInWeeks', diffInWeeks, ' -> distance weight -> ', distanceWeight, begin.toString());
 
-      let p1 = context.getTimeSlotValue(begin, begin.plus(duration), historyFreq);
-      p1 > 0 ? p1 *= distanceWeight : null;
-      let p2 = context.getTimeSlotValue(end, end.plus(duration), historyFreq) * distanceWeight;
-      p2 > 0 ? p2 *= distanceWeight : null;
+      let p1 = context.getTimeSlotValue(
+        begin,
+        begin.plus(duration),
+        historyFreq
+      );
+      p1 > 0 ? (p1 *= distanceWeight) : (p1 /= distanceWeight);
+      let p2 =
+        context.getTimeSlotValue(end, end.plus(duration), historyFreq) *
+        distanceWeight;
+      p2 > 0 ? (p2 *= distanceWeight) : (p2 /= distanceWeight);
 
       if (clusterP < p1) {
         clusterP = p1;
@@ -280,12 +282,18 @@ const context = {
         bestClusterTimeSlot = new DateTime(end);
       }
       // console.log('begin: ', begin.toString(), ' -> ', p1, ' end: ', end.toString(), ' -> ', p2, ' bestCluster',
-      //     (bestClusterTimeSlot ? bestClusterTimeSlot.toString() : 'null'), ' -> ', clusterP);
+      //   bestClusterTimeSlot ? bestClusterTimeSlot.toString() : "null",
+      //   " -> ",
+      //   clusterP
+      // );
       begin = begin.plus(fifteenMins);
       while (begin < end) {
-        const p3 =
-          context.getTimeSlotValue(begin, begin.plus(duration), historyFreq) *
-          distanceWeight;
+        let p3 = context.getTimeSlotValue(
+          begin,
+          begin.plus(duration),
+          historyFreq
+        );
+        p3 > 0 ? (p3 *= distanceWeight) : (p3 /= distanceWeight);
         if (bestP < p3) {
           bestP = p3;
           bestPTimeSlot = new DateTime(begin);
@@ -295,10 +303,14 @@ const context = {
       }
     }
     // only bias to cluster work events and bias slightly more for tighter spaced:
-    let clusterBias = category === WORK || category === UNKNOWN ?
-        (clusterP > 0 ? 1.3 : 0.7) :
-        1;
+    const clusterBias =
+      category === WORK || category === UNKNOWN
+        ? clusterP > 0
+          ? 1.3
+          : 0.7
+        : 1;
 
+    // console.log('cluster bias', clusterBias);
     if (clusterP * clusterBias < bestP) {
       // console.log('--p wins-- bestP: ', (bestPTimeSlot ? bestPTimeSlot.toString() : 'null'), ' -> ', bestP,
       //     '  clusterP: ', (bestClusterTimeSlot ? bestClusterTimeSlot.toString() : 'null'), ' -> ', clusterP);
@@ -335,13 +347,22 @@ const context = {
         : []
     );
 
-    // console.log('timeConstraints: ', timeConstraints.map((interval) => (interval.length > 0 ? [interval[0].toString(), interval[1].toString()] : [])));
+    // console.log(
+    //   "timeConstraints: ",
+    //   timeConstraints.map((interval) =>
+    //     interval.length > 0
+    //       ? [interval[0].toString(), interval[1].toString()]
+    //       : []
+    //   )
+    // );
 
     // If there are no busy slots return entire search period
     const searchStart = DateTime.fromISO(startISO);
     const searchEnd = DateTime.fromISO(endISO);
     if (!busySlots.length) {
-      console.log("no busy slots found -- return whole period");
+      console.log(
+        "no busy slots found -- return whole period with constraints"
+      );
       return context.freeSlotsAux(searchStart, searchEnd, timeConstraints);
     }
 
@@ -384,8 +405,8 @@ const context = {
 
       // If we are on a new day, update the begin and end for that day.
       const daysApart = busyTimeSlot[0]
-        .startOf('day')
-        .diff(prevBusySlotEnd.startOf('day'), 'days');
+        .startOf("day")
+        .diff(prevBusySlotEnd.startOf("day"), "days");
       // console.log('days apart: ', daysApart.values.days);
       if (daysApart.days > 0) {
         // generates the rest of the current working day
@@ -450,8 +471,8 @@ const context = {
   freeSlotsAux: (start, end, timeConstraints) => {
     const oneDay = Duration.fromObject({ days: 1 });
     const freeSlots = [];
-    start = start.startOf('day');
-    end = end.endOf('day');
+    start = start.startOf("day");
+    end = end.endOf("day");
     while (start <= end) {
       const day = start.weekday - 1;
       if (timeConstraints[day].length > 0) {
@@ -487,6 +508,7 @@ const context = {
     //     format:		'svg',
     //   });
     // }
+
     const timeSlots = context._schedule(freeTimes, duration);
     // console.log(
     //   'free times ',
@@ -503,12 +525,12 @@ const context = {
     //   ])
     // );
     // TODO: Amelia + Hasan: Why are the parameters passed as an object?
-    const choice = context._chooseFromHistory({
-      freeTimes: timeSlots,
-      historyFreqs: historyFreqs,
-      duration: duration,
-      category: category,
-    });
+    const choice = context._chooseFromHistory(
+      timeSlots,
+      historyFreqs,
+      duration,
+      category
+    );
     if (choice) {
       return {
         start: choice.toISO(),
@@ -593,6 +615,44 @@ const context = {
         for (let i = 28; i <= 34; i++) vals[i] = 1;
         for (let i = 35; i <= 42; i++) vals[i] = 0;
         for (let i = 43; i < 48; i++) vals[i] = 35 - (5 / 6) * i;
+        frequencies[i] = vals;
+      }
+    }
+    if (category > 1) {
+      // workdays are less popular
+      for (let i = 0; i < 5; i++) {
+        const vals = Array(halfHoursInDay).fill(0);
+        for (let i = 0; i <= 12; i++) vals[i] = -5;
+        for (let i = 13; i < 15; i++) vals[i] = i - 14;
+        for (let i = 15; i <= 17; i++) vals[i] = 1;
+        for (let i = 18; i <= 19; i++) vals[i] = 18 - i;
+        for (let i = 20; i < 24; i++) vals[i] = -5;
+        for (let i = 24; i < 26; i++) vals[i] = i - 25;
+        for (let i = 26; i <= 28; i++) vals[i] = 1;
+        for (let i = 29; i <= 30; i++) vals[i] = 29 - i;
+        for (let i = 31; i < 36; i++) vals[i] = -5;
+        for (let i = 36; i < 38; i++) vals[i] = i - 37;
+        for (let i = 38; i <= 40; i++) vals[i] = 1;
+        for (let i = 41; i <= 42; i++) vals[i] = 41 - i;
+        for (let i = 43; i < 48; i++) vals[i] = -5;
+        frequencies[i] = vals;
+      }
+      // weekend days are more popular
+      for (let i = 5; i < 7; i++) {
+        const vals = Array(halfHoursInDay).fill(0);
+        for (let i = 0; i <= 12; i++) vals[i] = -5;
+        for (let i = 13; i < 15; i++) vals[i] = i - 13;
+        for (let i = 15; i <= 17; i++) vals[i] = 2;
+        for (let i = 18; i <= 19; i++) vals[i] = 19 - i;
+        for (let i = 20; i < 24; i++) vals[i] = -5;
+        for (let i = 24; i < 26; i++) vals[i] = i - 24;
+        for (let i = 26; i <= 28; i++) vals[i] = 2;
+        for (let i = 29; i <= 30; i++) vals[i] = 30 - i;
+        for (let i = 31; i < 36; i++) vals[i] = -5;
+        for (let i = 36; i < 38; i++) vals[i] = i - 36;
+        for (let i = 38; i <= 40; i++) vals[i] = 2;
+        for (let i = 41; i <= 42; i++) vals[i] = 42 - i;
+        for (let i = 43; i < 48; i++) vals[i] = -5;
         frequencies[i] = vals;
       }
     }
