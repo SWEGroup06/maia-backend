@@ -47,6 +47,14 @@ router.get("/schedule", async function (req, res) {
       dayOfWeek,
       timeRangeSpecified
     );
+
+    if (!chosenSlot) {
+      const msg = "SCHEDULE: No Slot Found";
+      console.warn(msg);
+      res.json({ info: msg });
+      return;
+    }
+
     res.json(chosenSlot);
   } catch (err) {
     // Any other type of error
@@ -99,7 +107,7 @@ router.get("/reschedule", async function (req, res) {
       return;
     }
 
-    const chosenSlotToRescheduleTo = await MEETINGS.reschedule(
+    const chosenSlot = await MEETINGS.reschedule(
       googleEmail,
       oldTitle,
       oldDateTime,
@@ -112,7 +120,15 @@ router.get("/reschedule", async function (req, res) {
       timeRangeSpecified,
       flexible
     );
-    res.json(chosenSlotToRescheduleTo);
+
+    if (!chosenSlot) {
+      const msg = "RESCHEDULE: No Slot Found";
+      console.warn(msg);
+      res.json({ info: msg });
+      return;
+    }
+
+    res.json(chosenSlot);
   } catch (err) {
     // Any other type of error
     const msg = "REST reschedule Error: " + err.message;
