@@ -47,6 +47,14 @@ router.get("/schedule", async function (req, res) {
       dayOfWeek,
       timeRangeSpecified
     );
+
+    if (!chosenSlot) {
+      const msg = "SCHEDULE: No Slot Found";
+      console.warn(msg);
+      res.json({ info: msg });
+      return;
+    }
+
     res.json(chosenSlot);
   } catch (err) {
     // Any other type of error
@@ -99,7 +107,7 @@ router.get("/reschedule", async function (req, res) {
       return;
     }
 
-    const chosenSlotToRescheduleTo = await MEETINGS.reschedule(
+    const chosenSlot = await MEETINGS.reschedule(
       googleEmail,
       oldTitle,
       oldDateTime,
@@ -112,7 +120,15 @@ router.get("/reschedule", async function (req, res) {
       timeRangeSpecified,
       flexible
     );
-    res.json(chosenSlotToRescheduleTo);
+
+    if (!chosenSlot) {
+      const msg = "RESCHEDULE: No Slot Found";
+      console.warn(msg);
+      res.json({ info: msg });
+      return;
+    }
+
+    res.json(chosenSlot);
   } catch (err) {
     // Any other type of error
     const msg = "REST reschedule Error: " + err.message;
@@ -191,7 +207,7 @@ router.get("/constraints", async function (req, res) {
 });
 
 // set min break length
-router.get("/setMinBreak", async function (req, res) {
+router.get("/set-min-break", async function (req, res) {
   try {
     // Fetch Google Email
     const googleEmail = await REST_UTILS.tryFetchGoogleEmail(req, res);
@@ -214,7 +230,7 @@ router.get("/setMinBreak", async function (req, res) {
     res.send({ success: true });
   } catch (err) {
     // Any other type of error
-    const msg = "REST setMinBreak Error: " + err.message;
+    const msg = "REST set-min-break Error: " + err.message;
     console.error(msg);
     res.json({ error: msg });
   }
@@ -312,7 +328,7 @@ router.get("/preferences", async function (req, res) {
     // Generate User preferences
     await MEETINGS.generatePreferences(googleEmail, tokens);
 
-    res.send({ status: "ok" });
+    res.send({ success: true });
   } catch (err) {
     // Any other type of error
     const msg = "REST preferences Error: " + err.message;
