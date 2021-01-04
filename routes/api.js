@@ -207,7 +207,7 @@ router.get("/constraints", async function (req, res) {
 });
 
 // set min break length
-router.get("/setMinBreak", async function (req, res) {
+router.get("/set-min-break", async function (req, res) {
   try {
     // Fetch Google Email
     const googleEmail = await REST_UTILS.tryFetchGoogleEmail(req, res);
@@ -230,7 +230,7 @@ router.get("/setMinBreak", async function (req, res) {
     res.send({ success: true });
   } catch (err) {
     // Any other type of error
-    const msg = "REST setMinBreak Error: " + err.message;
+    const msg = "REST set-min-break Error: " + err.message;
     console.error(msg);
     res.json({ error: msg });
   }
@@ -295,7 +295,7 @@ router.get("/preferences", async function (req, res) {
     // Generate User preferences
     await MEETINGS.generatePreferences(googleEmail, tokens);
 
-    res.send({ status: "ok" });
+    res.send({ success: true });
   } catch (err) {
     // Any other type of error
     const msg = "REST preferences Error: " + err.message;
