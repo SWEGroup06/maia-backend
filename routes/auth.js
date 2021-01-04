@@ -35,7 +35,13 @@ router.get("/login", async function (req, res) {
         const googleEmail = await DATABASE.getGoogleEmailFromSlackEmail(
           data.slackEmail
         );
-        res.json({ exists: true, email: googleEmail });
+        if (googleEmail) {
+          res.json({ exists: true, email: googleEmail });
+          return;
+        }
+
+        // If no google email was found send URL with notification of Google email existing not slack (Email login only)
+        await res.json({ url: GOOGLE.generateAuthUrl(data), emailonly: true });
         return;
       }
     }
