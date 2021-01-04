@@ -477,31 +477,31 @@ const context = {
    */
   findMeetingSlot(freeTimes, duration, historyFreqs, category) {
     if (!freeTimes || freeTimes.length === 0) {
-      console.log('nothing found: ', freeTimes);
+      console.log("nothing found: ", freeTimes);
       return null;
     }
     // for (let i = 0; i < 7; i++) {
     //   PLOT({
     //     data: historyFreqs[0][i],
     //     filename: `output_${i}.svg`,
-    //     format: 'svg',
+    //     format:		'svg',
     //   });
     // }
     const timeSlots = context._schedule(freeTimes, duration);
-    console.log(
-      'free times ',
-      freeTimes[0].map((interval) => [
-        interval[0].toString(),
-        interval[1].toString(),
-      ])
-    );
-    console.log(
-      'free timeslots ',
-      timeSlots.map((interval) => [
-        interval[0].toString(),
-        interval[1].toString(),
-      ])
-    );
+    // console.log(
+    //   'free times ',
+    //   freeTimes[0].map((interval) => [
+    //     interval[0].toString(),
+    //     interval[1].toString(),
+    //   ])
+    // );
+    // console.log(
+    //   'free timeslots ',
+    //   timeSlots.map((interval) => [
+    //     interval[0].toString(),
+    //     interval[1].toString(),
+    //   ])
+    // );
     // TODO: Amelia + Hasan: Why are the parameters passed as an object?
     const choice = context._chooseFromHistory({
       freeTimes: timeSlots,
