@@ -29,6 +29,9 @@
 				"element": {
 					"type": "plain_text_input",
 					"multiline": false,
+					"placeholder": {
+						"text": ""
+					  },
 					"action_id": "name-action"
 					},
 					"optional": true
@@ -60,7 +63,7 @@
 				"type": "input",
 				"element": {
 					"type": "timepicker",
-					"initial_time": "13:37",
+					"initial_time": "14:00",
 					"placeholder": {
 						"type": "plain_text",
 						"text": "Select time",
@@ -79,7 +82,7 @@
 				"type": "input",
 				"element": {
 					"type": "timepicker",
-					"initial_time": "13:37",
+					"initial_time": "15:00",
 					"placeholder": {
 						"type": "plain_text",
 						"text": "Select time",
