@@ -5,45 +5,36 @@ const GOOGLE = require("../lib/google.js");
 const DATABASE = require("../lib/database");
 const MEETINGS = require("../lib/meetings.js");
 const TIME = require("../lib/time.js");
+const REST_UTILS = require("./rest-utils.js")(DATABASE);
 
 // TODO: Temporary Schedule a new meeting
 router.get("/schedule", async function (req, res) {
-  if (!req.query.slackEmails && !req.query.googleEmails) {
-    res.json({ error: "No emails" });
-    return;
-  }
-
-  let title = JSON.parse(decodeURIComponent(req.query.title));
-  title = title.substring(1, title.length - 1);
-
-  const duration = JSON.parse(decodeURIComponent(req.query.duration));
-  const startDateRange = TIME.maintainLocalTimeZone(
-    JSON.parse(decodeURIComponent(req.query.startDateRange))
-  );
-  const endDateRange = TIME.maintainLocalTimeZone(
-    JSON.parse(decodeURIComponent(req.query.endDateRange))
-  );
-  const startTimeRange = TIME.maintainLocalTimeZone(
-    JSON.parse(decodeURIComponent(req.query.startTimeRange))
-  );
-  const endTimeRange = TIME.maintainLocalTimeZone(
-    JSON.parse(decodeURIComponent(req.query.endTimeRange))
-  );
-  const flexible = JSON.parse(decodeURIComponent(req.query.flexible));
-  const dayOfWeek = JSON.parse(decodeURIComponent(req.query.dayOfWeek));
-  const timeRangeSpecified = JSON.parse(
-    decodeURIComponent(req.query.timeRangeSpecified)
-  );
-
-  let googleEmails;
-  if (req.query.googleEmails) {
-    googleEmails = JSON.parse(decodeURIComponent(req.query.googleEmails));
-  } else {
-    const slackEmails = JSON.parse(decodeURIComponent(req.query.slackEmails));
-    googleEmails = await DATABASE.getGoogleEmailsFromSlackEmails(slackEmails);
-  }
-
   try {
+    // Fetch Google Emails
+    const googleEmails = await REST_UTILS.tryFetchGoogleEmails(req, res);
+
+    let title = JSON.parse(decodeURIComponent(req.query.title));
+    title = title.substring(1, title.length - 1);
+
+    const duration = JSON.parse(decodeURIComponent(req.query.duration));
+    const startDateRange = TIME.maintainLocalTimeZone(
+      JSON.parse(decodeURIComponent(req.query.startDateRange))
+    );
+    const endDateRange = TIME.maintainLocalTimeZone(
+      JSON.parse(decodeURIComponent(req.query.endDateRange))
+    );
+    const startTimeRange = TIME.maintainLocalTimeZone(
+      JSON.parse(decodeURIComponent(req.query.startTimeRange))
+    );
+    const endTimeRange = TIME.maintainLocalTimeZone(
+      JSON.parse(decodeURIComponent(req.query.endTimeRange))
+    );
+    const flexible = JSON.parse(decodeURIComponent(req.query.flexible));
+    const dayOfWeek = JSON.parse(decodeURIComponent(req.query.dayOfWeek));
+    const timeRangeSpecified = JSON.parse(
+      decodeURIComponent(req.query.timeRangeSpecified)
+    );
+
     const chosenSlot = await MEETINGS.schedule(
       googleEmails,
       title,
@@ -57,69 +48,57 @@ router.get("/schedule", async function (req, res) {
       timeRangeSpecified
     );
     res.json(chosenSlot);
-  } catch (error) {
-    console.error(error);
-    res.send({ error: error.toString() });
+  } catch (err) {
+    // Any other type of error
+    const msg = "REST schedule Error: " + err.message;
+    console.error(msg);
+    res.json({ error: msg });
   }
 });
 
 // TODO: Temporary until we finish
 router.get("/reschedule", async function (req, res) {
-  if (!req.query.slackEmail && !req.query.googleEmail) {
-    res.json({ error: "Email not found" });
-    return;
-  }
-
-  console.log("\nTP REQ.QUERY************");
-  console.log(req.query);
-  console.log("**************************\n");
-
-  // Check that either an event time or title has been specified.
-  if (!req.query.oldDateTime && !req.query.oldTitle) {
-    res.json({ error: "No event time or title specified for rescheduling." });
-  }
-
-  let googleEmail;
-  if (req.query.googleEmail) {
-    googleEmail = JSON.parse(decodeURIComponent(req.query.googleEmail));
-  } else {
-    const slackEmail = JSON.parse(decodeURIComponent(req.query.slackEmail));
-    googleEmail = await DATABASE.getGoogleEmailFromSlackEmail(slackEmail);
-  }
-
-  let oldTitle = JSON.parse(decodeURIComponent(req.query.oldTitle));
-  oldTitle = oldTitle.substring(1, oldTitle.length - 1);
-
-  const oldDateTime = TIME.maintainLocalTimeZone(
-    JSON.parse(decodeURIComponent(req.query.oldDateTime))
-  );
-  const newStartDateRange = TIME.maintainLocalTimeZone(
-    JSON.parse(decodeURIComponent(req.query.newStartDateRange))
-  );
-  const newEndDateRange = TIME.maintainLocalTimeZone(
-    JSON.parse(decodeURIComponent(req.query.newEndDateRange))
-  );
-  const newStartTimeRange = TIME.maintainLocalTimeZone(
-    JSON.parse(decodeURIComponent(req.query.newStartTimeRange))
-  );
-  const newEndTimeRange = TIME.maintainLocalTimeZone(
-    JSON.parse(decodeURIComponent(req.query.newEndTimeRange))
-  );
-  const newDayOfWeek = JSON.parse(decodeURIComponent(req.query.newDayOfWeek));
-  const dateRangeSpecified = JSON.parse(
-    decodeURIComponent(req.query.dateRangeSpecified)
-  );
-  const timeRangeSpecified = JSON.parse(
-    decodeURIComponent(req.query.timeRangeSpecified)
-  );
-  const flexible = JSON.parse(decodeURIComponent(req.query.flexible));
-
-  if (!oldDateTime && !oldTitle) {
-    res.json({ error: "You must specify the event title or date and time" });
-    return;
-  }
-
   try {
+    // Fetch Google Email
+    const googleEmail = await REST_UTILS.tryFetchGoogleEmail(req, res);
+
+    // Check that either an event time or title has been specified.
+    if (!req.query.oldDateTime && !req.query.oldTitle) {
+      res.json({ error: "No event time or title specified for rescheduling." });
+    }
+
+    let oldTitle = JSON.parse(decodeURIComponent(req.query.oldTitle));
+    oldTitle = oldTitle.substring(1, oldTitle.length - 1);
+
+    const oldDateTime = TIME.maintainLocalTimeZone(
+      JSON.parse(decodeURIComponent(req.query.oldDateTime))
+    );
+    const newStartDateRange = TIME.maintainLocalTimeZone(
+      JSON.parse(decodeURIComponent(req.query.newStartDateRange))
+    );
+    const newEndDateRange = TIME.maintainLocalTimeZone(
+      JSON.parse(decodeURIComponent(req.query.newEndDateRange))
+    );
+    const newStartTimeRange = TIME.maintainLocalTimeZone(
+      JSON.parse(decodeURIComponent(req.query.newStartTimeRange))
+    );
+    const newEndTimeRange = TIME.maintainLocalTimeZone(
+      JSON.parse(decodeURIComponent(req.query.newEndTimeRange))
+    );
+    const newDayOfWeek = JSON.parse(decodeURIComponent(req.query.newDayOfWeek));
+    const dateRangeSpecified = JSON.parse(
+      decodeURIComponent(req.query.dateRangeSpecified)
+    );
+    const timeRangeSpecified = JSON.parse(
+      decodeURIComponent(req.query.timeRangeSpecified)
+    );
+    const flexible = JSON.parse(decodeURIComponent(req.query.flexible));
+
+    if (!oldDateTime && !oldTitle) {
+      res.json({ error: "You must specify the event title or date and time" });
+      return;
+    }
+
     const chosenSlotToRescheduleTo = await MEETINGS.reschedule(
       googleEmail,
       oldTitle,
@@ -134,33 +113,19 @@ router.get("/reschedule", async function (req, res) {
       flexible
     );
     res.json(chosenSlotToRescheduleTo);
-  } catch (error) {
-    console.error(error);
-    res.send({ error: error.toString() });
+  } catch (err) {
+    // Any other type of error
+    const msg = "REST reschedule Error: " + err.message;
+    console.error(msg);
+    res.json({ error: msg });
   }
 });
 
 // Retrieve all meetings
 router.get("/meetings", async function (req, res) {
-  if (!req.query.slackEmail && !req.query.googleEmail) {
-    res.json({ error: "Email not found" });
-    return;
-  }
-
   try {
-    let googleEmail;
-    if (req.query.googleEmail) {
-      googleEmail = JSON.parse(decodeURIComponent(req.query.googleEmail));
-    } else {
-      const slackEmail = JSON.parse(decodeURIComponent(req.query.slackEmail));
-      googleEmail = await DATABASE.getGoogleEmailFromSlackEmail(slackEmail);
-    }
-
-    // Check if a user with the provided details existing in the database
-    if (!(await DATABASE.userExists(googleEmail))) {
-      res.json({ error: `${googleEmail} is not signed in` });
-      return;
-    }
+    // Fetch Google Email
+    const googleEmail = await REST_UTILS.tryFetchGoogleEmail(req, res);
 
     // Get tokens from the database
     const token = JSON.parse(
@@ -188,82 +153,70 @@ router.get("/meetings", async function (req, res) {
     events.map((event) => [event.summary, event.start.date, event.end.date]);
 
     res.json(eventDict);
-  } catch (error) {
-    console.error(error);
-    res.send({ error: error.toString() });
+  } catch (err) {
+    // Any other type of error
+    const msg = "REST meetings Error: " + err.message;
+    console.error(msg);
+    res.json({ error: msg });
   }
 });
 
 // Add constraints
 router.get("/constraints", async function (req, res) {
-  if (!req.query.slackEmail && !req.query.googleEmail) {
-    res.json({ error: "Email not found" });
-    return;
-  }
-
-  if (!req.query.busyTimes) {
-    res.json({ error: "Busy times not found" });
-  }
-
-  if (!req.query.busyDays) {
-    res.json({ error: "Busy days not found" });
-    return;
-  }
-
   try {
-    let googleEmail;
-    if (req.query.googleEmail) {
-      googleEmail = JSON.parse(decodeURIComponent(req.query.googleEmail));
-    } else {
-      const slackEmail = JSON.parse(decodeURIComponent(req.query.slackEmail));
-      googleEmail = await DATABASE.getGoogleEmailFromSlackEmail(slackEmail);
+    // Fetch Google Email
+    const googleEmail = await REST_UTILS.tryFetchGoogleEmail(req, res);
+
+    if (!req.query.busyTimes) {
+      res.json({ error: "Busy times not found" });
+    }
+
+    if (!req.query.busyDays) {
+      res.json({ error: "Busy days not found" });
+      return;
     }
 
     const days = JSON.parse(decodeURIComponent(req.query.busyDays));
     const times = JSON.parse(decodeURIComponent(req.query.busyTimes));
 
-    await MEETINGS.setContraints(googleEmail, days, times);
+    await MEETINGS.setConstraints(googleEmail, days, times);
 
     res.send({ success: true });
-  } catch (error) {
-    console.error(error);
-    res.send({ error: error.toString() });
+  } catch (err) {
+    // Any other type of error
+    const msg = "REST constraints Error: " + err.message;
+    console.error(msg);
+    res.json({ error: msg });
   }
 });
 
 // set min break length
 router.get("/setMinBreak", async function (req, res) {
-  if (!req.query.slackEmail && !req.query.googleEmail) {
-    res.json({ error: "Email not found" });
-    return;
-  }
-
-  if (!req.query.minBreakLength) {
-    res.json({ error: "Break length not provided" });
-  }
-
   try {
-    let googleEmail;
-    if (req.query.googleEmail) {
-      googleEmail = JSON.parse(decodeURIComponent(req.query.googleEmail));
-    } else {
-      const slackEmail = JSON.parse(decodeURIComponent(req.query.slackEmail));
-      googleEmail = await DATABASE.getGoogleEmailFromSlackEmail(slackEmail);
+    // Fetch Google Email
+    const googleEmail = await REST_UTILS.tryFetchGoogleEmail(req, res);
+
+    if (!req.query.minBreakLength) {
+      res.json({ error: "Break length not provided" });
     }
 
-    const breakMinutes = JSON.parse(decodeURIComponent(req.query.minBreakLength));
+    const breakMinutes = JSON.parse(
+      decodeURIComponent(req.query.minBreakLength)
+    );
     if (!breakMinutes) {
       // break can't be in seconds/milliseconds/... at least minutes
       res.send({ error: "break must be 0 or more minutes" });
     } else if (breakMinutes < 0) {
-      console.log('err');
+      console.log("err");
       res.send({ error: "breaks can't be negative" });
     }
     await DATABASE.setMinBreakLength(googleEmail, breakMinutes);
     res.send({ success: true });
-  } catch (error) {
-    console.error(error);
-    res.send({ error: error.toString() });
+  } catch (err) {
+    // Any other type of error
+    const msg = "REST setMinBreak Error: " + err.message;
+    console.error(msg);
+    res.json({ error: msg });
   }
 });
 
@@ -302,19 +255,10 @@ router.get("/setMinBreak", async function (req, res) {
 
 // Cancel event
 router.get("/cancel", async function (req, res) {
-  if (!req.query.slackEmail && !req.query.googleEmail) {
-    res.json({ error: "Email not found" });
-    return;
-  }
-
   try {
-    let googleEmail;
-    if (req.query.googleEmail) {
-      googleEmail = JSON.parse(decodeURIComponent(req.query.googleEmail));
-    } else {
-      const slackEmail = JSON.parse(decodeURIComponent(req.query.slackEmail));
-      googleEmail = await DATABASE.getGoogleEmailFromSlackEmail(slackEmail);
-    }
+    // Fetch Google Email
+    const googleEmail = await REST_UTILS.tryFetchGoogleEmail(req, res);
+
     const organiserToken = JSON.parse(
       decodeURIComponent(await DATABASE.getTokenFromGoogleEmail(googleEmail))
     );
@@ -351,35 +295,29 @@ router.get("/cancel", async function (req, res) {
 
     await GOOGLE.cancelEvent(organiserToken, events[0].id);
     res.json({ title: eventTitle, dateTime: eventDateTime });
-  } catch (error) {
-    console.error(error);
-    res.send({ error: error.toString() });
+  } catch (err) {
+    // Any other type of error
+    const msg = "REST cancel Error: " + err.message;
+    console.error(msg);
+    res.json({ error: msg });
   }
 });
 
 // TODO: Amelia + Hasan?
 router.get("/preferences", async function (req, res) {
-  if (!req.query.slackEmail && !req.query.googleEmail) {
-    res.json({ error: "Email not found" });
-    return;
-  }
   try {
-    let googleEmail;
-    if (req.query.googleEmail) {
-      googleEmail = JSON.parse(decodeURIComponent(req.query.googleEmail));
-    } else {
-      const slackEmail = JSON.parse(decodeURIComponent(req.query.slackEmail));
-      googleEmail = await DATABASE.getGoogleEmailFromSlackEmail(slackEmail);
-    }
-    const tokens = JSON.parse(
-      await DATABASE.getTokenFromGoogleEmail(googleEmail)
-    );
+    // Fetch Google Email
+    const googleEmail = await REST_UTILS.tryFetchGoogleEmail(req, res);
 
+    // Generate User preferences
     await MEETINGS.generatePreferences(googleEmail, tokens);
+
     res.send({ status: "ok" });
   } catch (err) {
-    console.error(error);
-    res.send({ error: error.toString() });
+    // Any other type of error
+    const msg = "REST preferences Error: " + err.message;
+    console.error(msg);
+    res.json({ error: msg });
   }
 });
 

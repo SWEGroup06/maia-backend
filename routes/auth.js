@@ -3,20 +3,21 @@ const router = express.Router();
 
 const GOOGLE = require("../lib/google.js");
 const DATABASE = require("../lib/database.js");
+const REST_UTILS = require("./rest-utils.js")(DATABASE);
 
 router.use("/success", express.static("public"));
 
 // Login
 router.get("/login", async function (req, res) {
-  if (
-    !req.query.googleEmail &&
-    !!req.query.slackId + !!req.query.slackEmail < 2
-  ) {
-    res.json({ error: "No email provided" });
-    return;
-  }
-
   try {
+    if (
+      !req.query.googleEmail &&
+      !!req.query.slackId + !!req.query.slackEmail < 2
+    ) {
+      res.json({ error: "No email provided" });
+      return;
+    }
+
     const data = {};
     if (req.query.googleEmail) {
       data.googleEmail = JSON.parse(decodeURIComponent(req.query.googleEmail));
@@ -35,16 +36,24 @@ router.get("/login", async function (req, res) {
         const googleEmail = await DATABASE.getGoogleEmailFromSlackEmail(
           data.slackEmail
         );
-        res.json({ exists: true, email: googleEmail });
+        if (googleEmail) {
+          res.json({ exists: true, email: googleEmail });
+          return;
+        }
+
+        // If no google email was found send URL with notification of Google email existing not slack (Email login only)
+        await res.json({ url: GOOGLE.generateAuthUrl(data), emailonly: true });
         return;
       }
     }
 
     // If no details were found send URL
     await res.json({ url: GOOGLE.generateAuthUrl(data) });
-  } catch (error) {
-    console.error(error);
-    res.send({ error: error.toString() });
+  } catch (err) {
+    // Any other type of error
+    const msg = "REST login Error: " + err.message;
+    console.error(msg);
+    res.json({ error: msg });
   }
 });
 
@@ -77,36 +86,30 @@ router.get("/callback", async function (req, res) {
     res.redirect("success/login.html");
 
     // res.json({userID: state.userID, teamID: state.teamID, tokens});
-  } catch (error) {
-    console.error(error);
-    res.send({ error: error.toString() });
+  } catch (err) {
+    // Any other type of error
+    const msg = "REST callback Error: " + err.message;
+    console.error(msg);
+    res.json({ error: msg });
   }
 });
 
 // Logout
 router.get("/logout", async function (req, res) {
-  if (!req.query.googleEmail && !req.query.slackEmail) {
-    res.json({ error: "No email provided" });
-    return;
-  }
-
   try {
-    let googleEmail;
-    if (req.query.googleEmail) {
-      googleEmail = JSON.parse(decodeURIComponent(req.query.googleEmail));
-    } else {
-      const slackEmail = JSON.parse(decodeURIComponent(req.query.slackEmail));
-      googleEmail = await DATABASE.getGoogleEmailFromSlackEmail(slackEmail);
-    }
+    // Fetch Google Email
+    const googleEmail = await REST_UTILS.tryFetchGoogleEmail(req, res);
 
     // Delete account
     await DATABASE.deleteUser(googleEmail);
 
     // Send success
     await res.json({ text: `*Sign out with ${googleEmail} was successful*` });
-  } catch (error) {
-    console.error(error);
-    res.send({ error: error.toString() });
+  } catch (err) {
+    // Any other type of error
+    const msg = "REST logout Error: " + err.message;
+    console.error(msg);
+    res.json({ error: msg });
   }
 });
 

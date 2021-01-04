@@ -1,5 +1,6 @@
 # Environments
 .env
+venv
 
 # VSCode
 .vscode
@@ -11,15 +12,7 @@
 node_modules
 .DS_Store
 package-lock.json
+npm-debug.log
 
 # Misc
-creds.json
-venv
-
-output_0.svg
-output_1.svg
-output_2.svg
-output_3.svg
-output_4.svg
-output_5.svg
-output_6.svg
+*.svg
