@@ -219,18 +219,21 @@ const context = {
    * Chooses the best time slot out of list of free times considering the
    * user's history of most common busy times
    *
-   * @param {Array} freeTimes - returned by _schedule [[start1, start2]]
-   * @param {Array} historyFreqs -- array of arrays returned by userHistory()
-   * @param {Duration} duration -- event's duration
-   * @param {number} category - TODO: Description
-   * @param {Array} freeTimes.freeTimes - TODO: Description
-   * @param {Array} freeTimes.historyFreqs - TODO: Description
-   * @param {number} freeTimes.duration - TODO: Description
-   * @param {number} freeTimes.category - TODO: Description
+   * @param {object} config - Input
+   * @param {Array} config.Times - returned by _schedule [[start1, start2]]
+   * @param {Array} config.historyFreqs -- array of arrays returned by userHistory()
+   * @param {Duration} config.duration -- event's duration
+   * @param {number} config.category - TODO: Description
+   * @param {Array} config.freeTimes.freeTimes - TODO: Description
+   * @param {Array} config.freeTimes.historyFreqs - TODO: Description
+   * @param {number} config.freeTimes.duration - TODO: Description
+   * @param {number} config.freeTimes.category - TODO: Description
    * @return {DateTime} -- best start date time for event
    * @private
    */
-  _chooseFromHistory: ({ freeTimes, historyFreqs, duration, category }) => {
+  _chooseFromHistory: (config) => {
+    const { freeTimes, historyFreqs, duration, category } = config;
+
     // sum history freqs together to make one for everyone
     if (historyFreqs.length < 1) {
       console.log("error in _chooseFromHistory: no history freqs given");
