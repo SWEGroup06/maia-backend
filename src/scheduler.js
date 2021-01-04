@@ -1,7 +1,7 @@
 const { DateTime, Duration } = require("luxon");
 
 const DIALOGFLOW = require("../lib/dialogflow.js");
-// const PLOT = require('plotter').plot;
+// const PLOT = require("plotter").plot;
 
 /* CONSTANTS */
 const halfHoursInDay = 24 * 2;
@@ -363,7 +363,7 @@ const context = {
       console.log(
         "no busy slots found -- return whole period with constraints"
       );
-      return context.freeSlotsAux(searchStart, searchEnd, timeConstraints);
+      return context.freeSlotsAux(searchStart, searchEnd, timeConstraints, true);
     }
 
     // Parse busy slots as DateTime objects
@@ -466,24 +466,34 @@ const context = {
    * @param { DateTime } start - TODO: Description
    * @param { DateTime } end - TODO: Description
    * @param { Array } timeConstraints - TODO: Description [{DateTime, DateTime}]
+   * @param { Boolean } considerStartEndTime
    * @return { Array } - TODO: Description
    */
-  freeSlotsAux: (start, end, timeConstraints) => {
+  freeSlotsAux: (start, end, timeConstraints, considerStartEndTime = false) => {
     const oneDay = Duration.fromObject({ days: 1 });
     const freeSlots = [];
-    start = start.startOf("day");
-    end = end.endOf("day");
+    if (!considerStartEndTime) {
+      start = start.startOf("day");
+      end = end.endOf("day");
+    }
     while (start <= end) {
       const day = start.weekday - 1;
       if (timeConstraints[day].length > 0) {
-        freeSlots.push([
-          context.combine(start, timeConstraints[day][0]),
-          context.combine(start, timeConstraints[day][1]),
-        ]);
+        const startConstraint = context.combine(start, timeConstraints[day][0]);
+        const endConstraint = context.combine(start, timeConstraints[day][1]);
+        if (!considerStartEndTime) {
+          freeSlots.push([startConstraint, endConstraint]);
+        } else if (endConstraint > start) {
+          freeSlots.push([
+            DateTime.max(startConstraint, start),
+            DateTime.min(endConstraint, end),
+          ]);
+        }
       }
+      start = start.startOf("day");
       start = start.plus(oneDay);
     }
-    // console.log('mappp', freeSlots.map((slot) => [slot[0].toString(), slot[1].toString()]));
+    console.log('freeSlots', freeSlots.map((slot) => [slot[0].toString(), slot[1].toString()]));
     return freeSlots;
   },
 
@@ -505,7 +515,7 @@ const context = {
     //   PLOT({
     //     data: historyFreqs[0][i],
     //     filename: `output_${i}.svg`,
-    //     format:		'svg',
+    //     format: "svg",
     //   });
     // }
 
@@ -620,39 +630,21 @@ const context = {
     }
     if (category > 1) {
       // workdays are less popular
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 7; i++) {
         const vals = Array(halfHoursInDay).fill(0);
         for (let i = 0; i <= 12; i++) vals[i] = -5;
         for (let i = 13; i < 15; i++) vals[i] = i - 14;
-        for (let i = 15; i <= 17; i++) vals[i] = 1;
-        for (let i = 18; i <= 19; i++) vals[i] = 18 - i;
-        for (let i = 20; i < 24; i++) vals[i] = -5;
+        for (let i = 15; i <= 16; i++) vals[i] = 1;
+        for (let i = 17; i <= 18; i++) vals[i] = 17 - i;
+        for (let i = 19; i < 24; i++) vals[i] = -5;
         for (let i = 24; i < 26; i++) vals[i] = i - 25;
-        for (let i = 26; i <= 28; i++) vals[i] = 1;
-        for (let i = 29; i <= 30; i++) vals[i] = 29 - i;
+        for (let i = 26; i <= 27; i++) vals[i] = 1;
+        for (let i = 28; i <= 29; i++) vals[i] = 28 - i;
         for (let i = 31; i < 36; i++) vals[i] = -5;
         for (let i = 36; i < 38; i++) vals[i] = i - 37;
-        for (let i = 38; i <= 40; i++) vals[i] = 1;
-        for (let i = 41; i <= 42; i++) vals[i] = 41 - i;
-        for (let i = 43; i < 48; i++) vals[i] = -5;
-        frequencies[i] = vals;
-      }
-      // weekend days are more popular
-      for (let i = 5; i < 7; i++) {
-        const vals = Array(halfHoursInDay).fill(0);
-        for (let i = 0; i <= 12; i++) vals[i] = -5;
-        for (let i = 13; i < 15; i++) vals[i] = i - 13;
-        for (let i = 15; i <= 17; i++) vals[i] = 2;
-        for (let i = 18; i <= 19; i++) vals[i] = 19 - i;
-        for (let i = 20; i < 24; i++) vals[i] = -5;
-        for (let i = 24; i < 26; i++) vals[i] = i - 24;
-        for (let i = 26; i <= 28; i++) vals[i] = 2;
-        for (let i = 29; i <= 30; i++) vals[i] = 30 - i;
-        for (let i = 31; i < 36; i++) vals[i] = -5;
-        for (let i = 36; i < 38; i++) vals[i] = i - 36;
-        for (let i = 38; i <= 40; i++) vals[i] = 2;
-        for (let i = 41; i <= 42; i++) vals[i] = 42 - i;
-        for (let i = 43; i < 48; i++) vals[i] = -5;
+        for (let i = 38; i <= 39; i++) vals[i] = 1;
+        for (let i = 40; i <= 41; i++) vals[i] = 40 - i;
+        for (let i = 42; i < 48; i++) vals[i] = -5;
         frequencies[i] = vals;
       }
     }

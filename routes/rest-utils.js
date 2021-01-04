@@ -34,6 +34,8 @@ module.exports = (DATABASE) => {
             res.json({ error: "Not Logged In: Internal Error" });
             return;
           }
+
+          return googleEmail;
         }
       } catch (err) {
         // Any other type of error
@@ -56,7 +58,7 @@ module.exports = (DATABASE) => {
 
           // Check if Google email exists
           const notLoggedIn = await DATABASE.allUsersExists(googleEmails);
-          if (!notLoggedIn) {
+          if (notLoggedIn) {
             res.json({
               error: `Not Logged In: ${notLoggedIn.join(
                 " "
@@ -71,7 +73,7 @@ module.exports = (DATABASE) => {
 
           // Check if Slack email exists
           const notLoggedIn = await DATABASE.allUsersExists(slackEmails);
-          if (!notLoggedIn) {
+          if (notLoggedIn) {
             res.json({
               error: `Not Logged In: ${notLoggedIn.join(
                 " "
@@ -89,6 +91,8 @@ module.exports = (DATABASE) => {
             res.json({ error: "Not Logged In: Internal Error" });
             return;
           }
+
+          return googleEmails;
         }
       } catch (err) {
         // Any other type of error
