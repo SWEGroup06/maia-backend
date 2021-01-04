@@ -3,6 +3,7 @@ const router = express.Router();
 
 const GOOGLE = require("../lib/google.js");
 const DATABASE = require("../lib/database.js");
+const REST_UTILS = require("./rest-utils.js")(DATABASE);
 
 router.use("/success", express.static("public"));
 
@@ -91,28 +92,20 @@ router.get("/callback", async function (req, res) {
 
 // Logout
 router.get("/logout", async function (req, res) {
-  if (!req.query.googleEmail && !req.query.slackEmail) {
-    res.json({ error: "No email provided" });
-    return;
-  }
-
   try {
-    let googleEmail;
-    if (req.query.googleEmail) {
-      googleEmail = JSON.parse(decodeURIComponent(req.query.googleEmail));
-    } else {
-      const slackEmail = JSON.parse(decodeURIComponent(req.query.slackEmail));
-      googleEmail = await DATABASE.getGoogleEmailFromSlackEmail(slackEmail);
-    }
+    // Fetch Google Email
+    const googleEmail = await REST_UTILS.tryFetchGoogleEmail(req, res);
 
     // Delete account
     await DATABASE.deleteUser(googleEmail);
 
     // Send success
     await res.json({ text: `*Sign out with ${googleEmail} was successful*` });
-  } catch (error) {
-    console.error(error);
-    res.send({ error: error.toString() });
+  } catch (err) {
+    // Any other type of error
+    const msg = "REST logout Error: " + err.message;
+    console.log(msg);
+    res.json({ error: msg });
   }
 });
 
