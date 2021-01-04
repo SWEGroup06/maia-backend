@@ -219,7 +219,7 @@ const context = {
    * Chooses the best time slot out of list of free times considering the
    * user's history of most common busy times
    *
-   * @param {object} config - Input
+   * @param {object} config - Input configuration
    * @param {Array} config.Times - returned by _schedule [[start1, start2]]
    * @param {Array} config.historyFreqs -- array of arrays returned by userHistory()
    * @param {Duration} config.duration -- event's duration
