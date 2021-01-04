@@ -15,6 +15,7 @@ const SlackAccountSchema = new Schema({
 const SchedulingPreferencesSchema = new Schema({
   minBreakLength: { type: Number }, // Minimum length of a break a user wants.
   autoReschedulingInterval: { type: Number }, // Minimum time before the auto-rescheduler should acknowledge event.
+  // notifyAutoReschedules: { type: Number }, // whether flexible events should be rescheduled automatically or sent as suggestions
   clustering: { type: Boolean }, // Whether the user prefers clustering of events or not.
 });
 

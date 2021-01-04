@@ -221,12 +221,13 @@ router.get("/set-min-break", async function (req, res) {
     );
     if (!breakMinutes) {
       // break can't be in seconds/milliseconds/... at least minutes
-      res.send({ error: "break must be 0 or more minutes" });
+      res.send({ error: "please give your required break length in minutes" });
     } else if (breakMinutes < 0) {
       console.log("err");
       res.send({ error: "breaks can't be negative" });
+    } else {
+      await DATABASE.setMinBreakLength(googleEmail, breakMinutes);
     }
-    await DATABASE.setMinBreakLength(googleEmail, breakMinutes);
     res.send({ success: true });
   } catch (err) {
     // Any other type of error
@@ -235,6 +236,39 @@ router.get("/set-min-break", async function (req, res) {
     res.json({ error: msg });
   }
 });
+
+// // Set Notify Auto Reschedules
+// router.get("/setNotifyAutoReschedules", async function (req, res) {
+//   if (!req.query.slackEmail && !req.query.googleEmail) {
+//     res.json({ error: "Email not found" });
+//     return;
+//   }
+//
+//   if (!req.query.notifyAutoReschedules) {
+//     res.json({ error: "Notification preference not given" });
+//   }
+//
+//   try {
+//     let googleEmail;
+//     if (req.query.googleEmail) {
+//       googleEmail = JSON.parse(decodeURIComponent(req.query.googleEmail));
+//     } else {
+//       const slackEmail = JSON.parse(decodeURIComponent(req.query.slackEmail));
+//       googleEmail = await DATABASE.getGoogleEmailFromSlackEmail(slackEmail);
+//     }
+//
+//     const notify = JSON.parse(decodeURIComponent(req.query.notifyAutoReschedules));
+//     if (notify === null) {
+//       // break can't be in seconds/milliseconds/... at least minutes
+//       res.send({ error: "Notification preference not given" });
+//     }
+//     await DATABASE.setNotifyOfAutoReschedules(googleEmail, notify);
+//     res.send({ success: true });
+//   } catch (error) {
+//     console.error(error);
+//     res.send({ error: error.toString() });
+//   }
+// });
 
 // Cancel event
 router.get("/cancel", async function (req, res) {

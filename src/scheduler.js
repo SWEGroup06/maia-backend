@@ -1,7 +1,7 @@
 const { DateTime, Duration } = require("luxon");
 
 const DIALOGFLOW = require("../lib/dialogflow.js");
-// const PLOT = require('plotter').plot;
+// const PLOT = require("plotter").plot;
 
 /* CONSTANTS */
 const halfHoursInDay = 24 * 2;
@@ -219,21 +219,14 @@ const context = {
    * Chooses the best time slot out of list of free times considering the
    * user's history of most common busy times
    *
-   * @param {object} config - Input configuration
-   * @param {Array} config.Times - returned by _schedule [[start1, start2]]
-   * @param {Array} config.historyFreqs -- array of arrays returned by userHistory()
-   * @param {Duration} config.duration -- event's duration
-   * @param {number} config.category - TODO: Description
-   * @param {Array} config.freeTimes.freeTimes - TODO: Description
-   * @param {Array} config.freeTimes.historyFreqs - TODO: Description
-   * @param {number} config.freeTimes.duration - TODO: Description
-   * @param {number} config.freeTimes.category - TODO: Description
+   * @param {Array} freeTimes - returned by _schedule [[start1, start2]]
+   * @param {Array} historyFreqs -- array of arrays returned by userHistory()
+   * @param {Duration} duration -- event's duration
+   * @param {number} category - TODO: Description
    * @return {DateTime} -- best start date time for event
    * @private
    */
-  _chooseFromHistory: (config) => {
-    const { freeTimes, historyFreqs, duration, category } = config;
-
+  _chooseFromHistory: (freeTimes, historyFreqs, duration, category) => {
     // sum history freqs together to make one for everyone
     if (historyFreqs.length < 1) {
       console.log("error in _chooseFromHistory: no history freqs given");
@@ -274,11 +267,11 @@ const context = {
         begin.plus(duration),
         historyFreq
       );
-      p1 > 0 ? (p1 *= distanceWeight) : null;
+      p1 > 0 ? (p1 *= distanceWeight) : (p1 /= distanceWeight);
       let p2 =
         context.getTimeSlotValue(end, end.plus(duration), historyFreq) *
         distanceWeight;
-      p2 > 0 ? (p2 *= distanceWeight) : null;
+      p2 > 0 ? (p2 *= distanceWeight) : (p2 /= distanceWeight);
 
       if (clusterP < p1) {
         clusterP = p1;
@@ -289,12 +282,18 @@ const context = {
         bestClusterTimeSlot = new DateTime(end);
       }
       // console.log('begin: ', begin.toString(), ' -> ', p1, ' end: ', end.toString(), ' -> ', p2, ' bestCluster',
-      //     (bestClusterTimeSlot ? bestClusterTimeSlot.toString() : 'null'), ' -> ', clusterP);
+      //   bestClusterTimeSlot ? bestClusterTimeSlot.toString() : "null",
+      //   " -> ",
+      //   clusterP
+      // );
       begin = begin.plus(fifteenMins);
       while (begin < end) {
-        const p3 =
-          context.getTimeSlotValue(begin, begin.plus(duration), historyFreq) *
-          distanceWeight;
+        let p3 = context.getTimeSlotValue(
+          begin,
+          begin.plus(duration),
+          historyFreq
+        );
+        p3 > 0 ? (p3 *= distanceWeight) : (p3 /= distanceWeight);
         if (bestP < p3) {
           bestP = p3;
           bestPTimeSlot = new DateTime(begin);
@@ -311,6 +310,7 @@ const context = {
           : 0.7
         : 1;
 
+    // console.log('cluster bias', clusterBias);
     if (clusterP * clusterBias < bestP) {
       // console.log('--p wins-- bestP: ', (bestPTimeSlot ? bestPTimeSlot.toString() : 'null'), ' -> ', bestP,
       //     '  clusterP: ', (bestClusterTimeSlot ? bestClusterTimeSlot.toString() : 'null'), ' -> ', clusterP);
@@ -347,14 +347,23 @@ const context = {
         : []
     );
 
-    // console.log('timeConstraints: ', timeConstraints.map((interval) => (interval.length > 0 ? [interval[0].toString(), interval[1].toString()] : [])));
+    // console.log(
+    //   "timeConstraints: ",
+    //   timeConstraints.map((interval) =>
+    //     interval.length > 0
+    //       ? [interval[0].toString(), interval[1].toString()]
+    //       : []
+    //   )
+    // );
 
     // If there are no busy slots return entire search period
     const searchStart = DateTime.fromISO(startISO);
     const searchEnd = DateTime.fromISO(endISO);
     if (!busySlots.length) {
-      console.log("no busy slots found -- return whole period");
-      return context.freeSlotsAux(searchStart, searchEnd, timeConstraints);
+      console.log(
+        "no busy slots found -- return whole period with constraints"
+      );
+      return context.freeSlotsAux(searchStart, searchEnd, timeConstraints, true);
     }
 
     // Parse busy slots as DateTime objects
@@ -457,24 +466,34 @@ const context = {
    * @param { DateTime } start - TODO: Description
    * @param { DateTime } end - TODO: Description
    * @param { Array } timeConstraints - TODO: Description [{DateTime, DateTime}]
+   * @param { Boolean } considerStartEndTime
    * @return { Array } - TODO: Description
    */
-  freeSlotsAux: (start, end, timeConstraints) => {
+  freeSlotsAux: (start, end, timeConstraints, considerStartEndTime = false) => {
     const oneDay = Duration.fromObject({ days: 1 });
     const freeSlots = [];
-    start = start.startOf("day");
-    end = end.endOf("day");
+    if (!considerStartEndTime) {
+      start = start.startOf("day");
+      end = end.endOf("day");
+    }
     while (start <= end) {
       const day = start.weekday - 1;
       if (timeConstraints[day].length > 0) {
-        freeSlots.push([
-          context.combine(start, timeConstraints[day][0]),
-          context.combine(start, timeConstraints[day][1]),
-        ]);
+        const startConstraint = context.combine(start, timeConstraints[day][0]);
+        const endConstraint = context.combine(start, timeConstraints[day][1]);
+        if (!considerStartEndTime) {
+          freeSlots.push([startConstraint, endConstraint]);
+        } else if (endConstraint > start) {
+          freeSlots.push([
+            DateTime.max(startConstraint, start),
+            DateTime.min(endConstraint, end),
+          ]);
+        }
       }
+      start = start.startOf("day");
       start = start.plus(oneDay);
     }
-    // console.log('mappp', freeSlots.map((slot) => [slot[0].toString(), slot[1].toString()]));
+    console.log('freeSlots', freeSlots.map((slot) => [slot[0].toString(), slot[1].toString()]));
     return freeSlots;
   },
 
@@ -496,31 +515,32 @@ const context = {
     //   PLOT({
     //     data: historyFreqs[0][i],
     //     filename: `output_${i}.svg`,
-    //     format: 'svg',
+    //     format: "svg",
     //   });
     // }
+
     const timeSlots = context._schedule(freeTimes, duration);
-    console.log(
-      "free times ",
-      freeTimes[0].map((interval) => [
-        interval[0].toString(),
-        interval[1].toString(),
-      ])
-    );
-    console.log(
-      "free timeslots ",
-      timeSlots.map((interval) => [
-        interval[0].toString(),
-        interval[1].toString(),
-      ])
-    );
+    // console.log(
+    //   'free times ',
+    //   freeTimes[0].map((interval) => [
+    //     interval[0].toString(),
+    //     interval[1].toString(),
+    //   ])
+    // );
+    // console.log(
+    //   'free timeslots ',
+    //   timeSlots.map((interval) => [
+    //     interval[0].toString(),
+    //     interval[1].toString(),
+    //   ])
+    // );
     // TODO: Amelia + Hasan: Why are the parameters passed as an object?
-    const choice = context._chooseFromHistory({
-      freeTimes: timeSlots,
-      historyFreqs: historyFreqs,
-      duration: duration,
-      category: category,
-    });
+    const choice = context._chooseFromHistory(
+      timeSlots,
+      historyFreqs,
+      duration,
+      category
+    );
     if (choice) {
       return {
         start: choice.toISO(),
@@ -605,6 +625,26 @@ const context = {
         for (let i = 28; i <= 34; i++) vals[i] = 1;
         for (let i = 35; i <= 42; i++) vals[i] = 0;
         for (let i = 43; i < 48; i++) vals[i] = 35 - (5 / 6) * i;
+        frequencies[i] = vals;
+      }
+    }
+    if (category > 1) {
+      // workdays are less popular
+      for (let i = 0; i < 7; i++) {
+        const vals = Array(halfHoursInDay).fill(0);
+        for (let i = 0; i <= 12; i++) vals[i] = -5;
+        for (let i = 13; i < 15; i++) vals[i] = i - 14;
+        for (let i = 15; i <= 16; i++) vals[i] = 1;
+        for (let i = 17; i <= 18; i++) vals[i] = 17 - i;
+        for (let i = 19; i < 24; i++) vals[i] = -5;
+        for (let i = 24; i < 26; i++) vals[i] = i - 25;
+        for (let i = 26; i <= 27; i++) vals[i] = 1;
+        for (let i = 28; i <= 29; i++) vals[i] = 28 - i;
+        for (let i = 31; i < 36; i++) vals[i] = -5;
+        for (let i = 36; i < 38; i++) vals[i] = i - 37;
+        for (let i = 38; i <= 39; i++) vals[i] = 1;
+        for (let i = 40; i <= 41; i++) vals[i] = 40 - i;
+        for (let i = 42; i < 48; i++) vals[i] = -5;
         frequencies[i] = vals;
       }
     }
