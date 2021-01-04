@@ -9,15 +9,15 @@ router.use("/success", express.static("public"));
 
 // Login
 router.get("/login", async function (req, res) {
-  if (
-    !req.query.googleEmail &&
-    !!req.query.slackId + !!req.query.slackEmail < 2
-  ) {
-    res.json({ error: "No email provided" });
-    return;
-  }
-
   try {
+    if (
+      !req.query.googleEmail &&
+      !!req.query.slackId + !!req.query.slackEmail < 2
+    ) {
+      res.json({ error: "No email provided" });
+      return;
+    }
+
     const data = {};
     if (req.query.googleEmail) {
       data.googleEmail = JSON.parse(decodeURIComponent(req.query.googleEmail));
@@ -49,9 +49,11 @@ router.get("/login", async function (req, res) {
 
     // If no details were found send URL
     await res.json({ url: GOOGLE.generateAuthUrl(data) });
-  } catch (error) {
-    console.error(error);
-    res.send({ error: error.toString() });
+  } catch (err) {
+    // Any other type of error
+    const msg = "REST login Error: " + err.message;
+    console.error(msg);
+    res.json({ error: msg });
   }
 });
 
@@ -84,9 +86,11 @@ router.get("/callback", async function (req, res) {
     res.redirect("success/login.html");
 
     // res.json({userID: state.userID, teamID: state.teamID, tokens});
-  } catch (error) {
-    console.error(error);
-    res.send({ error: error.toString() });
+  } catch (err) {
+    // Any other type of error
+    const msg = "REST callback Error: " + err.message;
+    console.error(msg);
+    res.json({ error: msg });
   }
 });
 
@@ -104,7 +108,7 @@ router.get("/logout", async function (req, res) {
   } catch (err) {
     // Any other type of error
     const msg = "REST logout Error: " + err.message;
-    console.log(msg);
+    console.error(msg);
     res.json({ error: msg });
   }
 });
