@@ -5,7 +5,7 @@ const GOOGLE = require("../lib/google.js");
 const DATABASE = require("../lib/database");
 const MEETINGS = require("../lib/meetings.js");
 const TIME = require("../lib/time.js");
-const REST_UTILS = require("./rest-utils.js")(DATABASE);
+// const REST_UTILS = require("./rest-utils.js")(DATABASE);
 
 // TODO: Temporary Schedule a new meeting
 router.get("/schedule", async function (req, res) {
