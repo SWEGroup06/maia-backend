@@ -222,7 +222,7 @@ router.get("/constraints", async function (req, res) {
     const days = JSON.parse(decodeURIComponent(req.query.busyDays));
     const times = JSON.parse(decodeURIComponent(req.query.busyTimes));
 
-    await MEETINGS.setContraints(googleEmail, days, times);
+    await MEETINGS.setConstraints(googleEmail, days, times);
 
     res.send({ success: true });
   } catch (error) {
