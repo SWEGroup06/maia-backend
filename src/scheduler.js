@@ -660,7 +660,7 @@ const context = {
    * @return { Array } frequencies for each half hour time slot for this user
    */
   async generateUserHistory(categorisedSchedule, category) {
-    const frequencies = this.initialiseHistFreqs(category);
+    let frequencies = this.initialiseHistFreqs(category);
     for (const timeSlotCategory of categorisedSchedule) {
       const timeSlot = timeSlotCategory[0];
       const c = timeSlotCategory[1];
@@ -696,7 +696,9 @@ const context = {
       }
     }
     // TODO: fix this!
-    // frequencies = frequencies.map((arr)=>arr.map((a) => (a+Math.abs(smallest))));
+    frequencies = frequencies.map((arr) =>
+      arr.map((a) => (a + Math.abs(smallest)) / (largest - smallest))
+    );
     return frequencies;
   },
 };
