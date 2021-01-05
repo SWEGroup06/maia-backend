@@ -295,7 +295,7 @@ const context = {
     // only bias to cluster work events and bias slightly more for tighter spaced:
     const clusterBias = category === WORK || category === UNKNOWN ? 1.3 : 1;
 
-    return clusterP * clusterBias < best ? bestPTimeSlot : bestClusterTimeSlot;
+    return clusterP * clusterBias < bestP ? bestPTimeSlot : bestClusterTimeSlot;
   },
 
   /**
