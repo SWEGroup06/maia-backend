@@ -262,16 +262,12 @@ const context = {
         (3 * (diffInWeeks + 2)) / (20 * diffInWeeks ** 2 + 20) + 0.7;
       // console.log('diffInWeeks', diffInWeeks, ' -> distance weight -> ', distanceWeight, begin.toString());
 
-      let p1 = context.getTimeSlotValue(
-        begin,
-        begin.plus(duration),
-        historyFreq
-      );
-      p1 > 0 ? (p1 *= distanceWeight) : (p1 /= distanceWeight);
-      let p2 =
+      const p1 =
+        context.getTimeSlotValue(begin, begin.plus(duration), historyFreq) *
+        distanceWeight;
+      const p2 =
         context.getTimeSlotValue(end, end.plus(duration), historyFreq) *
         distanceWeight;
-      p2 > 0 ? (p2 *= distanceWeight) : (p2 /= distanceWeight);
 
       if (clusterP < p1) {
         clusterP = p1;
@@ -288,12 +284,9 @@ const context = {
       // );
       begin = begin.plus(fifteenMins);
       while (begin < end) {
-        let p3 = context.getTimeSlotValue(
-          begin,
-          begin.plus(duration),
-          historyFreq
-        );
-        p3 > 0 ? (p3 *= distanceWeight) : (p3 /= distanceWeight);
+        const p3 =
+          context.getTimeSlotValue(begin, begin.plus(duration), historyFreq) *
+          distanceWeight;
         if (bestP < p3) {
           bestP = p3;
           bestPTimeSlot = new DateTime(begin);
@@ -303,12 +296,7 @@ const context = {
       }
     }
     // only bias to cluster work events and bias slightly more for tighter spaced:
-    const clusterBias =
-      category === WORK || category === UNKNOWN
-        ? clusterP > 0
-          ? 1.3
-          : 0.7
-        : 1;
+    const clusterBias = category === WORK || category === UNKNOWN ? 1.3 : 1;
 
     // console.log('cluster bias', clusterBias);
     if (clusterP * clusterBias < bestP) {
