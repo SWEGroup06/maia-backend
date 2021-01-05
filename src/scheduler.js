@@ -223,15 +223,17 @@ const context = {
    * @param {Array} historyFreqs -- array of arrays returned by userHistory()
    * @param {Duration} duration -- event's duration
    * @param {number} category - TODO: Description
+   * @param {DateTime} startDate
    * @return {DateTime} -- best start date time for event
    * @private
    */
-  _chooseFromHistory: (freeTimes, historyFreqs, duration, category) => {
+  _chooseFromHistory: (freeTimes, historyFreqs, duration, category, startDate) => {
     // sum history freqs together to make one for everyone
     if (historyFreqs.length < 1) {
       console.log("error in _chooseFromHistory: no history freqs given");
       return null;
     }
+    startDate = startDate.startOf("week");
     const historyFreq = historyFreqs[0];
     if (historyFreqs.length > 1) {
       for (let i = 0; i < 7; i++) {
@@ -247,7 +249,6 @@ const context = {
     let bestP = -1000;
     let bestPTimeSlot = null;
     const fifteenMins = Duration.fromObject({ minutes: 15 });
-    const day0 = freeTimes.length > 0 ? freeTimes[0][0] : null;
 
     // console.log('day0', day0?day0.toString(): 'none');
 
@@ -256,11 +257,11 @@ const context = {
       let begin = timeSlot[0];
       const end = timeSlot[1];
       const diffInWeeks = Math.floor(
-        begin.diff(day0, ["days"]).values.days / 7
+        begin.diff(startDate, ["days"]).values.days / 7
       );
       const distanceWeight =
         (3 * (diffInWeeks + 2)) / (20 * diffInWeeks ** 2 + 20) + 0.7;
-      // console.log('diffInWeeks', diffInWeeks, ' -> distance weight -> ', distanceWeight, begin.toString());
+      // console.log(startDate.toISO(), 'diffInWeeks', diffInWeeks, ' -> distance weight -> ', distanceWeight, begin.toString());
 
       const p1 =
         context.getTimeSlotValue(begin, begin.plus(duration), historyFreq) *
@@ -492,9 +493,10 @@ const context = {
    * @param { Duration } duration - TODO: Description
    * @param { Array } historyFreqs - TODO: Description
    * @param {number} category - TODO: Description
+   * @param {DateTime} startDate
    * @return {null|{start: string, end: string}} - TODO: Description
    */
-  findMeetingSlot(freeTimes, duration, historyFreqs, category) {
+  findMeetingSlot(freeTimes, duration, historyFreqs, category, startDate) {
     if (!freeTimes || freeTimes.length === 0) {
       console.log("nothing found: ", freeTimes);
       return null;
@@ -527,7 +529,8 @@ const context = {
       timeSlots,
       historyFreqs,
       duration,
-      category
+      category,
+      startDate
     );
     if (choice) {
       return {
