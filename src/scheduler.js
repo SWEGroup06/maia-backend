@@ -227,7 +227,13 @@ const context = {
    * @return {DateTime} -- best start date time for event
    * @private
    */
-  _chooseFromHistory: (freeTimes, historyFreqs, duration, category, startDate) => {
+  _chooseFromHistory: (
+    freeTimes,
+    historyFreqs,
+    duration,
+    category,
+    startDate
+  ) => {
     // sum history freqs together to make one for everyone
     if (historyFreqs.length < 1) {
       console.log("error in _chooseFromHistory: no history freqs given");
@@ -352,7 +358,12 @@ const context = {
       console.log(
         "no busy slots found -- return whole period with constraints"
       );
-      return context.freeSlotsAux(searchStart, searchEnd, timeConstraints, true);
+      return context.freeSlotsAux(
+        searchStart,
+        searchEnd,
+        timeConstraints,
+        true
+      );
     }
 
     // Parse busy slots as DateTime objects
@@ -455,7 +466,7 @@ const context = {
    * @param { DateTime } start - TODO: Description
    * @param { DateTime } end - TODO: Description
    * @param { Array } timeConstraints - TODO: Description [{DateTime, DateTime}]
-   * @param { Boolean } considerStartEndTime
+   * @param {boolean} considerStartEndTime
    * @return { Array } - TODO: Description
    */
   freeSlotsAux: (start, end, timeConstraints, considerStartEndTime = false) => {
@@ -482,7 +493,10 @@ const context = {
       start = start.startOf("day");
       start = start.plus(oneDay);
     }
-    console.log('freeSlots', freeSlots.map((slot) => [slot[0].toString(), slot[1].toString()]));
+    console.log(
+      "freeSlots",
+      freeSlots.map((slot) => [slot[0].toString(), slot[1].toString()])
+    );
     return freeSlots;
   },
 
