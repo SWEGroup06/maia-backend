@@ -22,10 +22,10 @@ jobs:
   lint:
     executor:
       name: node/default
-      steps:
-        - checkout
-        - run: npm install
-        - run: npm run lint
+    steps:
+      - checkout
+      - run: npm install
+      - run: npm run lint
   deploy:
     executor:
       name: heroku/default
