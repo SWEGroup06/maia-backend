@@ -13,8 +13,7 @@ const TIME = require("../lib/time.js");
 const TOMORROW = DateTime.local().plus({ days: 1 });
 const ONE_HOUR = 60;
 
-const mocha = require("mocha");
-const { describe, it, before, after } = mocha;
+const { describe, it, before, after } = require("mocha");
 
 /**
  * TODO: Comment

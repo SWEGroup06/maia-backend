@@ -221,13 +221,14 @@ router.get("/set-min-break", async function (req, res) {
     );
     if (!breakMinutes) {
       // break can't be in seconds/milliseconds/... at least minutes
-      res.send({ error: "please give your required break length in minutes" });
-    } else if (breakMinutes < 0) {
-      console.log("err");
-      res.send({ error: "breaks can't be negative" });
-    } else {
-      await DATABASE.setMinBreakLength(googleEmail, breakMinutes);
+      res.send({ error: "Please Give Your Required Break Length In Minutes" });
+      return;
     }
+    if (breakMinutes < 0) {
+      res.send({ error: "Breaks Can't Be Negative" });
+      return;
+    }
+    await DATABASE.setMinBreakLength(googleEmail, breakMinutes);
     res.send({ success: true });
   } catch (err) {
     // Any other type of error

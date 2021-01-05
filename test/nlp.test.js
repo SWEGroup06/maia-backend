@@ -9,8 +9,7 @@ const TEST_DATABASE = require("../lib/database.js");
 // const MEETINGS = require("../lib/meetings.js");
 // const TIME = require("../lib/time.js");
 
-const mocha = require("mocha");
-const { describe, it, before, after } = mocha;
+const { describe, it, before, after } = require("mocha");
 
 // TODO: Implement
 describe("Detecting work and leisure events and booking them appropriately", function () {
