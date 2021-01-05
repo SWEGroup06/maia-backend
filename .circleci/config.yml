@@ -40,7 +40,9 @@ workflows:
       - test:
           requires:
             - build
-      - lint
-      - deploy:
+      - lint:
           requires:
             - test
+      - deploy:
+          requires:
+            - lint
