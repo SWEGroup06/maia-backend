@@ -173,7 +173,6 @@ test("scheduler uses NEW constraints", () => {
   // => wed 18-22
   // => thurs 9-10
   const constraints = generateConstraints(weekAvailability, DAY1, DAY2);
-  // console.log(constraints);
   const expectedConstraints = [
     [combine(DAY1, 17), combine(DAY1, 23)],
     [combine(DAY2, 5), combine(DAY2, 11, 59, 59)],

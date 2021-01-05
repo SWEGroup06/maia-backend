@@ -50,12 +50,12 @@ DATABASE.getDatabaseConnection()
             }
           );
           try {
-            console.log(`FAILED (${user.google.email})`, await res.json());
+            console.error(`FAILED (${user.google.email})`, await res.json());
           } catch (e) {
             console.log(`SUCCESS (${user.google.email})`);
           }
         } catch (e) {
-          console.log(`FAILED (${user.google.email})`, e);
+          console.error(`FAILED (${user.google.email})`, e);
         }
       }
     } else {
@@ -64,7 +64,7 @@ DATABASE.getDatabaseConnection()
       const data = {};
       for (const user of allUserData) {
         if (log && log[user.google.email]) {
-          console.log(
+          console.error(
             `FAILED (${user.google.email})`,
             "Webhook already exists"
           );
@@ -94,10 +94,10 @@ DATABASE.getDatabaseConnection()
             data[user.google.email] = _json;
             console.log(`SUCCESS (${user.google.email})`, _json);
           } else {
-            console.log(`FAILED (${user.google.email})`, _json.error);
+            console.error(`FAILED (${user.google.email})`, _json.error);
           }
         } catch (e) {
-          console.log(`FAILED (${user.google.email})`, e);
+          console.error(`FAILED (${user.google.email})`, e);
         }
       }
 

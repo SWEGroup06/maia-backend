@@ -184,7 +184,6 @@ const context = {
    */
   _choose: (freeTimes) => {
     const choices = freeTimes.map((xs) => [xs[0], xs[1].diff(xs[0])]);
-    console.log("choices: ", choices);
     choices.sort((a, b) => a[1] - b[1]);
     if (choices.length === 0) {
       return null;
@@ -236,7 +235,7 @@ const context = {
   ) => {
     // sum history freqs together to make one for everyone
     if (historyFreqs.length < 1) {
-      console.log("error in _chooseFromHistory: no history freqs given");
+      console.error("_chooseFromHistory Error: No History Frequencies Given");
       return null;
     }
     startDate = startDate.startOf("week");
@@ -256,8 +255,6 @@ const context = {
     let bestPTimeSlot = null;
     const fifteenMins = Duration.fromObject({ minutes: 15 });
 
-    // console.log('day0', day0?day0.toString(): 'none');
-
     // minimise the break val whilst being at least the minBreakLength
     for (const timeSlot of freeTimes) {
       let begin = timeSlot[0];
@@ -267,7 +264,6 @@ const context = {
       );
       const distanceWeight =
         (3 * (diffInWeeks + 2)) / (20 * diffInWeeks ** 2 + 20) + 0.7;
-      // console.log(startDate.toISO(), 'diffInWeeks', diffInWeeks, ' -> distance weight -> ', distanceWeight, begin.toString());
 
       const p1 =
         context.getTimeSlotValue(begin, begin.plus(duration), historyFreq) *
@@ -284,11 +280,6 @@ const context = {
         clusterP = p2;
         bestClusterTimeSlot = new DateTime(end);
       }
-      // console.log('begin: ', begin.toString(), ' -> ', p1, ' end: ', end.toString(), ' -> ', p2, ' bestCluster',
-      //   bestClusterTimeSlot ? bestClusterTimeSlot.toString() : "null",
-      //   " -> ",
-      //   clusterP
-      // );
       begin = begin.plus(fifteenMins);
       while (begin < end) {
         const p3 =
@@ -298,23 +289,13 @@ const context = {
           bestP = p3;
           bestPTimeSlot = new DateTime(begin);
         }
-        // console.log('time: ', begin.toString(), ' -> ', p3, ' bestPTimeSlot ',  (bestPTimeSlot ? bestPTimeSlot.toString() : 'null'), ' -> ', bestP);
         begin = begin.plus(fifteenMins);
       }
     }
     // only bias to cluster work events and bias slightly more for tighter spaced:
     const clusterBias = category === WORK || category === UNKNOWN ? 1.3 : 1;
 
-    // console.log('cluster bias', clusterBias);
-    if (clusterP * clusterBias < bestP) {
-      // console.log('--p wins-- bestP: ', (bestPTimeSlot ? bestPTimeSlot.toString() : 'null'), ' -> ', bestP,
-      //     '  clusterP: ', (bestClusterTimeSlot ? bestClusterTimeSlot.toString() : 'null'), ' -> ', clusterP);
-      return bestPTimeSlot;
-    } else {
-      // console.log('--cluster wins-- bestClusterP: ', (bestClusterTimeSlot ? bestClusterTimeSlot.toString() : 'null'),
-      //     ' -> ', clusterP * clusterBias, ' bestP: ', (bestPTimeSlot ? bestPTimeSlot.toString() : 'null'), ' -> ', bestP);
-      return bestClusterTimeSlot;
-    }
+    return clusterP * clusterBias < best ? bestPTimeSlot : bestClusterTimeSlot;
   },
 
   /**
@@ -334,7 +315,6 @@ const context = {
     minBreakLength = Duration.fromObject({ minutes: 0 }),
     timeConstraints
   ) => {
-    console.log("---getFreeSlots---");
     // Parse workDays into a usable format
     timeConstraints = timeConstraints.map((day) =>
       day.length > 0
@@ -342,21 +322,12 @@ const context = {
         : []
     );
 
-    // console.log(
-    //   "timeConstraints: ",
-    //   timeConstraints.map((interval) =>
-    //     interval.length > 0
-    //       ? [interval[0].toString(), interval[1].toString()]
-    //       : []
-    //   )
-    // );
-
     // If there are no busy slots return entire search period
     const searchStart = DateTime.fromISO(startISO);
     const searchEnd = DateTime.fromISO(endISO);
     if (!busySlots.length) {
-      console.log(
-        "no busy slots found -- return whole period with constraints"
+      console.error(
+        "getFreeSlots Error: No Busy Slots Found. Returning Entire Period With Constraints"
       );
       return context.freeSlotsAux(
         searchStart,
@@ -373,7 +344,6 @@ const context = {
       return x;
     });
     busySlots.push([searchEnd, searchEnd.endOf("day")]);
-    // console.log('parsed busySlots: ', busySlots.map((slot) => [slot[0].toString(), slot[1].toString()]));
 
     // Initialise variables for generating free slots
     const fiveSeconds = Duration.fromObject({ seconds: 5 });
@@ -401,23 +371,17 @@ const context = {
       const busyTimeSlot = busySlots[i];
       const day = busyTimeSlot[0].weekday - 1;
 
-      // console.log('\n\nbusytimeslot: ', busyTimeSlot[0].toString(), busyTimeSlot[1].toString());
-
       // If we are on a new day, update the begin and end for that day.
       const daysApart = busyTimeSlot[0]
         .startOf("day")
         .diff(prevBusySlotEnd.startOf("day"), "days");
-      // console.log('days apart: ', daysApart.values.days);
       if (daysApart.days > 0) {
         // generates the rest of the current working day
         if (currDayBegin && currDayEnd - currDayBegin > fiveSeconds) {
           freeSlots.push([currDayBegin, currDayEnd]);
         }
         // updates begin and end for current busy slot's day
-        // console.log('workdays[', day, '] ', workDays[day].toString());
         if (timeConstraints[day].length > 0) {
-          // console.log('currDayBegin b[0]', busyTimeSlot[0] );
-          // console.log('currDayBegin td0', timeConstraints[day]);
           currDayBegin = context.combine(
             busyTimeSlot[0],
             timeConstraints[day][0]
@@ -438,7 +402,6 @@ const context = {
             context.freeSlotsAux(prevBusySlotEnd, endDate, timeConstraints)
           );
         }
-        // console.log('mappp', freeSlots.map((slot) => [slot[0].toString(), slot[1].toString()]));
       }
       prevBusySlotEnd = busyTimeSlot[0];
 
@@ -493,10 +456,6 @@ const context = {
       start = start.startOf("day");
       start = start.plus(oneDay);
     }
-    console.log(
-      "freeSlots",
-      freeSlots.map((slot) => [slot[0].toString(), slot[1].toString()])
-    );
     return freeSlots;
   },
 
@@ -512,7 +471,7 @@ const context = {
    */
   findMeetingSlot(freeTimes, duration, historyFreqs, category, startDate) {
     if (!freeTimes || freeTimes.length === 0) {
-      console.log("nothing found: ", freeTimes);
+      console.error("findMeetingSlot Error: No Free Time Given");
       return null;
     }
     // for (let i = 0; i < 7; i++) {
@@ -524,20 +483,7 @@ const context = {
     // }
 
     const timeSlots = context._schedule(freeTimes, duration);
-    // console.log(
-    //   'free times ',
-    //   freeTimes[0].map((interval) => [
-    //     interval[0].toString(),
-    //     interval[1].toString(),
-    //   ])
-    // );
-    // console.log(
-    //   'free timeslots ',
-    //   timeSlots.map((interval) => [
-    //     interval[0].toString(),
-    //     interval[1].toString(),
-    //   ])
-    // );
+
     // TODO: Amelia + Hasan: Why are the parameters passed as an object?
     const choice = context._chooseFromHistory(
       timeSlots,

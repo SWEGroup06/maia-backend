@@ -50,23 +50,24 @@ router.get("/accept", async function (req, res) {
 
     // Redirect to success page
     res.redirect("success/reschedule.html");
-  } catch (error) {
-    console.log(error);
-    res.send({ error: error.toString() });
+  } catch (err) {
+    const msg = "REST accept Error: " + err.message;
+    console.error(msg);
+    res.send({ error: msg });
   }
 });
 
-router.post("/webhook", async function (req, res) {
-  const parts = req.headers["x-goog-resource-uri"].split("/");
-  const email = parts[parts.length - 2];
-  const data = {
-    email,
-    id: req.headers["x-goog-channel-id"],
-    resourceId: req.headers["x-goog-resource-id"],
-    timestamp: Date.now(),
-  };
-  console.log("WEBHOOK DATA", data);
-  res.sendStatus(200);
-});
+// router.post("/webhook", async function (req, res) {
+//   const parts = req.headers["x-goog-resource-uri"].split("/");
+//   const email = parts[parts.length - 2];
+//   const data = {
+//     email,
+//     id: req.headers["x-goog-channel-id"],
+//     resourceId: req.headers["x-goog-resource-id"],
+//     timestamp: Date.now(),
+//   };
+//   console.log("WEBHOOK DATA", data);
+//   res.sendStatus(200);
+// });
 
 module.exports = router;

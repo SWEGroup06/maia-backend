@@ -165,9 +165,12 @@ const actionHandlers = {
           text: `*Sign out with ${googleEmail} was successful*`,
         });
       } else {
-        const text = `*Account with email ${googleEmail} does not exist.*`;
-        console.log(text);
-        await submitResponse(payload, { text });
+        console.error(
+          `SLACK logout Error: Account with email ${googleEmail} does not exist.`
+        );
+        await submitResponse(payload, {
+          text: `*Account with email ${googleEmail} does not exist.*`,
+        });
       }
       return;
     } catch (error) {
@@ -251,7 +254,7 @@ router.post("/actions", async function (req, res) {
   if (handler) {
     const error = await handler(payload, action, res);
     if (error) {
-      console.log(error);
+      console.error("REST actions Error: " + error);
       await submitResponse(payload, {
         response_type: "ephemeral",
         replace_original: false,
