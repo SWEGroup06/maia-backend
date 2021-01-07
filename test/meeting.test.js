@@ -23,9 +23,7 @@ describe("Scheduling at a specific time", function () {
   before(async () => {
     await DATABASE.getDatabaseConnection();
     const token = JSON.parse(
-      await DATABASE.getTokenFromGoogleEmail(
-        process.env.TEST_ACCOUNT_EMAIL
-      )
+      await DATABASE.getTokenFromGoogleEmail(process.env.TEST_ACCOUNT_EMAIL)
     );
     await GOOGLE.clearCalendar(token);
   });
@@ -85,9 +83,7 @@ describe("Scheduling within a given time range", function () {
   before(async () => {
     await DATABASE.getDatabaseConnection();
     const token = JSON.parse(
-      await DATABASE.getTokenFromGoogleEmail(
-       process.env.TEST_ACCOUNT_EMAIL
-      )
+      await DATABASE.getTokenFromGoogleEmail(process.env.TEST_ACCOUNT_EMAIL)
     );
     await GOOGLE.clearCalendar(token);
   });
@@ -266,9 +262,7 @@ describe("Scheduling within a given date range", function () {
   before(async () => {
     await DATABASE.getDatabaseConnection();
     const token = JSON.parse(
-      await DATABASE.getTokenFromGoogleEmail(
-        process.env.TEST_ACCOUNT_EMAIL
-      )
+      await DATABASE.getTokenFromGoogleEmail(process.env.TEST_ACCOUNT_EMAIL)
     );
     await GOOGLE.clearCalendar(token);
   });

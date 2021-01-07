@@ -12,6 +12,7 @@ router.get("/schedule", async function (req, res) {
   try {
     // Fetch Google Emails
     const googleEmails = await REST_UTILS.tryFetchGoogleEmails(req, res);
+    if (!googleEmails) return;
 
     let title = JSON.parse(decodeURIComponent(req.query.title));
     title = title.substring(1, title.length - 1);
@@ -69,6 +70,7 @@ router.get("/reschedule", async function (req, res) {
   try {
     // Fetch Google Email
     const googleEmail = await REST_UTILS.tryFetchGoogleEmail(req, res);
+    if (!googleEmail) return;
 
     // Check that either an event time or title has been specified.
     if (!req.query.oldDateTime && !req.query.oldTitle) {
@@ -142,6 +144,7 @@ router.get("/meetings", async function (req, res) {
   try {
     // Fetch Google Email
     const googleEmail = await REST_UTILS.tryFetchGoogleEmail(req, res);
+    if (!googleEmail) return;
 
     // Get tokens from the database
     const token = JSON.parse(
@@ -182,6 +185,7 @@ router.get("/constraints", async function (req, res) {
   try {
     // Fetch Google Email
     const googleEmail = await REST_UTILS.tryFetchGoogleEmail(req, res);
+    if (!googleEmail) return;
 
     if (!req.query.busyTimes) {
       res.json({ error: "Busy times not found" });
@@ -211,6 +215,7 @@ router.get("/set-min-break", async function (req, res) {
   try {
     // Fetch Google Email
     const googleEmail = await REST_UTILS.tryFetchGoogleEmail(req, res);
+    if (!googleEmail) return;
 
     if (!req.query.minBreakLength) {
       res.json({ error: "Break length not provided" });
@@ -276,6 +281,7 @@ router.get("/cancel", async function (req, res) {
   try {
     // Fetch Google Email
     const googleEmail = await REST_UTILS.tryFetchGoogleEmail(req, res);
+    if (!googleEmail) return;
 
     const organiserToken = JSON.parse(
       decodeURIComponent(await DATABASE.getTokenFromGoogleEmail(googleEmail))
@@ -326,6 +332,7 @@ router.get("/preferences", async function (req, res) {
   try {
     // Fetch Google Email
     const googleEmail = await REST_UTILS.tryFetchGoogleEmail(req, res);
+    if (!googleEmail) return;
 
     // Generate User preferences
     await MEETINGS.generatePreferences(googleEmail, tokens);

@@ -100,6 +100,7 @@ router.get("/logout", async function (req, res) {
   try {
     // Fetch Google Email
     const googleEmail = await REST_UTILS.tryFetchGoogleEmail(req, res);
+    if (!googleEmail) return;
 
     // Delete account
     await DATABASE.deleteUser(googleEmail);
