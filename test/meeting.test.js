@@ -23,9 +23,7 @@ describe("Scheduling at a specific time", function () {
   before(async () => {
     await DATABASE.getDatabaseConnection();
     const token = JSON.parse(
-      await DATABASE.getTokenFromGoogleEmail(
-        "syedalimehdinaoroseabidi@gmail.com"
-      )
+      await DATABASE.getTokenFromGoogleEmail(process.env.TEST_ACCOUNT_EMAIL)
     );
     await GOOGLE.clearCalendar(token);
   });
@@ -39,7 +37,7 @@ describe("Scheduling at a specific time", function () {
       30
     );
 
-    const testEmails = ["syedalimehdinaoroseabidi@gmail.com"]; // TODO: Change
+    const testEmails = [process.env.TEST_ACCOUNT_EMAIL]; // TODO: Change
     const testToken = JSON.parse(
       await DATABASE.getTokenFromGoogleEmail(testEmails[0])
     );
@@ -85,9 +83,7 @@ describe("Scheduling within a given time range", function () {
   before(async () => {
     await DATABASE.getDatabaseConnection();
     const token = JSON.parse(
-      await DATABASE.getTokenFromGoogleEmail(
-        "syedalimehdinaoroseabidi@gmail.com"
-      )
+      await DATABASE.getTokenFromGoogleEmail(process.env.TEST_ACCOUNT_EMAIL)
     );
     await GOOGLE.clearCalendar(token);
   });
@@ -106,7 +102,7 @@ describe("Scheduling within a given time range", function () {
       18
     );
 
-    const testEmails = ["syedalimehdinaoroseabidi@gmail.com"]; // TODO: Change
+    const testEmails = [process.env.TEST_ACCOUNT_EMAIL]; // TODO: Change
     const testToken = JSON.parse(
       await DATABASE.getTokenFromGoogleEmail(testEmails[0])
     );
@@ -159,7 +155,7 @@ describe("Scheduling within a given time range", function () {
       45
     );
 
-    const testEmails = ["syedalimehdinaoroseabidi@gmail.com"]; // TODO: Change
+    const testEmails = [process.env.TEST_ACCOUNT_EMAIL]; // TODO: Change
     const testToken = JSON.parse(
       await DATABASE.getTokenFromGoogleEmail(testEmails[0])
     );
@@ -210,7 +206,7 @@ describe("Scheduling within a given time range", function () {
       11
     );
 
-    const testEmails = ["syedalimehdinaoroseabidi@gmail.com"]; // TODO: Change
+    const testEmails = [process.env.TEST_ACCOUNT_EMAIL]; // TODO: Change
     const testToken = JSON.parse(
       await DATABASE.getTokenFromGoogleEmail(testEmails[0])
     );
@@ -266,9 +262,7 @@ describe("Scheduling within a given date range", function () {
   before(async () => {
     await DATABASE.getDatabaseConnection();
     const token = JSON.parse(
-      await DATABASE.getTokenFromGoogleEmail(
-        "syedalimehdinaoroseabidi@gmail.com"
-      )
+      await DATABASE.getTokenFromGoogleEmail(process.env.TEST_ACCOUNT_EMAIL)
     );
     await GOOGLE.clearCalendar(token);
   });
@@ -291,7 +285,7 @@ describe("Inferring whether to abide by working hours", function () {
   const startTimeRangeISO = TODAY.toISO();
   const endTimeRangeISO = TODAY.toISO();
   const category = 1;
-  const googleEmail = "syedalimehdinaoroseabidi@gmail.com";
+  const googleEmail = process.env.TEST_ACCOUNT_EMAIL;
   const startDateISOSaturday = "2021-01-16T03:05:44.482+00:00";
   const endDateISOSunday = "2021-01-17T03:05:44.482+00:00";
   const fullDay = [
