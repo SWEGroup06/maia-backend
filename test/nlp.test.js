@@ -17,7 +17,7 @@ describe("Detecting work and leisure events and booking them appropriately", fun
     await TEST_DATABASE.getDatabaseConnection();
     const token = JSON.parse(
       await TEST_DATABASE.getTokenFromGoogleEmail(
-        "syedalimehdinaoroseabidi@gmail.com"
+        process.env.TEST_ACCOUNT_EMAIL
       )
     );
     await GOOGLE.clearCalendar(token);

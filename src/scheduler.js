@@ -315,7 +315,6 @@ const context = {
     minBreakLength = Duration.fromObject({ minutes: 0 }),
     timeConstraints
   ) => {
-    console.log("---getFreeSlots---");
     // Parse workDays into a usable format
     timeConstraints = timeConstraints.map((day) =>
       day.length > 0
@@ -420,7 +419,6 @@ const context = {
         currDayBegin = DateTime.max(currDayBegin, busyTimeSlot[1]);
       }
     }
-    console.log("---getFreeSlots DONE---");
     return freeSlots;
   },
 
