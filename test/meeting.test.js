@@ -10,7 +10,8 @@ const MEETINGS = require("../lib/meetings.js");
 const TIME = require("../lib/time.js");
 
 // const TODAY = DateTime.local();
-const TOMORROW = DateTime.local().plus({ days: 1 });
+const TODAY = DateTime.local();
+const TOMORROW = TODAY.plus({ days: 1 });
 const ONE_HOUR = 60;
 
 const { describe, it, before, after } = require("mocha");
@@ -277,4 +278,121 @@ describe("Scheduling within a given date range", function () {
   after(async () => {
     await DATABASE.closeDatabaseConnection();
   });
+});
+
+describe("Inferring whether to abide by working hours", function () {
+  before(async () => {
+    await DATABASE.getDatabaseConnection();
+  });
+  const noTimeRangeSpecified = false;
+  const dayOfWeek = "Sunday";
+  const dayOfWeekMonday = "Monday";
+  const noDayOfWeek = "";
+  const startTimeRangeISO = TODAY.toISO();
+  const endTimeRangeISO = TODAY.toISO();
+  const category = 1;
+  const googleEmail = "syedalimehdinaoroseabidi@gmail.com";
+  const startDateISOSaturday = "2021-01-16T03:05:44.482+00:00";
+  const endDateISOSunday = "2021-01-17T03:05:44.482+00:00";
+  const fullDay = [
+    {
+      startTime: TODAY.startOf("day").toISO(),
+      endTime: TODAY.endOf("day").toISO(),
+    },
+  ];
+
+  it(
+    "work event with no specified time range but a day of week should not abide to working hours when" +
+      " working hours are empty on the day specified",
+    async () => {
+      const timeRangesForDaysOfWeek = MEETINGS.combineTimeRangesForDaysOfWeek(
+        noTimeRangeSpecified,
+        dayOfWeek,
+        startTimeRangeISO,
+        endTimeRangeISO,
+        category
+      );
+      const timeRanges = await MEETINGS.getTimeRangesForDaysOfWeek(
+        noTimeRangeSpecified,
+        timeRangesForDaysOfWeek,
+        googleEmail,
+        category,
+        null,
+        dayOfWeek,
+        startDateISOSaturday,
+        endDateISOSunday
+      );
+      // working hours on day of week given (sunday) is empty hence we expect
+      // the working hours to be ignored and for the full timerange to be
+      // returned
+      const expect = [[], [], [], [], [], [], fullDay];
+      assert.deepStrictEqual(timeRanges, expect, "time ranges should equal.");
+    }
+  );
+  it(
+    "work event with no specified time range or day of week should not abide to working hours when" +
+      " working hours are empty over the whole date range specified",
+    async () => {
+      const timeRangesForDaysOfWeek = MEETINGS.combineTimeRangesForDaysOfWeek(
+        noTimeRangeSpecified,
+        noDayOfWeek,
+        startTimeRangeISO,
+        endTimeRangeISO,
+        category
+      );
+      const timeRanges = await MEETINGS.getTimeRangesForDaysOfWeek(
+        noTimeRangeSpecified,
+        timeRangesForDaysOfWeek,
+        googleEmail,
+        category,
+        null,
+        noDayOfWeek,
+        startDateISOSaturday,
+        endDateISOSunday
+      );
+      const expect = [
+        fullDay,
+        fullDay,
+        fullDay,
+        fullDay,
+        fullDay,
+        fullDay,
+        fullDay,
+      ];
+      assert.deepStrictEqual(timeRanges, expect, "time ranges should equal.");
+    }
+  );
+  it(
+    "work event with specified day of week should abide to working hours when" +
+      " working hours are not empty",
+    async () => {
+      const timeRangesForDaysOfWeek = MEETINGS.combineTimeRangesForDaysOfWeek(
+        noTimeRangeSpecified,
+        dayOfWeekMonday,
+        startTimeRangeISO,
+        endTimeRangeISO,
+        category
+      );
+      const timeRanges = await MEETINGS.getTimeRangesForDaysOfWeek(
+        noTimeRangeSpecified,
+        timeRangesForDaysOfWeek,
+        googleEmail,
+        category,
+        null,
+        dayOfWeekMonday,
+        startDateISOSaturday,
+        endDateISOSunday
+      );
+      // working hours on day of week given (sunday) is empty hence we expect
+      // the working hours to be ignored and for the full timerange to be
+      // returned
+      for (let i = 1; i < 7; i++) {
+        assert.deepStrictEqual(timeRanges[i], []);
+      }
+      const mondayStartTime = DateTime.fromISO(timeRanges[0][0].startTime);
+      const mondayEndTime = DateTime.fromISO(timeRanges[0][0].endTime);
+      assert.strictEqual(mondayStartTime.hour, 9);
+      assert.strictEqual(mondayEndTime.hour, 17);
+    }
+  );
 });
