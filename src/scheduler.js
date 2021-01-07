@@ -308,7 +308,7 @@ const context = {
    * @param {Array} timeConstraints - TODO: Description [{ String, String }]
    * @return {Array} - TODO: Description
    */
-  getFreeSlots: (
+  getFreeSlots: async (
     busySlots,
     startISO,
     endISO,
@@ -419,7 +419,6 @@ const context = {
         currDayBegin = DateTime.max(currDayBegin, busyTimeSlot[1]);
       }
     }
-
     return freeSlots;
   },
 
@@ -470,6 +469,7 @@ const context = {
    * @return {null|{start: string, end: string}} - TODO: Description
    */
   findMeetingSlot(freeTimes, duration, historyFreqs, category, startDate) {
+    console.log("---findMeetingSlot---", freeTimes);
     if (!freeTimes || freeTimes.length === 0) {
       console.error("findMeetingSlot Error: No Free Time Given");
       return null;

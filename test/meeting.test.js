@@ -389,4 +389,7 @@ describe("Inferring whether to abide by working hours", function () {
       assert.strictEqual(mondayEndTime.hour, 17);
     }
   );
+  after(async () => {
+    await DATABASE.closeDatabaseConnection();
+  });
 });
