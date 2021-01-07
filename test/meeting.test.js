@@ -305,14 +305,14 @@ describe("Inferring whether to abide by working hours", function () {
     "work event with no specified time range but a day of week should not abide to working hours when" +
       " working hours are empty on the day specified",
     async () => {
-      const timeRangesForDaysOfWeek = MEETINGS.combineTimeRangesForDaysOfWeek(
+      const timeRangesForDaysOfWeek = MEETINGS.preprocessTimeRangesForDaysOfWeek(
         noTimeRangeSpecified,
         dayOfWeek,
         startTimeRangeISO,
         endTimeRangeISO,
         category
       );
-      const timeRanges = await MEETINGS.getTimeRangesForDaysOfWeek(
+      const timeRanges = await MEETINGS.getUserTimeRangesForDaysOfWeek(
         noTimeRangeSpecified,
         timeRangesForDaysOfWeek,
         googleEmail,
@@ -333,14 +333,14 @@ describe("Inferring whether to abide by working hours", function () {
     "work event with no specified time range or day of week should not abide to working hours when" +
       " working hours are empty over the whole date range specified",
     async () => {
-      const timeRangesForDaysOfWeek = MEETINGS.combineTimeRangesForDaysOfWeek(
+      const timeRangesForDaysOfWeek = MEETINGS.preprocessTimeRangesForDaysOfWeek(
         noTimeRangeSpecified,
         noDayOfWeek,
         startTimeRangeISO,
         endTimeRangeISO,
         category
       );
-      const timeRanges = await MEETINGS.getTimeRangesForDaysOfWeek(
+      const timeRanges = await MEETINGS.getUserTimeRangesForDaysOfWeek(
         noTimeRangeSpecified,
         timeRangesForDaysOfWeek,
         googleEmail,
@@ -366,14 +366,14 @@ describe("Inferring whether to abide by working hours", function () {
     "work event with specified day of week should abide to working hours when" +
       " working hours are not empty",
     async () => {
-      const timeRangesForDaysOfWeek = MEETINGS.combineTimeRangesForDaysOfWeek(
+      const timeRangesForDaysOfWeek = MEETINGS.preprocessTimeRangesForDaysOfWeek(
         noTimeRangeSpecified,
         dayOfWeekMonday,
         startTimeRangeISO,
         endTimeRangeISO,
         category
       );
-      const timeRanges = await MEETINGS.getTimeRangesForDaysOfWeek(
+      const timeRanges = await MEETINGS.getUserTimeRangesForDaysOfWeek(
         noTimeRangeSpecified,
         timeRangesForDaysOfWeek,
         googleEmail,
