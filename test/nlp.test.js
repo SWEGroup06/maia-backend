@@ -5,7 +5,7 @@ require("dotenv").config();
 // const { DateTime } = require("luxon");
 
 const GOOGLE = require("../lib/google.js");
-const TEST_DATABASE = require("../lib/database.js");
+const DATABASE = require("../lib/database.js");
 // const MEETINGS = require("../lib/meetings.js");
 // const TIME = require("../lib/time.js");
 
@@ -14,11 +14,9 @@ const { describe, it, before, after } = require("mocha");
 // TODO: Implement
 describe("Detecting work and leisure events and booking them appropriately", function () {
   before(async () => {
-    await TEST_DATABASE.getDatabaseConnection();
+    await DATABASE.getDatabaseConnection(true);
     const token = JSON.parse(
-      await TEST_DATABASE.getTokenFromGoogleEmail(
-        process.env.TEST_ACCOUNT_EMAIL
-      )
+      await DATABASE.getTokenFromGoogleEmail(process.env.TEST_ACCOUNT_EMAIL)
     );
     await GOOGLE.clearCalendar(token);
   });
@@ -36,6 +34,6 @@ describe("Detecting work and leisure events and booking them appropriately", fun
   });
 
   after(async () => {
-    await TEST_DATABASE.closeDatabaseConnection();
+    await DATABASE.closeDatabaseConnection();
   });
 });

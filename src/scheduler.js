@@ -469,7 +469,6 @@ const context = {
    * @return {null|{start: string, end: string}} - TODO: Description
    */
   findMeetingSlot(freeTimes, duration, historyFreqs, category, startDate) {
-    console.log("---findMeetingSlot---", freeTimes);
     if (!freeTimes || freeTimes.length === 0) {
       console.error("findMeetingSlot Error: No Free Time Given");
       return null;

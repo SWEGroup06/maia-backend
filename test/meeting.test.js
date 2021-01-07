@@ -21,7 +21,7 @@ const { describe, it, before, after } = require("mocha");
  */
 describe("Scheduling at a specific time", function () {
   before(async () => {
-    await DATABASE.getDatabaseConnection();
+    await DATABASE.getDatabaseConnection(true);
     const token = JSON.parse(
       await DATABASE.getTokenFromGoogleEmail(process.env.TEST_ACCOUNT_EMAIL)
     );
