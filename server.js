@@ -12,7 +12,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // AUTOMATION consts
-const INTERVAL = 20e3;
+const INTERVAL = 0; // 20e3;
 
 // Configure routes
 app.use(express.json());
