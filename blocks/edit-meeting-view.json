@@ -27,9 +27,6 @@
 			"element": {
 				"type": "plain_text_input",
 				"multiline": false,
-				"placeholder": {
-					"text": ""
-				  },
 				"action_id": "name-action"
 				},
 				"optional": true
