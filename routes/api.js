@@ -330,6 +330,9 @@ router.get("/cancel", async function (req, res) {
 // TODO: Amelia + Hasan?
 router.get("/preferences", async function (req, res) {
   try {
+    // Set preferences timeout to be 5 minutes (5 * 60 * 1000)
+    req.setTimeout(300e3);
+
     // Fetch Google Email
     const googleEmail = await REST_UTILS.tryFetchGoogleEmail(req, res);
     if (!googleEmail) return;
