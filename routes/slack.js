@@ -74,11 +74,11 @@ let eventIdToBeEdited = null;
 
 const actionHandlers = {
   /**
-   * TODO: Taariq
+   * Function that handles when the reschedule button is clicked
    *
-   * @param {object} payload - TODO: Taariq
-   * @param {object} action - TODO: Taariq
-   * @return {Promise<string>} - TODO: Taariq
+   * @param {object} payload - The JSON provided by Slack from the Block Kit UI
+   * @param {object} action - The action that has taken place on the UI
+   * @return {object} - Returns null
    */
   reschedule_button: async function (payload, action) {
     try {
@@ -252,10 +252,10 @@ const actionHandlers = {
   },
 
   /**
-   * TODO: Taariq
+   * Function that handles when the submit button is clicked on the modal view for edit details
    *
-   * @param {object} payload - TODO: Taariq
-   * @param {object} action - TODO: Taariq
+   * @param {object} payload - The JSON payload provided by Slack Block Kit UI
+   * @param {object} action - The action that has been performed on the UI
    * @param {object} res - TODO: Taariq
    * @return {Promise<string>} - TODO: Taariq
    */
