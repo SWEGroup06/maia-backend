@@ -212,8 +212,7 @@ const actionHandlers = {
         startTime,
         endTime
       );
-      // Send 200 OK response with empty body to close view
-      res.send();
+      res.sendStatus(200);
       const text =
         "Your meeting has been successfully edited to " +
         name +
