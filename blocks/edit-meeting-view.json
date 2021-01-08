@@ -1,101 +1,98 @@
 {
-	"trigger_id": "156772938.1827394",
-	"view": {
-		"type": "modal",
-		"submit": {
-			"type": "plain_text",
-			"text": "Submit",
-			"emoji": true
+	"type": "modal",
+	"submit": {
+		"type": "plain_text",
+		"text": "Submit",
+		"emoji": true
+	},
+	"close": {
+		"type": "plain_text",
+		"text": "Cancel",
+		"emoji": true
+	},
+	"title": {
+		"type": "plain_text",
+		"text": "Edit Meeting Details",
+		"emoji": true
+	},
+	"blocks": [
+		{
+			"block_id": "name",
+			"type": "input",
+			"label": {
+				"type": "plain_text",
+				"text": "Meeting Name",
+				"emoji": true
+			},
+			"element": {
+				"type": "plain_text_input",
+				"multiline": false,
+				"placeholder": {
+					"text": ""
+				  },
+				"action_id": "name-action"
+				},
+				"optional": true
 		},
-		"close": {
-			"type": "plain_text",
-			"text": "Cancel",
-			"emoji": true
+		{
+			"type": "divider"
 		},
-		"title": {
-			"type": "plain_text",
-			"text": "Edit Meeting Details",
-			"emoji": true
-		},
-		"blocks": [
-			{
-				"block_id": "name",
-				"type": "input",
-				"label": {
+		{
+			"block_id": "date",
+			"type": "input",
+			"element": {
+				"type": "datepicker",
+				"initial_date": "2021-01-01",
+				"placeholder": {
 					"type": "plain_text",
-					"text": "Meeting Name",
+					"text": "Select a date",
 					"emoji": true
 				},
-				"element": {
-					"type": "plain_text_input",
-					"multiline": false,
-					"placeholder": {
-						"text": ""
-					  },
-					"action_id": "name-action"
-					},
-					"optional": true
+				"action_id": "datepicker-action"
 			},
-			{
-				"type": "divider"
-			},
-			{
-				"block_id": "date",
-				"type": "input",
-				"element": {
-					"type": "datepicker",
-					"initial_date": "2021-01-01",
-					"placeholder": {
-						"type": "plain_text",
-						"text": "Select a date",
-						"emoji": true
-					},
-					"action_id": "datepicker-action"
-				},
-				"label": {
-					"type": "plain_text",
-					"text": "Date",
-					"emoji": true
-				}
-			},
-			{
-				"block_id": "startTime",
-				"type": "input",
-				"element": {
-					"type": "timepicker",
-					"initial_time": "14:00",
-					"placeholder": {
-						"type": "plain_text",
-						"text": "Select time",
-						"emoji": true
-					},
-					"action_id": "timepicker-action"
-				},
-				"label": {
-					"type": "plain_text",
-					"text": "Start Time",
-					"emoji": true
-				}
-			},
-			{
-				"block_id": "endTime",
-				"type": "input",
-				"element": {
-					"type": "timepicker",
-					"initial_time": "15:00",
-					"placeholder": {
-						"type": "plain_text",
-						"text": "Select time",
-						"emoji": true
-					},
-					"action_id": "timepicker-action"
-				},
-				"label": {
-					"type": "plain_text",
-					"text": "End Time",
-					"emoji": true
-				}
+			"label": {
+				"type": "plain_text",
+				"text": "Date",
+				"emoji": true
 			}
-		]
-	}
+		},
+		{
+			"block_id": "startTime",
+			"type": "input",
+			"element": {
+				"type": "timepicker",
+				"initial_time": "14:00",
+				"placeholder": {
+					"type": "plain_text",
+					"text": "Select time",
+					"emoji": true
+				},
+				"action_id": "timepicker-action"
+			},
+			"label": {
+				"type": "plain_text",
+				"text": "Start Time",
+				"emoji": true
+			}
+		},
+		{
+			"block_id": "endTime",
+			"type": "input",
+			"element": {
+				"type": "timepicker",
+				"initial_time": "15:00",
+				"placeholder": {
+					"type": "plain_text",
+					"text": "Select time",
+					"emoji": true
+				},
+				"action_id": "timepicker-action"
+			},
+			"label": {
+				"type": "plain_text",
+				"text": "End Time",
+				"emoji": true
+			}
+		}
+	]
 }

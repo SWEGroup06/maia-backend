@@ -1,6 +1,6 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const fetch = require("node-fetch");
+const axios = require("axios");
 const { DateTime } = require("luxon");
 // eslint-disable-next-line new-cap
 const router = express.Router();
@@ -16,36 +16,57 @@ router.use("/actions", bodyParser.urlencoded({ extended: true }));
 /* Submits a response to the slack bot
 via the RESPONSE_URL provided by the payload */
 const submitResponse = async function (payload, obj) {
-  await fetch(payload.response_url, {
-    method: "POST",
-    body: JSON.stringify(obj),
-    headers: { "Content-Type": "application/json" },
+  const res = await axios.post(payload.response_url, obj, {
+    headers: {
+      "Content-type": "application/json",
+    },
   });
+  if (res.data.error) {
+    console.error("Slack API Error:", res.data);
+    throw new Error("Slack API Error: " + res.data.error);
+  }
 };
 
 /* Post a message to the channel via Slack API */
 const postMessage = async function (channelId, text) {
-  await fetch("https://slack.com/api/chat.postMessage", {
-    method: "POST",
-    headers: {
-      "Content-type": "application/json",
-      Authorization: `Bearer ${CONFIG.BOT_TOKEN}`,
+  const res = await axios.post(
+    "https://slack.com/api/chat.postMessage",
+    {
+      channel: channelId,
+      text: text,
     },
-    body: JSON.stringify({ channel: channelId, text: text }),
-  });
+    {
+      headers: {
+        "Content-type": "application/json",
+        Authorization: `Bearer ${CONFIG.BOT_TOKEN}`,
+      },
+    }
+  );
+  if (res.data.error) {
+    console.error("Slack API Error:", res.data);
+    throw new Error("Slack API Error: " + res.data.error);
+  }
 };
 
 /* Open a Modal View on the Slack App via Slack API */
-const openView = async function (view) {
-  const res = await fetch("https://slack.com/api/views.open", {
-    method: "POST",
-    headers: {
-      "Content-type": "application/json; charset=utf-8",
-      Authorization: `Bearer ${CONFIG.BOT_TOKEN}`,
+const openView = async function (triggerId) {
+  const res = await axios.post(
+    "https://slack.com/api/views.open",
+    {
+      trigger_id: triggerId,
+      view: EDIT_MEETING_VIEW,
     },
-    body: JSON.stringify(view),
-  });
-  console.log(res);
+    {
+      headers: {
+        "Content-type": "application/json",
+        Authorization: `Bearer ${CONFIG.BOT_TOKEN}`,
+      },
+    }
+  );
+  if (res.data.error) {
+    console.error("Slack API Error:", res.data);
+    throw new Error("Slack API Error: " + res.data.error);
+  }
 };
 
 let channelId = null;
@@ -213,7 +234,6 @@ const actionHandlers = {
   confirm: async function (payload, action) {
     try {
       // Save the channel id
-      console.log(payload, action);
       channelId = payload.channel.id;
       const eventId = action.value;
       if (action.action_id === "cancel") {
@@ -222,8 +242,7 @@ const actionHandlers = {
         const text = "Your meeting booking has been cancelled";
         await submitResponse(payload, { text });
       } else if (action.action_id === "edit") {
-        EDIT_MEETING_VIEW.trigger_id = payload.trigger_id;
-        await openView(EDIT_MEETING_VIEW);
+        await openView(payload.trigger_id);
       }
     } catch (error) {
       return error.toString();
