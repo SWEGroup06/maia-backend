@@ -81,7 +81,7 @@ describe("Scheduling within a given time range", function () {
   const ONE_HOUR = 60;
 
   before(async () => {
-    await DATABASE.getDatabaseConnection();
+    await DATABASE.getDatabaseConnection(true);
     const token = JSON.parse(
       await DATABASE.getTokenFromGoogleEmail(process.env.TEST_ACCOUNT_EMAIL)
     );
@@ -260,7 +260,7 @@ describe("Scheduling within a given time range", function () {
  */
 describe("Scheduling within a given date range", function () {
   before(async () => {
-    await DATABASE.getDatabaseConnection();
+    await DATABASE.getDatabaseConnection(true);
     const token = JSON.parse(
       await DATABASE.getTokenFromGoogleEmail(process.env.TEST_ACCOUNT_EMAIL)
     );
@@ -276,7 +276,7 @@ describe("Scheduling within a given date range", function () {
 
 describe("Inferring whether to abide by working hours", function () {
   before(async () => {
-    await DATABASE.getDatabaseConnection();
+    await DATABASE.getDatabaseConnection(true);
   });
   const noTimeRangeSpecified = false;
   const dayOfWeek = "Sunday";
