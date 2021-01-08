@@ -70,6 +70,7 @@ const openView = async function (triggerId) {
 };
 
 let channelId = null;
+let eventIdToBeEdited = null;
 
 const actionHandlers = {
   /**
@@ -242,6 +243,7 @@ const actionHandlers = {
         const text = "Your meeting booking has been cancelled";
         await submitResponse(payload, { text });
       } else if (action.action_id === "edit") {
+        eventIdToBeEdited = eventId;
         await openView(payload.trigger_id);
       }
     } catch (error) {
@@ -270,9 +272,10 @@ const actionHandlers = {
         name,
         date,
         startTime,
-        endTime
+        endTime,
+        eventIdToBeEdited
       );
-      res.sendStatus(200);
+      res.send();
       const text =
         "Your meeting has been successfully edited to " +
         name +
