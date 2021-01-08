@@ -34,9 +34,8 @@ module.exports = (DATABASE) => {
             res.json({ error: "Not Logged In: Internal Error" });
             return;
           }
-
-          return googleEmail;
         }
+        return googleEmail;
       } catch (err) {
         // Any other type of error
         const msg = "tryFetchGoogleEmail Error: " + err.message;
@@ -91,9 +90,9 @@ module.exports = (DATABASE) => {
             res.json({ error: "Not Logged In: Internal Error" });
             return;
           }
-
-          return googleEmails;
         }
+
+        return googleEmails;
       } catch (err) {
         // Any other type of error
         const msg = "tryFetchGoogleEmails Error: " + err.message;

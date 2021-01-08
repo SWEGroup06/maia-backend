@@ -308,7 +308,7 @@ const context = {
    * @param {Array} timeConstraints - TODO: Description [{ String, String }]
    * @return {Array} - TODO: Description
    */
-  getFreeSlots: (
+  getFreeSlots: async (
     busySlots,
     startISO,
     endISO,
@@ -419,7 +419,6 @@ const context = {
         currDayBegin = DateTime.max(currDayBegin, busyTimeSlot[1]);
       }
     }
-
     return freeSlots;
   },
 
