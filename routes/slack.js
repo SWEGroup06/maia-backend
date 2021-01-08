@@ -276,15 +276,10 @@ const actionHandlers = {
         eventIdToBeEdited
       );
       res.send();
-      const text =
-        "Your meeting has been successfully edited to " +
-        name +
-        " on " +
-        date +
-        " from " +
-        startTime +
-        " to " +
-        endTime;
+      const text = `No problem :+1::skin-tone-3:, 
+        ${name ? `I've changed '${name}'` : "I've moved your event"} to 
+        ${DateTime.fromISO(date).toLocaleString(DateTime.DATE_SHORT)}, from 
+        ${startTime} to ${endTime}`;
       await postMessage(channelId, text);
     } catch (error) {
       return error.toString();
