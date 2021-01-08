@@ -37,7 +37,7 @@ const postMessage = async function (channelId, text) {
 
 /* Open a Modal View on the Slack App via Slack API */
 const openView = async function (view) {
-  await fetch("https://slack.com/api/views.open", {
+  const res = await fetch("https://slack.com/api/views.open", {
     method: "POST",
     headers: {
       "Content-type": "application/json; charset=utf-8",
@@ -45,6 +45,7 @@ const openView = async function (view) {
     },
     body: JSON.stringify(view),
   });
+  console.log(res);
 };
 
 let channelId = null;
@@ -180,15 +181,16 @@ const actionHandlers = {
   confirm: async function (payload, action) {
     try {
       // Save the channel id
+      console.log(payload, action);
       channelId = payload.channel.id;
+      const eventId = action.value;
       if (action.action_id == "cancel") {
         const email = await DATABASE.getGoogleEmailFromSlackId(payload.user.id);
-        await MEETINGS.cancelLastBookedMeeting(email);
+        await MEETINGS.cancelEvent(email, eventId);
         const text = "Your meeting booking has been cancelled";
         await submitResponse(payload, { text });
       } else if (action.action_id == "edit") {
         EDIT_MEETING_VIEW.trigger_id = payload.trigger_id;
-        EDIT_MEETING_VIEW.blocks[0].element.placeholder.text = "kim k bro";
         openView(EDIT_MEETING_VIEW);
       }
     } catch (error) {
