@@ -78,7 +78,7 @@ const actionHandlers = {
    *
    * @param {object} payload - The JSON provided by Slack from the Block Kit UI
    * @param {object} action - The action that has taken place on the UI
-   * @return {object} - Returns null
+   * @return {object} - Returns null if it succeeds or error otherwise
    */
   reschedule_button: async function (payload, action) {
     try {
@@ -145,11 +145,11 @@ const actionHandlers = {
   },
 
   /**
-   * TODO: Taariq
+   * A function handling the backend of the UI for setting constraints
    *
-   * @param {object} payload - TODO: Taariq
-   * @param {object} action - TODO: Taariq
-   * @return {Promise<string>} - TODO: Taariq
+   * @param {object} payload - The JSON provided by Slack from the Block Kit UI
+   * @param {object} action - The action that has taken place on the UI
+   * @return {object} - Returns null if it succeeds or error otherwise
    */
   constraints: async function (payload, action) {
     try {
@@ -194,11 +194,11 @@ const actionHandlers = {
   },
 
   /**
-   * TODO: Taariq
+   * The function handling the logout button
    *
-   * @param {object} payload - TODO: Taariq
-   * @param {object} action - TODO: Taariq
-   * @return {Promise<string>} - TODO: Taariq
+   * @param {object} payload - The JSON provided by Slack from the Block Kit UI
+   * @param {object} action - The action that has taken place on the UI
+   * @return {object} - Returns null if it succeeds or error otherwise
    */
   logout: async function (payload, action) {
     try {
@@ -226,11 +226,11 @@ const actionHandlers = {
   },
 
   /**
-   * TODO: Taariq
+   * The function handling the edit and cancel buttons for confirmation
    *
-   * @param {object} payload - TODO: Taariq
-   * @param {object} action - TODO: Taariq
-   * @return {Promise<string>} - TODO: Taariq
+   * @param {object} payload - The JSON provided by Slack from the Block Kit UI
+   * @param {object} action - The action that has taken place on the UI
+   * @return {object} - Returns null if it succeeds or error otherwise
    */
   confirm: async function (payload, action) {
     try {
@@ -256,8 +256,8 @@ const actionHandlers = {
    *
    * @param {object} payload - The JSON payload provided by Slack Block Kit UI
    * @param {object} action - The action that has been performed on the UI
-   * @param {object} res - TODO: Taariq
-   * @return {Promise<string>} - TODO: Taariq
+   * @param {object} res - the response object which tells the function where to send the response
+   * @return {object} - Returns null if it succeeds or error otherwise
    */
   viewSubmission: async function (payload, action, res) {
     try {
