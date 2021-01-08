@@ -49,7 +49,15 @@ const openView = async function (view) {
 };
 
 let channelId = null;
+
 const actionHandlers = {
+  /**
+   * TODO: Taariq
+   *
+   * @param {object} payload - TODO: Taariq
+   * @param {object} action - TODO: Taariq
+   * @return {Promise<string>} - TODO: Taariq
+   */
   reschedule_button: async function (payload, action) {
     try {
       if (!payload.state) {
@@ -113,6 +121,14 @@ const actionHandlers = {
       return error.toString();
     }
   },
+
+  /**
+   * TODO: Taariq
+   *
+   * @param {object} payload - TODO: Taariq
+   * @param {object} action - TODO: Taariq
+   * @return {Promise<string>} - TODO: Taariq
+   */
   constraints: async function (payload, action) {
     try {
       // Parse state
@@ -126,12 +142,12 @@ const actionHandlers = {
         `1 Jan 1970 ${constraints.end_time.selected_time}`
       ).toISOString();
 
-      if (startTime == "Invalid Date" || endTime == "Invalid Date") {
+      if (startTime === "Invalid Date" || endTime === "Invalid Date") {
         return "Invalid Time";
       }
 
       // Dont update if the input is not the submit button
-      if (action.action_id != "submit") return;
+      if (action.action_id !== "submit") return;
 
       // Set constraint
       const googleEmail = await DATABASE.getGoogleEmailFromSlackId(
@@ -154,6 +170,14 @@ const actionHandlers = {
       return error.toString();
     }
   },
+
+  /**
+   * TODO: Taariq
+   *
+   * @param {object} payload - TODO: Taariq
+   * @param {object} action - TODO: Taariq
+   * @return {Promise<string>} - TODO: Taariq
+   */
   logout: async function (payload, action) {
     try {
       const slackEmail = JSON.parse(action.action_id);
@@ -178,25 +202,42 @@ const actionHandlers = {
       return error.toString();
     }
   },
+
+  /**
+   * TODO: Taariq
+   *
+   * @param {object} payload - TODO: Taariq
+   * @param {object} action - TODO: Taariq
+   * @return {Promise<string>} - TODO: Taariq
+   */
   confirm: async function (payload, action) {
     try {
       // Save the channel id
       console.log(payload, action);
       channelId = payload.channel.id;
       const eventId = action.value;
-      if (action.action_id == "cancel") {
+      if (action.action_id === "cancel") {
         const email = await DATABASE.getGoogleEmailFromSlackId(payload.user.id);
         await MEETINGS.cancelEvent(email, eventId);
         const text = "Your meeting booking has been cancelled";
         await submitResponse(payload, { text });
-      } else if (action.action_id == "edit") {
+      } else if (action.action_id === "edit") {
         EDIT_MEETING_VIEW.trigger_id = payload.trigger_id;
-        openView(EDIT_MEETING_VIEW);
+        await openView(EDIT_MEETING_VIEW);
       }
     } catch (error) {
       return error.toString();
     }
   },
+
+  /**
+   * TODO: Taariq
+   *
+   * @param {object} payload - TODO: Taariq
+   * @param {object} action - TODO: Taariq
+   * @param {object} res - TODO: Taariq
+   * @return {Promise<string>} - TODO: Taariq
+   */
   viewSubmission: async function (payload, action, res) {
     try {
       const values = payload.view.state.values;
@@ -223,7 +264,7 @@ const actionHandlers = {
         startTime +
         " to " +
         endTime;
-      postMessage(channelId, text);
+      await postMessage(channelId, text);
     } catch (error) {
       return error.toString();
     }
@@ -242,9 +283,9 @@ router.post("/actions", async function (req, res) {
     return;
   }
 
-  if (payload.type == "view_submission") {
+  if (payload.type === "view_submission") {
     handler = actionHandlers["viewSubmission"];
-  } else if (payload.type == "block_actions") {
+  } else if (payload.type === "block_actions") {
     if (!payload.actions || !payload.actions[0]) {
       res.sendStatus(200);
       return;
