@@ -10,7 +10,7 @@ const MEETINGS = require("../lib/meetings.js");
 const TIME = require("../lib/time.js");
 
 // const TODAY = DateTime.local();
-const TODAY = DateTime.local();
+const TODAY = DateTime.local().startOf("day");
 const TOMORROW = TODAY.plus({ days: 1 });
 const ONE_HOUR = 60;
 
@@ -27,6 +27,54 @@ describe("Scheduling at a specific time", function () {
     );
     await GOOGLE.clearCalendar(token);
   });
+
+  // it("should book a half-hour event at 2:30pm within next month", async () => {
+  //   const START_OF_NEXT_MONTH = TODAY.endOf("month");
+  //   const END_OF_NEXT_MONTH = START_OF_NEXT_MONTH.plus({ months: 1 });
+  //
+  //   const fourteenHoursThirtyMinutes = DateTime.local(
+  //     TODAY.year,
+  //     TODAY.month,
+  //     TODAY.day,
+  //     17,
+  //     30
+  //   );
+  //
+  //   const testEmails = [process.env.TEST_ACCOUNT_EMAIL];
+  //   const testToken = JSON.parse(
+  //     await DATABASE.getTokenFromGoogleEmail(testEmails[0])
+  //   );
+  //
+  //   const meetingSlot = await MEETINGS.schedule(
+  //     testEmails,
+  //     undefined,
+  //     ONE_HOUR * 0.5,
+  //     START_OF_NEXT_MONTH.toISO(),
+  //     END_OF_NEXT_MONTH.endOf("day").toISO(),
+  //     fourteenHoursThirtyMinutes.toISO(),
+  //     fourteenHoursThirtyMinutes.toISO(),
+  //     true,
+  //     undefined,
+  //     true
+  //   );
+  //
+  //   const event = await GOOGLE.getEvent(testToken, meetingSlot.start);
+  //
+  //   assert.notStrictEqual(event, null, "event should exist, i.e. not be null");
+  //   assert.strictEqual(
+  //     TIME.compareDateTime(
+  //       event.start.dateTime,
+  //       fourteenHoursThirtyMinutes.toISO()
+  //     ),
+  //     true,
+  //     "event should start at 2:30pm as specified"
+  //   );
+  //   assert.strictEqual(
+  //     TIME.getDurationInMinutes(event.start.dateTime, event.end.dateTime),
+  //     ONE_HOUR * 0.5,
+  //     "event should be exactly two hour long, as specified."
+  //   );
+  // });
 
   it("should book a one-hour event at 9:30am tomorrow", async () => {
     const tomorrowNineHoursThirtyMinutes = DateTime.local(
@@ -59,7 +107,7 @@ describe("Scheduling at a specific time", function () {
 
     assert.notStrictEqual(event, null, "event should exist, i.e. not be null");
     assert.strictEqual(
-      TIME.compareTime(
+      TIME.compareDateTime(
         event.start.dateTime,
         tomorrowNineHoursThirtyMinutes.toISO()
       ),
@@ -69,6 +117,100 @@ describe("Scheduling at a specific time", function () {
       TIME.getDurationInMinutes(event.start.dateTime, event.end.dateTime),
       ONE_HOUR,
       "event should be exactly one hour long, as specified."
+    );
+  });
+
+  it("should book a two-hour event at 8pm day after tomorrow", async () => {
+    const DAY_AFTER_TOMORROW = TOMORROW.plus({ days: 1 });
+    const dayAfterTomorrowTwentyHours = DateTime.local(
+      DAY_AFTER_TOMORROW.year,
+      DAY_AFTER_TOMORROW.month,
+      DAY_AFTER_TOMORROW.day,
+      20,
+      0
+    );
+
+    const testEmails = [process.env.TEST_ACCOUNT_EMAIL];
+    const testToken = JSON.parse(
+      await DATABASE.getTokenFromGoogleEmail(testEmails[0])
+    );
+
+    const meetingSlot = await MEETINGS.schedule(
+      testEmails,
+      undefined,
+      ONE_HOUR * 2,
+      DAY_AFTER_TOMORROW.startOf("day").toISO(),
+      DAY_AFTER_TOMORROW.endOf("day").toISO(),
+      dayAfterTomorrowTwentyHours.toISO(),
+      dayAfterTomorrowTwentyHours.toISO(),
+      false,
+      undefined,
+      true
+    );
+
+    const event = await GOOGLE.getEvent(testToken, meetingSlot.start);
+
+    assert.notStrictEqual(event, null, "event should exist, i.e. not be null");
+    assert.strictEqual(
+      TIME.compareDateTime(
+        event.start.dateTime,
+        dayAfterTomorrowTwentyHours.toISO()
+      ),
+      true,
+      "event should start at 8pm as specified"
+    );
+    assert.strictEqual(
+      TIME.getDurationInMinutes(event.start.dateTime, event.end.dateTime),
+      ONE_HOUR * 2,
+      "event should be exactly two hour long, as specified."
+    );
+  });
+
+  it("should book a two-hour event at 8pm day after tomorrow again", async () => {
+    // If the user defines a specific time where they would like a meeting,
+    // yet there is already an event in that space, book it for them anyway.
+    const DAY_AFTER_TOMORROW = TOMORROW.plus({ days: 1 });
+    const dayAfterTomorrowTwentyHours = DateTime.local(
+      DAY_AFTER_TOMORROW.year,
+      DAY_AFTER_TOMORROW.month,
+      DAY_AFTER_TOMORROW.day,
+      20,
+      0
+    );
+
+    const testEmails = [process.env.TEST_ACCOUNT_EMAIL];
+    const testToken = JSON.parse(
+      await DATABASE.getTokenFromGoogleEmail(testEmails[0])
+    );
+
+    const meetingSlot = await MEETINGS.schedule(
+      testEmails,
+      undefined,
+      ONE_HOUR * 2,
+      DAY_AFTER_TOMORROW.startOf("day").toISO(),
+      DAY_AFTER_TOMORROW.endOf("day").toISO(),
+      dayAfterTomorrowTwentyHours.toISO(),
+      dayAfterTomorrowTwentyHours.toISO(),
+      false,
+      undefined,
+      true
+    );
+
+    const event = await GOOGLE.getEvent(testToken, meetingSlot.start);
+
+    assert.notStrictEqual(event, null, "event should exist, i.e. not be null");
+    assert.strictEqual(
+      TIME.compareDateTime(
+        event.start.dateTime,
+        dayAfterTomorrowTwentyHours.toISO()
+      ),
+      true,
+      "event should start at 8pm as specified"
+    );
+    assert.strictEqual(
+      TIME.getDurationInMinutes(event.start.dateTime, event.end.dateTime),
+      ONE_HOUR * 2,
+      "event should be exactly two hour long, as specified."
     );
   });
 
