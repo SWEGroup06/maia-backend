@@ -300,7 +300,7 @@ router.get("/cancel", async function (req, res) {
       if (
         events.length === 0 ||
         (events.length > 0 &&
-          !TIME.compareTime(events[0].start.dateTime, meetingDateTime))
+          !TIME.compareDateTime(events[0].start.dateTime, meetingDateTime))
       ) {
         res.send({ error: "No Meeting found" });
         return;
