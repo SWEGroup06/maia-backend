@@ -15,8 +15,8 @@ const context = {
    * Internal function that takes two DateTime objects and returns their intersection, if that
    * intersection is of a minimum size
    *
-   * @param { DateTime } slot1 - TODO: Description
-   * @param { DateTime } slot2 - TODO: Description
+   * @param { DateTime } slot1
+   * @param { DateTime } slot2
    * @param { duration } duration minimum size of intersection
    * @return { DateTime } intersection of slot1 and slot2 or null
    */
@@ -34,7 +34,7 @@ const context = {
    *
    * @param {object} date object with year, month and day fields
    * @param {object} time object with hour and minute fields
-   * @return { DateTime } - TODO: Description
+   * @return { DateTime } combined date + time
    */
   combine: (date, time) => {
     return DateTime.fromObject({
@@ -47,10 +47,10 @@ const context = {
   },
 
   /**
-   * TODO: Amelia + Hasan: Comment and descriptions
+   * Merges together adjacent free slot intervals
    *
-   * @param { Array } ranges - TODO: Description
-   * @return { Array } - TODO: Description
+   * @param { Array } ranges is a list of free slot intervals
+   * @return { Array } free slot interval without any adjacent intervals
    */
   merge: (ranges) => {
     const result = [];
@@ -70,7 +70,7 @@ const context = {
   },
 
   /**
-   * TODO: Amelia + Hasan: Comment and descriptions
+   * generates constraints from each day for the times specified in weekAvailability
    *
    * @param {Array} weekAvailability [[{startTime: X, endTime: Y}],...] list
    * of time constraints for every day of the week
@@ -80,13 +80,12 @@ const context = {
    * @return { Array } [[ dateTime, dateTime ], ...]
    */
   generateConstraints: (weekAvailability, _start, _end) => {
-    if (
-      weekAvailability == null ||
+    if (weekAvailability == null ||
       weekAvailability.length < 1 ||
-      weekAvailability.flat(1) < 1
-    ) {
+      weekAvailability.flat(1) < 1) {
       return [];
     }
+
     // merge overlapping intervals + sort
     weekAvailability = weekAvailability.map((dayAvailabilities) => {
       return context.merge(
@@ -106,10 +105,6 @@ const context = {
     let day = start.weekday - 1;
     const res = [];
     while (start <= end) {
-      // if (weekAvailability[day].length < 1) {
-      //   res.push([context.combine(start, DateTime.fromObject({hour: 0, minute: 0})),
-      //     context.combine(start, DateTime.fromObject({hour: 23, minute: 59, second: 59, millisecond: 999}))]);
-      // }
       if (weekAvailability[day].length > 0) {
         weekAvailability[day].forEach(function (timeSlot) {
           if (timeSlot[0] !== "" && timeSlot[1] !== "") {
@@ -177,7 +172,7 @@ const context = {
   },
 
   /**
-   * Chooses a time period, preferencing time slots which are smaller
+   * Chooses a time period, preferring time slots which are smaller
    *
    * @param { Array } freeTimes times that event could be scheduled
    * @return { DateTime } chosen time for the event
@@ -192,12 +187,12 @@ const context = {
   },
 
   /**
-   * TODO: Amelia + Hasan: Comment and descriptions
+   * Gets the evaluation of a time slot from the histogram
    *
-   * @param {DateTime} begin - TODO: Description
-   * @param {DateTime} end - TODO: Description
-   * @param {Array} historyFreq - TODO: Description
-   * @return {number} - TODO: Description
+   * @param {DateTime} begin is the start of the time slot
+   * @param {DateTime} end is the end of the time slot
+   * @param {Array} historyFreq is the histogram
+   * @return {number} returns the evaluation
    */
   getTimeSlotValue: (begin, end, historyFreq) => {
     const startHour = begin.hour;
@@ -218,12 +213,12 @@ const context = {
    * Chooses the best time slot out of list of free times considering the
    * user's history of most common busy times
    *
-   * @param {Array} freeTimes - returned by _schedule [[start1, start2]]
-   * @param {Array} historyFreqs -- array of arrays returned by userHistory()
-   * @param {Duration} duration -- event's duration
-   * @param {number} category - TODO: Description
-   * @param {DateTime} startDate
-   * @return {DateTime} -- best start date time for event
+   * @param {Array} freeTimes is returned by _schedule [[start1, start2]]
+   * @param {Array} historyFreqs is an array of arrays returned by userHistory()
+   * @param {Duration} duration is the event's duration
+   * @param {number} category is the type of event (work / leisure)
+   * @param {DateTime} startDate is the starting date of the search region
+   * @return {DateTime} - best start date time for event
    * @private
    */
   _chooseFromHistory: (
@@ -299,14 +294,14 @@ const context = {
   },
 
   /**
-   * TODO: Amelia + Hasan: Comment and descriptions
+   * Takes a person's calendar events and generates the free time periods
    *
-   * @param {Array} busySlots - TODO: Description
-   * @param {string} startISO - TODO: Description
-   * @param {string} endISO - TODO: Description
-   * @param {Duration} minBreakLength // array of every user's minimum break length
-   * @param {Array} timeConstraints - TODO: Description [{ String, String }]
-   * @return {Array} - TODO: Description
+   * @param {Array} busySlots is the calendar events
+   * @param {string} startISO is the start of the search region
+   * @param {string} endISO is the end of the search region
+   * @param {Duration} minBreakLength is the array of every user's minimum break length
+   * @param {Array} timeConstraints is the working hours of each user
+   * @return {Array} returns an array of free time slots
    */
   getFreeSlots: async (
     busySlots,
@@ -423,13 +418,14 @@ const context = {
   },
 
   /**
-   * TODO: Amelia + Hasan: Comment and descriptions
+   * Function generates free time slots for days without any calendar events
    *
-   * @param { DateTime } start - TODO: Description
-   * @param { DateTime } end - TODO: Description
-   * @param { Array } timeConstraints - TODO: Description [{DateTime, DateTime}]
-   * @param {boolean} considerStartEndTime
-   * @return { Array } - TODO: Description
+   * @param { DateTime } start is the starting day
+   * @param { DateTime } end is the ending day
+   * @param { Array } timeConstraints is the working hours of the user
+   * @param {boolean} considerStartEndTime tells the function not to modify the times
+   *                  of start or end.
+   * @return { Array } returns an array of free time slots
    */
   freeSlotsAux: (start, end, timeConstraints, considerStartEndTime = false) => {
     const oneDay = Duration.fromObject({ days: 1 });
@@ -459,31 +455,21 @@ const context = {
   },
 
   /**
-   * TODO: Amelia + Hasan: Comment and descriptions
+   * manager function that calls other functions to make a scheduling decision
    *
-   * @param { Array } freeTimes - TODO: Description
-   * @param { Duration } duration - TODO: Description
-   * @param { Array } historyFreqs - TODO: Description
-   * @param {number} category - TODO: Description
-   * @param {DateTime} startDate
-   * @return {null|{start: string, end: string}} - TODO: Description
+   * @param { Array } freeTimes is the free time slots of all users
+   * @param { Duration } duration is the duration of the event
+   * @param { Array } historyFreqs is the histograms for all users
+   * @param {number} category is the type of event (work/leisure)
+   * @param {DateTime} startDate is the start of the search range
+   * @return {null|{start: string, end: string}} returns a time slot
    */
   findMeetingSlot(freeTimes, duration, historyFreqs, category, startDate) {
     if (!freeTimes || freeTimes.length === 0) {
       console.error("findMeetingSlot Error: No Free Time Given");
       return null;
     }
-    // for (let i = 0; i < 7; i++) {
-    //   PLOT({
-    //     data: historyFreqs[0][i],
-    //     filename: `output_${i}.svg`,
-    //     format: "svg",
-    //   });
-    // }
-
     const timeSlots = context._schedule(freeTimes, duration);
-
-    // TODO: Amelia + Hasan: Why are the parameters passed as an object?
     const choice = context._chooseFromHistory(
       timeSlots,
       historyFreqs,
@@ -501,10 +487,10 @@ const context = {
   },
 
   /**
-   *TODO: Amelia + Hasan: Comment and descriptions
+   * labels the user's last 30 days of calendar events
    *
-   * @param {Array} lastMonthBusySchedule - TODO: Description
-   * @return {Promise} - TODO: Description
+   * @param {Array} lastMonthBusySchedule is the user's last month of calendar events
+   * @return {Promise} returns the user's labeled calendar history
    */
   async getCategorisedSchedule(lastMonthBusySchedule) {
     const x = [];
@@ -516,10 +502,10 @@ const context = {
   },
 
   /**
-   *TODO: Amelia + Hasan: Comment and descriptions
+   * Generates the initial bias added to the histogram
    *
-   * @param {number} category - TODO: Description
-   * @return {any[]} - TODO: Description
+   * @param {number} category is the type of event (work/leisure)
+   * @return {any[]} initial bias
    */
   initialiseHistFreqs(category) {
     const frequencies = Array(7);
@@ -602,11 +588,11 @@ const context = {
   },
 
   /**
-   * TODO: Amelia + Hasan: Comment and descriptions
+   * Generates the user's histogram
    *
    * @param { Array } categorisedSchedule given in the format:
    * [{startTime: ISO String, endTime: ISO String}]
-   * @param { number } category - TODO: Description
+   * @param { number } category is the type (work/leisure)
    * @return { Array } frequencies for each half hour time slot for this user
    */
   async generateUserHistory(categorisedSchedule, category) {
