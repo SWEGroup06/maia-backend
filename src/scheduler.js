@@ -80,9 +80,11 @@ const context = {
    * @return { Array } [[ dateTime, dateTime ], ...]
    */
   generateConstraints: (weekAvailability, _start, _end) => {
-    if (weekAvailability == null ||
+    if (
+      weekAvailability == null ||
       weekAvailability.length < 1 ||
-      weekAvailability.flat(1) < 1) {
+      weekAvailability.flat(1) < 1
+    ) {
       return [];
     }
 
