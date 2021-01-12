@@ -6,6 +6,7 @@ const DATABASE = require("../lib/database");
 const MEETINGS = require("../lib/meetings.js");
 const TIME = require("../lib/time.js");
 const REST_UTILS = require("./rest-utils.js")(DATABASE);
+const AUTO = require("../lib/automation.js");
 
 // TODO: Temporary Schedule a new meeting
 router.get("/schedule", async function (req, res) {
@@ -344,6 +345,27 @@ router.get("/preferences", async function (req, res) {
   } catch (err) {
     // Any other type of error
     const msg = "REST preferences Error: " + err.message;
+    console.error(msg);
+    res.json({ error: msg });
+  }
+});
+
+router.get("/auto-reschedule", async function () {
+  try {
+    // Fetch Google Email
+    const googleEmail = await REST_UTILS.tryFetchGoogleEmail(req, res);
+    if (!googleEmail) return;
+
+    const organiserToken = JSON.parse(
+      decodeURIComponent(await DATABASE.getTokenFromGoogleEmail(googleEmail))
+    );
+
+    await AUTO.rescheduleAll(googleEmail, organiserToken, true);
+
+    res.json({ success: true });
+  } catch (err) {
+    // Any other type of error
+    const msg = "REST autoreschedule Error: " + err.message;
     console.error(msg);
     res.json({ error: msg });
   }
