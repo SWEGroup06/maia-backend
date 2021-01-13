@@ -33,9 +33,8 @@ describe("Scheduling at a specific time", function () {
       30
     );
 
-    const testToken = await DATABASE.getTokenFromGoogleEmail(
-      process.env.TEST_ACCOUNT_EMAIL
-    );
+    const testEmails = [process.env.TEST_ACCOUNT_EMAIL]
+    const testToken = await DATABASE.getTokenFromGoogleEmail(testEmails[0]);
 
     const meetingSlot = await MEETINGS.schedule(
       testEmails,
@@ -77,10 +76,8 @@ describe("Scheduling at a specific time", function () {
       0
     );
 
-    const testEmails = [process.env.TEST_ACCOUNT_EMAIL];
-    const testToken = JSON.parse(
-      await DATABASE.getTokenFromGoogleEmail(testEmails[0])
-    );
+    const testEmails = [process.env.TEST_ACCOUNT_EMAIL]
+    const testToken = await DATABASE.getTokenFromGoogleEmail(testEmails[0]);
 
     const meetingSlot = await MEETINGS.schedule(
       testEmails,
@@ -125,10 +122,8 @@ describe("Scheduling at a specific time", function () {
       0
     );
 
-    const testEmails = [process.env.TEST_ACCOUNT_EMAIL];
-    const testToken = JSON.parse(
-      await DATABASE.getTokenFromGoogleEmail(testEmails[0])
-    );
+    const testEmails = [process.env.TEST_ACCOUNT_EMAIL]
+    const testToken = await DATABASE.getTokenFromGoogleEmail(testEmails[0]);
 
     const meetingSlot = await MEETINGS.schedule(
       testEmails,
@@ -191,9 +186,8 @@ describe("Scheduling within a given time range", function () {
       18
     );
 
-    const testToken = await DATABASE.getTokenFromGoogleEmail(
-      process.env.TEST_ACCOUNT_EMAIL
-    );
+    const testEmails = [process.env.TEST_ACCOUNT_EMAIL]
+    const testToken = await DATABASE.getTokenFromGoogleEmail(testEmails[0]);
 
     const meetingSlot = await MEETINGS.schedule(
       testEmails,
@@ -243,9 +237,8 @@ describe("Scheduling within a given time range", function () {
       45
     );
 
-    const testToken = await DATABASE.getTokenFromGoogleEmail(
-      process.env.TEST_ACCOUNT_EMAIL
-    );
+    const testEmails = [process.env.TEST_ACCOUNT_EMAIL]
+    const testToken = await DATABASE.getTokenFromGoogleEmail(testEmails[0]);
 
     const meetingSlot = await MEETINGS.schedule(
       testEmails,
@@ -293,9 +286,8 @@ describe("Scheduling within a given time range", function () {
       11
     );
 
-    const testToken = await DATABASE.getTokenFromGoogleEmail(
-      process.env.TEST_ACCOUNT_EMAIL
-    );
+    const testEmails = [process.env.TEST_ACCOUNT_EMAIL]
+    const testToken = await DATABASE.getTokenFromGoogleEmail(testEmails[0]);
 
     const TITLE = "scrum meeting";
     const meetingSlot = await MEETINGS.schedule(
