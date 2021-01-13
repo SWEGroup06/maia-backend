@@ -15,8 +15,8 @@ const context = {
    * Internal function that takes two DateTime objects and returns their intersection, if that
    * intersection is of a minimum size
    *
-   * @param { DateTime } slot1
-   * @param { DateTime } slot2
+   * @param { DateTime } slot1 - first slot to be intersected
+   * @param { DateTime } slot2 - second slot to be intersected
    * @param { duration } duration minimum size of intersection
    * @return { DateTime } intersection of slot1 and slot2 or null
    */

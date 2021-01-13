@@ -1,14 +1,7 @@
 require("dotenv").config();
 
 const { DateTime, Duration } = require("luxon");
-const {
-  _schedule,
-  getFreeSlots,
-  _choose,
-  generateUserHistory,
-  _chooseFromHistory,
-  merge,
-} = require("../src/scheduler");
+const { _schedule, getFreeSlots } = require("../src/scheduler");
 
 const assert = require("assert");
 
@@ -68,10 +61,10 @@ const BUSY_DATETIME1 = [0, 1, 2, 3, 4].map((x) =>
 //       ({startTime: DateTime.fromObject({hour: 8, minute: 30}).toISO(),
 //         endTime: DateTime.fromObject({hour: 19}).toISO()})).concat([[], []]);
 
-const WORKING_HOURS_FORMATTED = [
-  getDt(DAY1, 8, 30, 10, 30),
-  getDt(DAY2, 8, 30, 10, 30),
-];
+// const WORKING_HOURS_FORMATTED = [
+//   getDt(DAY1, 8, 30, 10, 30),
+//   getDt(DAY2, 8, 30, 10, 30),
+// ];
 
 const HOUR1 = Duration.fromObject({ hours: 1 });
 const HALFHOUR = Duration.fromObject({ minutes: 30 });
