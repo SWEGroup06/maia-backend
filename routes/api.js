@@ -276,8 +276,8 @@ router.get("/cancel", async function (req, res) {
 
     let meetingTitle = JSON.parse(decodeURIComponent(req.query.meetingTitle));
     meetingTitle = meetingTitle.substring(1, meetingTitle.length - 1);
-    const meetingDateTime = JSON.parse(
-      decodeURIComponent(req.query.meetingDateTime)
+    const meetingDateTime = TIME.maintainLocalTimeZone(
+      JSON.parse(decodeURIComponent(req.query.meetingDateTime))
     );
 
     let events;
