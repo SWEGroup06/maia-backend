@@ -9,7 +9,6 @@ const DATABASE = require("../lib/database.js");
 const MEETINGS = require("../lib/meetings.js");
 const TIME = require("../lib/time.js");
 
-// const TODAY = DateTime.local();
 const TODAY = DateTime.local().startOf("day");
 const TOMORROW = TODAY.plus({ days: 1 });
 const ONE_HOUR = 60;
