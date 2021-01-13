@@ -295,7 +295,7 @@ router.get("/cancel", async function (req, res) {
   }
 });
 
-// TODO: Amelia
+// recalibrate preferences
 router.get("/preferences", async function (req, res) {
   try {
     // Set preferences timeout to be 5 minutes (5 * 60 * 1000)
