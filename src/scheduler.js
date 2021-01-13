@@ -245,8 +245,8 @@ const context = {
    * Takes a person's calendar events and generates the free time periods
    *
    * @param {Array} busySlots is the calendar events
-   * @param {string} startISO is the start of the search region
-   * @param {string} endISO is the end of the search region
+   * @param {string} startISO is the start date of the search region
+   * @param {string} endISO is the end date of the search region
    * @param {Duration} minBreakLength is the array of every user's minimum break length
    * @param {Array} timeConstraints is the working hours of each user
    * @return {Array} returns an array of free time slots

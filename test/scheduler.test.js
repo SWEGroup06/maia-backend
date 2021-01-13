@@ -52,14 +52,22 @@ const FREE_DATETIME6 = FREE_DATETIME3.concat([
   getDt(DAY2, 15, 0, 6, 30),
 ]);
 
+const FREE_DATETIME_WORK_HOURS = [1, 2, 3].map((x) =>
+  getDt(DAY1, 9 + 3 * x, 0, 1)
+);
+
 const BUSY_DATETIME1 = [0, 1, 2, 3, 4].map((x) =>
   getDt(DAY1, 10 + 3 * x, 0, 2, 0)
 );
 
-// const WORKING_HOURS =
-//     [0, 1, 2, 3, 4].map((x) =>
-//       ({startTime: DateTime.fromObject({hour: 8, minute: 30}).toISO(),
-//         endTime: DateTime.fromObject({hour: 19}).toISO()})).concat([[], []]);
+const WORKING_HOURS = [0, 1, 2, 3, 4]
+  .map((x) => [
+    {
+      startTime: DateTime.fromObject({ hour: 10, minute: 30 }).toISO(),
+      endTime: DateTime.fromObject({ hour: 19 }).toISO(),
+    },
+  ])
+  .concat([[], []]);
 
 // const WORKING_HOURS_FORMATTED = [
 //   getDt(DAY1, 8, 30, 10, 30),
@@ -112,15 +120,31 @@ describe("Testing the scheduling algorithm", function () {
 
   it("transforms schedule of busy events to free times", async () => {
     const se = getDt(DAY1, 9, 0, 13);
-    const freeTime = await getFreeSlots(
+    const freeTimes = await getFreeSlots(
       BUSY_DATETIME1,
       se[0],
       se[1],
       Duration.fromObject({ minutes: 0 }),
       noWorkingHours
     );
+    assert(FREE_DATETIME1.length === freeTimes.length);
     for (let i = 0; i < FREE_DATETIME1.length; i++) {
-      assert.deepStrictEqual(freeTime[i].c, FREE_DATETIME1[i].c);
+      assert.deepStrictEqual(freeTimes[i].c, FREE_DATETIME1[i].c);
+    }
+  });
+
+  it("finds free times with non empty working hours", async () => {
+    const se = getDt(DAY1, 9, 0, 13);
+    const freeTimes = await getFreeSlots(
+      BUSY_DATETIME1,
+      se[0],
+      se[1],
+      Duration.fromObject({ minutes: 0 }),
+      WORKING_HOURS
+    );
+    assert(FREE_DATETIME_WORK_HOURS.length === freeTimes.length);
+    for (let i = 0; i < FREE_DATETIME_WORK_HOURS.length; i++) {
+      assert.deepStrictEqual(freeTimes[i].c, FREE_DATETIME_WORK_HOURS[i].c);
     }
   });
 });
