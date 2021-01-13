@@ -1,6 +1,6 @@
 const { DateTime, Duration } = require("luxon");
 
-const DIALOGFLOW = require("../lib/dialogflow.js");
+const DIALOGFLOW = require("../lib/dialogflow");
 // const PLOT = require("plotter").plot;
 
 /* CONSTANTS */
@@ -67,60 +67,6 @@ const context = {
       }
     });
     return result;
-  },
-
-  /**
-   * generates constraints from each day for the times specified in weekAvailability
-   *
-   * @param {Array} weekAvailability [[{startTime: X, endTime: Y}],...] list
-   * of time constraints for every day of the week
-   * @param { string } _start ISO Date/Time format, represents start
-   * DateTime that event can occur
-   * @param { string } _end ISO Date/Time format, represents end DateTime
-   * @return { Array } [[ dateTime, dateTime ], ...]
-   */
-  generateConstraints: (weekAvailability, _start, _end) => {
-    if (
-      weekAvailability == null ||
-      weekAvailability.length < 1 ||
-      weekAvailability.flat(1) < 1
-    ) {
-      return [];
-    }
-
-    // merge overlapping intervals + sort
-    weekAvailability = weekAvailability.map((dayAvailabilities) => {
-      return context.merge(
-        dayAvailabilities
-          .map((a) => [
-            DateTime.fromISO(a.startTime),
-            DateTime.fromISO(a.endTime),
-          ])
-          .sort(function (a, b) {
-            return a[0] - b[0] || a[1] - b[1];
-          })
-      );
-    });
-
-    let start = DateTime.fromISO(_start);
-    const end = DateTime.fromISO(_end);
-    let day = start.weekday - 1;
-    const res = [];
-    while (start <= end) {
-      if (weekAvailability[day].length > 0) {
-        weekAvailability[day].forEach(function (timeSlot) {
-          if (timeSlot[0] !== "" && timeSlot[1] !== "") {
-            res.push([
-              context.combine(start, timeSlot[0]),
-              context.combine(start, timeSlot[1]),
-            ]);
-          }
-        });
-      }
-      day = (day + 1) % 7;
-      start = start.plus({ days: 1 });
-    }
-    return res;
   },
 
   /**
@@ -633,7 +579,7 @@ const context = {
         }
       }
     }
-    // TODO: fix this!
+    // normalise histogram
     frequencies = frequencies.map((arr) =>
       arr.map((a) => (a + Math.abs(smallest)) / (largest - smallest))
     );
