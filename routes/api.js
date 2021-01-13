@@ -11,6 +11,9 @@ const AUTO = require("../lib/automation.js");
 // Schedule a new meeting
 router.get("/schedule", async function (req, res) {
   try {
+    // Set preferences timeout to be 5 minutes (5 * 60 * 1000)
+    req.setTimeout(300e3);
+
     // Fetch Google Emails
     const googleEmails = await REST_UTILS.tryFetchGoogleEmails(req, res);
     if (!googleEmails) return;
@@ -71,6 +74,9 @@ router.get("/schedule", async function (req, res) {
 // Reschedule an existing meeting
 router.get("/reschedule", async function (req, res) {
   try {
+    // Set preferences timeout to be 5 minutes (5 * 60 * 1000)
+    req.setTimeout(300e3);
+
     // Fetch Google Email
     const googleEmail = await REST_UTILS.tryFetchGoogleEmail(req, res);
     if (!googleEmail) return;
@@ -147,6 +153,9 @@ router.get("/reschedule", async function (req, res) {
 // Retrieve all meetings
 router.get("/meetings", async function (req, res) {
   try {
+    // Set preferences timeout to be 5 minutes (5 * 60 * 1000)
+    req.setTimeout(300e3);
+
     // Fetch Google Email
     const googleEmail = await REST_UTILS.tryFetchGoogleEmail(req, res);
     if (!googleEmail) return;
@@ -188,6 +197,9 @@ router.get("/meetings", async function (req, res) {
 // Add constraints
 router.get("/constraints", async function (req, res) {
   try {
+    // Set preferences timeout to be 5 minutes (5 * 60 * 1000)
+    req.setTimeout(300e3);
+
     // Fetch Google Email
     const googleEmail = await REST_UTILS.tryFetchGoogleEmail(req, res);
     if (!googleEmail) return;
@@ -251,6 +263,9 @@ router.get("/set-min-break", async function (req, res) {
 // Cancel event
 router.get("/cancel", async function (req, res) {
   try {
+    // Set preferences timeout to be 5 minutes (5 * 60 * 1000)
+    req.setTimeout(300e3);
+
     // Fetch Google Email
     const googleEmail = await REST_UTILS.tryFetchGoogleEmail(req, res);
     if (!googleEmail) return;
@@ -328,8 +343,11 @@ router.get("/preferences", async function (req, res) {
 });
 
 // Auto reschedule events
-router.get("/auto-reschedule", async function () {
+router.get("/auto-reschedule", async function (req, res) {
   try {
+    // Set preferences timeout to be 5 minutes (5 * 60 * 1000)
+    req.setTimeout(300e3);
+
     // Fetch Google Email
     const googleEmail = await REST_UTILS.tryFetchGoogleEmail(req, res);
     if (!googleEmail) return;
