@@ -244,39 +244,6 @@ router.get("/set-min-break", async function (req, res) {
   }
 });
 
-// // Set Notify Auto Reschedules
-// router.get("/setNotifyAutoReschedules", async function (req, res) {
-//   if (!req.query.slackEmail && !req.query.googleEmail) {
-//     res.json({ error: "Email not found" });
-//     return;
-//   }
-//
-//   if (!req.query.notifyAutoReschedules) {
-//     res.json({ error: "Notification preference not given" });
-//   }
-//
-//   try {
-//     let googleEmail;
-//     if (req.query.googleEmail) {
-//       googleEmail = JSON.parse(decodeURIComponent(req.query.googleEmail));
-//     } else {
-//       const slackEmail = JSON.parse(decodeURIComponent(req.query.slackEmail));
-//       googleEmail = await DATABASE.getGoogleEmailFromSlackEmail(slackEmail);
-//     }
-//
-//     const notify = JSON.parse(decodeURIComponent(req.query.notifyAutoReschedules));
-//     if (notify === null) {
-//       // break can't be in seconds/milliseconds/... at least minutes
-//       res.send({ error: "Notification preference not given" });
-//     }
-//     await DATABASE.setNotifyOfAutoReschedules(googleEmail, notify);
-//     res.send({ success: true });
-//   } catch (error) {
-//     console.error(error);
-//     res.send({ error: error.toString() });
-//   }
-// });
-
 // Cancel event
 router.get("/cancel", async function (req, res) {
   try {
