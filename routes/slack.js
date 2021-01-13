@@ -153,6 +153,9 @@ const actionHandlers = {
    */
   constraints: async function (payload, action) {
     try {
+      // Dont update if the input is not the submit button
+      if (action.action_id !== "submit") return;
+
       // Parse state
       if (!payload.state) return "Please select a day.";
       const constraints = payload.state.values.constraints;
@@ -167,10 +170,6 @@ const actionHandlers = {
       if (startTime === "Invalid Date" || endTime === "Invalid Date") {
         return "Invalid Time";
       }
-
-      // Dont update if the input is not the submit button
-      if (action.action_id !== "submit") return;
-
       // Set constraint
       const googleEmail = await DATABASE.getGoogleEmailFromSlackId(
         payload.user.id
