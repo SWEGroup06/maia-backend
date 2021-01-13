@@ -307,7 +307,13 @@ router.get("/preferences", async function (req, res) {
 
     // Fetch Google Email
     const googleEmail = await REST_UTILS.tryFetchGoogleEmail(req, res);
+
     if (!googleEmail) return;
+
+    // Get tokens from the database
+    const tokens = JSON.parse(
+      await DATABASE.getTokenFromGoogleEmail(googleEmail)
+    );
 
     // Generate User preferences
     await MEETINGS.generatePreferences(googleEmail, tokens);
