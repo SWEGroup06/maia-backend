@@ -57,7 +57,7 @@ router.get("/schedule", async function (req, res) {
       console.warn("SCHEDULE: No Slot Found");
       res.json({
         info:
-          "Sorry, we can't find an available slot that meets your preferences",
+          "Sorry, I can't find an available slot that meets your preferences",
       });
       return;
     }
@@ -136,7 +136,7 @@ router.get("/reschedule", async function (req, res) {
       console.warn("SCHEDULE: No Slot Found");
       res.json({
         info:
-          "Sorry, we can't find an available slot that meets your preferences",
+          "Sorry, I can't find an available slot that meets your preferences",
       });
       return;
     }
