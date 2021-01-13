@@ -15,7 +15,7 @@ These instructions will get you a copy of the project up and running on your loc
 - NodeJS
 - MongoDB Account & Database
 - Google Account & Project
-- Slack Account & Bot
+- Slack Account
 
 ### Local (Debugging)
 
