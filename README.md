@@ -12,16 +12,16 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 
-NodeJS
-MongoDB Account & Database
-Google Account & Project
-Slack Account & Bot
+- NodeJS
+- MongoDB Account & Database
+- Google Account & Project
+- Slack Account & Bot
 
 ### Local (Debugging)
 
-Clone the repository with `git clone https://github.com/SWEGroup06/maia-backend.git`
-Add `.env` to the root directory
-Run `npm start` to start the beta bot
+- Clone the repository with `git clone https://github.com/SWEGroup06/maia-backend.git`
+- Add `.env` to the root directory
+- Run `npm start` to start the beta bot
 
 ### Deployment
 
