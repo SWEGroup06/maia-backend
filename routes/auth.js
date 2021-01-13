@@ -80,9 +80,6 @@ router.get("/callback", async function (req, res) {
       state.slackId
     );
 
-    // TODO: Handle Preferences
-    // setTimeout(() => MEETINGS.generatePreferences(googleEmail, tokens), 0);
-
     // Redirect to success page
     res.redirect("success/login.html");
 
