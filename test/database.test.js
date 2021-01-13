@@ -2,7 +2,6 @@ require("dotenv").config();
 
 const assert = require("assert");
 
-// const GOOGLE = require("../lib/google.js");
 const DATABASE = require("../lib/database.js");
 
 const { describe, it, before, after } = require("mocha");
@@ -10,9 +9,6 @@ const { describe, it, before, after } = require("mocha");
 describe("Testing setting and fetching from database", function () {
   before(async () => {
     await DATABASE.getDatabaseConnection(true);
-    // const token = JSON.parse(
-    //   await DATABASE.getTokenFromGoogleEmail(process.env.TEST_ACCOUNT_EMAIL)
-    // );
   });
 
   it("Get constraints returns constraints previously set", async function () {
