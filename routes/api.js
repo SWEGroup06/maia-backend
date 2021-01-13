@@ -51,9 +51,11 @@ router.get("/schedule", async function (req, res) {
     );
 
     if (!chosenSlot) {
-      const msg = "SCHEDULE: No Slot Found";
-      console.warn(msg);
-      res.json({ info: msg });
+      console.warn("SCHEDULE: No Slot Found");
+      res.json({
+        info:
+          "Sorry, we can't find an available slot that meets your preferences",
+      });
       return;
     }
 
@@ -125,9 +127,11 @@ router.get("/reschedule", async function (req, res) {
     );
 
     if (!chosenSlot) {
-      const msg = "RESCHEDULE: No Slot Found";
-      console.warn(msg);
-      res.json({ info: msg });
+      console.warn("SCHEDULE: No Slot Found");
+      res.json({
+        info:
+          "Sorry, we can't find an available slot that meets your preferences",
+      });
       return;
     }
 
