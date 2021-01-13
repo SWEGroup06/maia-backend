@@ -8,7 +8,7 @@ const TIME = require("../lib/time.js");
 const REST_UTILS = require("./rest-utils.js")(DATABASE);
 const AUTO = require("../lib/automation.js");
 
-// TODO: Temporary Schedule a new meeting
+// Schedule a new meeting
 router.get("/schedule", async function (req, res) {
   try {
     // Fetch Google Emails
@@ -51,9 +51,11 @@ router.get("/schedule", async function (req, res) {
     );
 
     if (!chosenSlot) {
-      const msg = "SCHEDULE: No Slot Found";
-      console.warn(msg);
-      res.json({ info: msg });
+      console.warn("SCHEDULE: No Slot Found");
+      res.json({
+        info:
+          "Sorry, we can't find an available slot that meets your preferences",
+      });
       return;
     }
 
@@ -66,7 +68,7 @@ router.get("/schedule", async function (req, res) {
   }
 });
 
-// TODO: Temporary until we finish
+// Reschedule an existing meeting
 router.get("/reschedule", async function (req, res) {
   try {
     // Fetch Google Email
@@ -125,9 +127,11 @@ router.get("/reschedule", async function (req, res) {
     );
 
     if (!chosenSlot) {
-      const msg = "RESCHEDULE: No Slot Found";
-      console.warn(msg);
-      res.json({ info: msg });
+      console.warn("SCHEDULE: No Slot Found");
+      res.json({
+        info:
+          "Sorry, we can't find an available slot that meets your preferences",
+      });
       return;
     }
 
@@ -295,7 +299,7 @@ router.get("/cancel", async function (req, res) {
   }
 });
 
-// recalibrate preferences
+// Recalibrate preferences
 router.get("/preferences", async function (req, res) {
   try {
     // Set preferences timeout to be 5 minutes (5 * 60 * 1000)
@@ -317,6 +321,7 @@ router.get("/preferences", async function (req, res) {
   }
 });
 
+// Auto reschedule events
 router.get("/auto-reschedule", async function () {
   try {
     // Fetch Google Email

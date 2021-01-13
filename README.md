@@ -4,7 +4,7 @@
 
 Maia is a smart calendar application, powered by an efficient scheduling algorithm, combining Natural Language Processing and Artificial Intelligence to provide an elegant solution for your scheduling needs.
 
-```maia-backend``` is the respository containing the code for the backend server. 
+`maia-backend` is the respository containing the code for the backend server. 
 
 ## Getting Started
 
@@ -12,17 +12,16 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 
-```
-1. NodeJS (npm)
-2. Slack
-```
+- NodeJS
+- MongoDB Account & Database
+- Google Account & Project
+- Slack Account
 
 ### Local (Debugging)
-```
-1. git clone https://github.com/SWEGroup06/maia-backend.git
-2. Add `.env` to the root directory
-3. Run `npm start` to start the beta bot
-```
+
+- Clone the repository with `git clone https://github.com/SWEGroup06/maia-backend.git`
+- Add `.env` to the root directory
+- Run `npm start` to start the beta bot
 
 ### Deployment
 

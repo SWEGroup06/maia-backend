@@ -80,13 +80,8 @@ router.get("/callback", async function (req, res) {
       state.slackId
     );
 
-    // TODO: Handle Preferences
-    // setTimeout(() => MEETINGS.generatePreferences(googleEmail, tokens), 0);
-
     // Redirect to success page
     res.redirect("success/login.html");
-
-    // res.json({userID: state.userID, teamID: state.teamID, tokens});
   } catch (err) {
     // Any other type of error
     const msg = "REST callback Error: " + err.message;
