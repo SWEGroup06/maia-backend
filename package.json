@@ -26,7 +26,7 @@
     "express": "^4.17.1",
     "googleapis": "^61.0.0",
     "jest": "^26.6.1",
-    "luxon": "^1.25.0",
+    "luxon": "^2.5.2",
     "mongoose": "^5.10.9",
     "nodemailer": "^6.4.16",
     "uuid": "^8.3.1"
